@@ -47,25 +47,25 @@ test('parseStruct', () => {
         { '2D': { x: 'f', y: 'f' } },
         { g: { x: 'f', y: 'f' } },
     ];
-     expect(JSON.stringify(r = parseStruct(s, t))).toBe(JSON.stringify(x));
-    // expect(r).toBe(s);
+    expect(JSON.stringify(r = parseStruct(s, t))).toBe(JSON.stringify(x));
+    expect(r).toBe(s);
 
-    // [s, t, x] = [
-    //     { g: '2D' },
-    //     { '2D': { x: 'f', y: 'f' } },
-    //     ​​​​​{ g: { x: 'f', y: 'f' } }​​​​​,
-    // ];
-    // expect(JSON.stringify(r = parseStruct(s, t, { protect: false }))).toBe(JSON.stringify(x));
-    // expect(r).toBe(s);
+    [s, t, x] = [
+        { g: '2D' },
+        { '2D': { x: 'f', y: 'f' } },
+        { g: { x: 'f', y: 'f' } },
+    ];
+    expect(JSON.stringify(r = parseStruct(s, t, { protect: false }))).toBe(JSON.stringify(x));
+    expect(r).toBe(s);
 
-    // [s, t, x] = [
-    //     { g: '2D' },
-    //     { '2D': { x: 'f', y: 'f' } },
-    //     ​​​​​{ g: { x: 'f', y: 'f' } }​​​​​,
-    // ];
-    // expect(JSON.stringify(r = parseStruct(s, t, { protect: true }))).toBe(JSON.stringify(x));
-    // expect(r).not.toBe(s);
-    // expect(JSON.stringify(s)).toBe(JSON.stringify({ g: '2D' }));
+    [s, t, x] = [
+        { g: '2D' },
+        { '2D': { x: 'f', y: 'f' } },
+        { g: { x: 'f', y: 'f' } },
+    ];
+    expect(JSON.stringify(r = parseStruct(s, t, { protect: true }))).toBe(JSON.stringify(x));
+    expect(r).not.toBe(s);
+    expect(JSON.stringify(s)).toBe(JSON.stringify({ g: '2D' }));
 
 });
 
