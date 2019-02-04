@@ -1,0 +1,32 @@
+{
+  "name": "c_struct",
+  "version": "0.3.0",
+  "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^24.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrHIDEn/c_struct.git"
+  },
+  "keywords": [
+    "C",
+    "struct",
+    "bytes",
+    "buffer"
+  ],
+  "author": "Marek Krzyżowski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MrHIDEn/c_struct/issues"
+  },
+  "homepage": "https://github.com/MrHIDEn/c_struct#readme"
+}
