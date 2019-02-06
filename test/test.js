@@ -108,4 +108,16 @@ test('readBufferLe', () => {
     expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
+
+    [h, s, t, x] = [
+        //11   12   13  
+        ' 0b00 0c00 0d00'.replace(/ /g, ''),
+        { a: 'XYZ' },
+        { XYZ: ['u16', 'u16', 'u16'] },
+        [{ a: [11, 12, 13] }, 6]
+    ];
+    b = Buffer.from(h, 'hex');
+    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(r[0]).toBe(s);
+    expect(r[1]).toBe(h.length / 2);
 });
