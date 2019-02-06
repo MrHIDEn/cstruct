@@ -73,7 +73,6 @@ function readBufferLe(buffer, struct, { protect = false, position = 0 } = {}) {
         let entries = Object.entries(struct);
         let keyLength;
         for (let [key, type] of entries) {
-            console.log(struct[key]);
             if (keyLength !== undefined) {
                 if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.length'.`);
                 let typeLength = struct[keyLength];
