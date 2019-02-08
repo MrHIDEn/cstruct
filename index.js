@@ -69,7 +69,6 @@ function readBufferLe(buffer, struct, { protect = false, position = 0 } = {}) {
         u32() { return buffer.readUInt32LE((position += 4) - 4); },
     };
     function recursion(struct) {
-        struct;
         let entries = Object.entries(struct);
         let keyLength;
         for (let [key, type] of entries) {
@@ -112,8 +111,6 @@ module.exports.readBufferLe = readBufferLe;
 /**@param {Object} uTypes*/
 /**@returns {Array.<object, number>}*/ //[readObject, position]
 const writeBufferLe = (buffer, struct, object, { position = 0 } = {}) => {
-    struct;
-    object;
     const writters = {
         u8(type, val = 0) { buffer.writeUInt8(val, (position += 1) - 1); },
         u16(type, val = 0) { buffer.writeUInt16LE(val, (position += 2) - 2); },
@@ -150,8 +147,8 @@ const writeBufferLe = (buffer, struct, object, { position = 0 } = {}) => {
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
-                    let fnc = writters[type[0] === 's' ? 's' : type];
-                    if (fnc) fnc(type, object[key]);
+                    let writter = writters[type[0] === 's' ? 's' : type];
+                    if (writter) writter(type, object[key]);
                     else throw TypeError(`Unknown type "${type}"`);
                     break;
                 default: throw TypeError(`Unknown type "${type}"`);
@@ -332,8 +329,8 @@ const writeBufferBe = (buffer, struct, object, { position = 0 } = {}) => {
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
-                    let fnc = writters[type[0] === 's' ? 's' : type];
-                    if (fnc) fnc(type, object[key]);
+                    let writter = writters[type[0] === 's' ? 's' : type];
+                    if (writter) writter(type, object[key]);
                     else throw TypeError(`Unknown type "${type}"`);
                     break;
                 default: throw TypeError(`Unknown type "${type}"`);

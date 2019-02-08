@@ -88,9 +88,9 @@ test('readBufferLe', () => {
 
     [h, s, x] = [
         //11 12   13      
-        ' 0b 0c00 0d000000'.replace(/ /g, ''),
-        ['u8', 'u16', 'u32'],
-        [[11, 12, 13], 7]
+        ' 0b 0c00 0d000000 0000a841'.replace(/ /g, ''),
+        ['u8', 'u16', 'u32', 'f'],
+        [[11, 12, 13, 21], 11]
     ];
     b = Buffer.from(h, 'hex');
     expect(JSON.stringify(r = readBufferLe(b, s))).toBe(JSON.stringify(x));
@@ -115,6 +115,30 @@ test('readBufferLe', () => {
         { a: 'XYZ' },
         { XYZ: ['u16', 'u16', 'u16'] },
         [{ a: [11, 12, 13] }, 6]
+    ];
+    b = Buffer.from(h, 'hex');
+    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(r[0]).toBe(s);
+    expect(r[1]).toBe(h.length / 2);
+
+    [h, s, t, x] = [
+        //21       21
+        ' 0000a841 0000a841'.replace(/ /g, ''),
+        { g: '2D' },
+        { '2D': { x: 'f', y: 'f' } },
+        [{ g: { x: 21, y: 21 } }, 8],
+    ];
+    b = Buffer.from(h, 'hex');
+    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(r[0]).toBe(s);
+    expect(r[1]).toBe(h.length / 2);
+
+    [h, s, t, x] = [
+        //21       21       21
+        ' 0100 0000000000003640 0000000000003640 0000000000003640'.replace(/ /g, ''),
+        { 'a.length': 'u16', a: 'XYZ' },
+        { XYZ: { x: 'd', y: 'd', z: 'd' } },
+        [{ a: [{ x: 22, y: 22, z: 22 }] }, 26]
     ];
     b = Buffer.from(h, 'hex');
     expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
