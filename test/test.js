@@ -28,6 +28,14 @@ test('parseStruct', () => {
     expect(r).toBe(s);
 
     [s, t, x] = [
+        ['f', 'f'],
+        undefined,
+        ['f', 'f']
+    ];
+    expect(JSON.stringify(r = parseStruct(s, t))).toBe(JSON.stringify(x));
+    expect(r).toBe(s);
+
+    [s, t, x] = [
         ['XYZ', 'XYZ'],
         { XYZ: { x: 'd', y: 'd', z: 'd' } },
         [{ x: 'd', y: 'd', z: 'd' }, { x: 'd', y: 'd', z: 'd' }]
