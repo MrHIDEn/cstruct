@@ -70,24 +70,24 @@ function readBufferLe(buffer, struct, { protect = false, position = 0 } = {}) {
     };
     function recursion(struct) {
         let entries = Object.entries(struct);
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let reader = lenReaders[typeLength];
-                if (reader) struct[keyLength] = reader(typeLength);
+                if (reader) struct[keySize] = reader(typeLength);
                 else throw TypeError(`Unknown type "${typeLength}"`);
                 let item = JSON.stringify(struct[key]);
                 struct[key] = [];
-                for (let i = 0; i < struct[keyLength]; i++) struct[key].push(JSON.parse(item));
+                for (let i = 0; i < struct[keySize]; i++) struct[key].push(JSON.parse(item));
                 recursion(struct[key]);
-                delete struct[keyLength];//v
-                keyLength = undefined;
+                delete struct[keySize];//v
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key]); break;
                 case 'string':
@@ -129,21 +129,21 @@ const writeBufferLe = (buffer, struct, object, { position = 0 } = {}) => {
     };
     function recursion(struct, object) {
         let entries = Object.entries(struct);
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.length'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.size'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let writter = lenWritters[typeLength];
                 if (writter) writter(object[key].length);
                 else throw TypeError(`Unknown type "${typeLength}"`);
                 for (let i = 0; i < object[key].length; i++) recursion(struct[key], object[key][i]);
-                keyLength = undefined;
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
@@ -182,12 +182,12 @@ function makeBufferLe(struct, object, { protect = false, trim = true } = {}) {
     };
     function recursion(struct, object) {
         let entries = Object.entries(struct);
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.length'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.size'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let writter = lenWritters[typeLength];
                 if (writter) {
                     let add = typeLength[0] == 's' ? +typeLength.slice(1) : 4;
@@ -195,12 +195,27 @@ function makeBufferLe(struct, object, { protect = false, trim = true } = {}) {
                     writter(object[key].length);
                 }
                 else throw TypeError(`Unknown type "${typeLength}"`);
-                for (let i = 0; i < object[key].length; i++) recursion(struct[key], object[key][i]);
-                keyLength = undefined;
+                for (let i = 0; i < object[key].length; i++) {
+                    switch (typeof struct[key]) {
+                        case 'object': recursion(struct[key], object[key][i]); break;
+                        case 'string':
+                            console.log(struct[key]);
+                            let writter = writters[struct[key] === 's' ? 's' : struct[key]];
+                            if (writter) {
+                                let add = struct[key][0] == 's' ? +type.slice(1) : 4;
+                                if (buffer.length < position + add) buffer = Buffer.concat([buffer, Buffer.allocUnsafe(Math.max(add, PRE_ALLOC_SIZE))]);
+                                writter(struct[key], object[key][i]);
+                            }
+                            else throw TypeError(`Unknown type "${type}"`);
+                        break;
+                        default: throw TypeError(`Unknown type "${type}"`);
+                    }
+                }
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
@@ -220,6 +235,16 @@ function makeBufferLe(struct, object, { protect = false, trim = true } = {}) {
     if (trim) buffer = buffer.slice(0, position);
     return [buffer, position];
 }
+let [s, t, o, r, y] = [
+    { 'a.size': 'u16', a: 'u16' },
+    { },
+    { a:[12,13,14] }
+];
+r = parseStruct(s, t);
+s;
+r;
+y = makeBufferLe(r, o);
+y;
 module.exports.makeBufferLe = makeBufferLe;
 
 /**@returns {Object|Array}*/
@@ -252,24 +277,24 @@ function readBufferBe(buffer, struct, { protect = false, position = 0 } = {}) {
     };
     function recursion(struct) {
         let entries = Object.entries(struct);
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let reader = lenReaders[typeLength];
-                if (reader) struct[keyLength] = reader(typeLength);
+                if (reader) struct[keySize] = reader(typeLength);
                 else throw TypeError(`Unknown type "${typeLength}"`);
                 let item = JSON.stringify(struct[key]);
                 struct[key] = [];
-                for (let i = 0; i < struct[keyLength]; i++) struct[key].push(JSON.parse(item));
+                for (let i = 0; i < struct[keySize]; i++) struct[key].push(JSON.parse(item));
                 recursion(struct[key]);
-                delete struct[keyLength];//v
-                keyLength = undefined;
+                delete struct[keySize];//v
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key]); break;
                 case 'string':
@@ -311,21 +336,21 @@ const writeBufferBe = (buffer, struct, object, { position = 0 } = {}) => {
     };
     function recursion(struct = 0, object) {
         let entries = Object.entries(struct);//todo move to for
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.length'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.size'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let writter = lenWritters[typeLength];
                 if (writter) writter(object[key].length);
                 else throw TypeError(`Unknown type "${typeLength}"`);
                 for (let i = 0; i < object[key].length; i++) recursion(struct[key], object[key][i]);
-                keyLength = undefined;
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
@@ -364,12 +389,12 @@ function makeBufferBe(struct, object, { protect = false, trim = true } = {}) {
     };
     function recursion(struct, object) {
         let entries = Object.entries(struct);
-        let keyLength;
+        let keySize;
         for (let [key, type] of entries) {
-            if (keyLength !== undefined) {
-                if (keyLength.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.length'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.length'.`);
-                let typeLength = struct[keyLength];
+            if (keySize !== undefined) {
+                if (keySize.slice(0, -5) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.size'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.size'.`);
+                let typeLength = struct[keySize];
                 let writter = lenWritters[typeLength];
                 if (writter) {
                     let add = typeLength[0] == 's' ? +typeLength.slice(1) : 4;
@@ -377,12 +402,27 @@ function makeBufferBe(struct, object, { protect = false, trim = true } = {}) {
                     writter(object[key].length);
                 }
                 else throw TypeError(`Unknown type "${typeLength}"`);
-                for (let i = 0; i < object[key].length; i++) recursion(struct[key], object[key][i]);
-                keyLength = undefined;
+                for (let i = 0; i < object[key].length; i++) {
+                    switch (typeof struct[key]) {
+                        case 'object': recursion(struct[key], object[key][i]); break;
+                        case 'string':
+                            console.log(struct[key]);
+                            let writter = writters[struct[key] === 's' ? 's' : struct[key]];
+                            if (writter) {
+                                let add = struct[key][0] == 's' ? +type.slice(1) : 4;
+                                if (buffer.length < position + add) buffer = Buffer.concat([buffer, Buffer.allocUnsafe(Math.max(add, PRE_ALLOC_SIZE))]);
+                                writter(struct[key], object[key][i]);
+                            }
+                            else throw TypeError(`Unknown type "${type}"`);
+                        break;
+                        default: throw TypeError(`Unknown type "${type}"`);
+                    }
+                }
+                keySize = undefined;
                 continue;
             }
-            if (key.endsWith('.length')) { keyLength = key; continue; }
-            else keyLength = undefined;
+            if (key.endsWith('.size')) { keySize = key; continue; }
+            else keySize = undefined;
             switch (typeof type) {
                 case 'object': recursion(struct[key], object[key]); break;
                 case 'string':
@@ -402,4 +442,14 @@ function makeBufferBe(struct, object, { protect = false, trim = true } = {}) {
     if (trim) buffer = buffer.slice(0, position);
     return [buffer, position];
 }
+[s, t, o, r, y] = [
+    { 'a.size': 'u16', a: 'u16' },
+    { },
+    { a:[12,13,14] }
+];
+r = parseStruct(s, t);
+s;
+r;
+y = makeBufferBe(r, o);
+y;
 module.exports.makeBufferBe = makeBufferBe;

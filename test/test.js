@@ -44,9 +44,9 @@ test('parseStruct', () => {
     expect(r).toBe(s);
 
     [s, t, x] = [
-        { 'a.length': 'u16', a: 'XYZ' },
+        { 'a.size': 'u16', a: 'XYZ' },
         { XYZ: { x: 'd', y: 'd', z: 'd' } },
-        { 'a.length': 'u16', a: { x: 'd', y: 'd', z: 'd' } }
+        { 'a.size': 'u16', a: { x: 'd', y: 'd', z: 'd' } }
     ];
     expect(JSON.stringify(r = parseStruct(s, t))).toBe(JSON.stringify(x));
     expect(r).toBe(s);
@@ -144,7 +144,7 @@ test('readBufferLe', () => {
     [h, s, t, x] = [
         //21       21       21
         ' 0100 0000000000003640 0000000000003640 0000000000003640'.replace(/ /g, ''),
-        { 'a.length': 'u16', a: 'XYZ' },
+        { 'a.size': 'u16', a: 'XYZ' },
         { XYZ: { x: 'd', y: 'd', z: 'd' } },
         [{ a: [{ x: 22, y: 22, z: 22 }] }, 26]
     ];
@@ -152,4 +152,13 @@ test('readBufferLe', () => {
     expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
+
+
+    // [s, t, x] = [
+    //     { 'a.size': 'u16', a: 'XYZ' },
+    //     { XYZ: { x: 'd', y: 'd', z: 'd' } },
+    //     { 'a.size': 'u16', a: { x: 'd', y: 'd', z: 'd' } }
+    // ];
+    // expect(JSON.stringify(r = parseStruct(s, t))).toBe(JSON.stringify(x));
+    // expect(r).toBe(s);
 });
