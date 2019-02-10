@@ -1,7 +1,8 @@
-c_struct - *'C like'* JavaScript library
+c_struct - *'C like structures'* JavaScript library
 ========
 ### Features
 * Read / write buffer, **Buffer <=> Object/Array**
+* Pack / unpack, compress / decompress data to minimize size.
 * Convert buffer of **struct/array** to JavaScript **object/array** and back
 * Able to pin start point from any offset in the buffer (read/write)
 * Can return whole buffer from your data Object/Array (make)
@@ -22,9 +23,11 @@ console.log(offset); // 4
 ```
 ### Install
 $ npm i c_struct
+### Requirements
+Tested only on: Node 8.14.*
 ### Examples - Level 1
 ```javascript
-const { readBufferLE } = require('c_struct');
+const { readBufferLE, makeBufferLE, writeBufferLE, } = require('c_struct');
 let buffer, arr, obj, offset, struct;
 
 buffer = Buffer.from([1, 255, 33, 0, 0, 1]);
@@ -44,13 +47,6 @@ struct = { a: { b: 'f', c: ['f', 'f', 's5'] } };
 [obj, offset] = readBufferLE(buffer, struct);
 console.log(JSON.stringify(obj)); // {"a":{"b":1.2300000190734863,"c":[3.140000104904175,6.28000020980835,"Hello"]}}
 console.log(offset); // 17
-```
-### Requirements
-Tested only on: Node 8.14.*
-### Examples - Level 1, part 2
-```javascript
-const { readBufferLE, makeBufferLE, writeBufferLE, } = require('c_struct');
-let buffer, arr, obj, offset, struct;
 
 buffer = Buffer.from('ae47e17a14aef33f 1f85eb51b81e0940 1f85eb51b81e1940'.replace(/ /g, ''), 'hex'); //{1.23, 3.14, 6.28}
 struct = {
