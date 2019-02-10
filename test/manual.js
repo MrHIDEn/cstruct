@@ -13,11 +13,29 @@ typedef struct {
     uint8_t z;
 } Xyx;         */
 
-// #2 - PARSE (struct is protected)
+// #1a - PARSE (base is unprotected), READ+OFFSET
+base = { xyz: 'Xyz' };
+types = { Xyz: { x: 'u8', y: 'u8', z: 'u8' } };
+console.log(JSON.stringify(base)); // {"xyz":"Xyz"}
+// PARSE
+struct = parseStruct(base, types);
+
+console.log(JSON.stringify(base)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}  <== Changed
+console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
+
+// #2 READ + OFFSET (struct is unprotected)
 buffer = Buffer.from('00 00 aa bb cc 00 00'.replace(/ /g, ''), 'hex');
 console.log(buffer.toString('hex')); // 0000aabbcc0000
+console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
+[obj, offset] = readBufferLE(buffer, struct, { offset: 2 });
+console.log(JSON.stringify(obj)); // {"xyz":{"a":170,"b":187,"c":204}}
+console.log(offset); // 5
+console.log(JSON.stringify(struct)); // {"xyz":{"a":170,"b":187,"c":204}}  <== Changed
+
+
+// #3 - PARSE (struct is protected)
 base = { xyz: 'Xyz' };
-types = { Xyz: { a: 'u8', b: 'u8', c: 'u8' } };
+types = { Xyz: { x: 'u8', y: 'u8', z: 'u8' } };
 console.log(JSON.stringify(base)); // {"xyz":"Xyz"}
 // PARSE
 struct = parseStruct(base, types, { protect: true });
@@ -25,13 +43,33 @@ struct = parseStruct(base, types, { protect: true });
 console.log(JSON.stringify(base)); // {"xyz":"Xyz"}  <== Unchanged
 console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
 
-// #2 READ + OFFSET (struct is protected)
+// #4 READ + OFFSET (struct is protected)
+buffer = Buffer.from('00 00 aa bb cc 00 00'.replace(/ /g, ''), 'hex');
+console.log(buffer.toString('hex')); // 0000aabbcc0000
 console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
 [obj, offset] = readBufferLE(buffer, struct, { offset: 2, protect: true });
 console.log(JSON.stringify(obj)); // {"xyz":{"a":170,"b":187,"c":204}}
 console.log(offset); // 5
 console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}  <== Unchanged
 
+// #5 - PARSE (struct is protected)
+base = [ 'Xyz', 'Xyz', 'Xyz' ];
+types = { Xyz: { x: 'u8', y: 'u8', z: 'u8' } };
+console.log(JSON.stringify(base)); // ["Xyz","Xyz","Xyz"]
+// PARSE
+struct = parseStruct(base, types, { protect: true });
+
+console.log(JSON.stringify(base)); // ["Xyz","Xyz","Xyz"]  <== Unchanged
+console.log(JSON.stringify(struct)); // [{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"}]
+
+// #6 READ (struct is protected)
+buffer = Buffer.from('01 02 03  04 05 06  07 08 09'.replace(/ /g, ''), 'hex');
+console.log(buffer.toString('hex')); // 010203040506070809
+console.log(JSON.stringify(struct)); // [{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"}]
+[obj, offset] = readBufferLE(buffer, struct, { protect: true });
+console.log(JSON.stringify(obj)); // [{"x":1,"y":2,"z":3},{"x":4,"y":5,"z":6},{"x":7,"y":8,"z":9}]
+console.log(offset); // 9
+console.log(JSON.stringify(struct)); // [{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"},{"x":"u8","y":"u8","z":"u8"}]  <== Unchanged
 
 
 
