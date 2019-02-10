@@ -29,7 +29,7 @@ s;
 r;
 
 [s, t] = [
-    { 'a.size': 'u16', a: 'XYZ' },
+    { 'a.array': 'u16', a: 'XYZ' },
     { XYZ: { x: 'd', y: 'd', z: 'd' } }
 ];
 r = parseStruct(s, t);
@@ -37,7 +37,7 @@ s;
 r;
 
 [s, t, o] = [
-    { 'a.size': 'u16', a: 'u16' },
+    { 'a.array': 'u16', a: 'u16' },
     { },
     { a:[12,13,14] }
 ];
