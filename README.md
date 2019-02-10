@@ -5,6 +5,21 @@ c_struct - *'C like'* JavaScript library
 * Convert buffer of **struct/array** to JavaScript **object/array** and back
 * Able to pin start point from any offset in the buffer (read/write)
 * Can return whole buffer from your data Object/Array (make)
+* Little endian - LE
+* Big endian - BE
+### Simple case
+```javascript
+const { readBufferLE } = require('c_struct');
+
+let buffer = Buffer.from([1, 255, 127, 128]);
+let struct = ['i8', 'i8', 'i8', 'i8'];
+
+// READ BUFFER - LE
+let [arr, offset] = readBufferLE(buffer, struct);
+
+console.log(JSON.stringify(arr)); // [1,-1,127,-128]
+console.log(offset); // 4
+```
 ### Install
 $ npm i c_struct
 ### Examples - Level 1
@@ -31,10 +46,7 @@ console.log(JSON.stringify(obj)); // {"a":{"b":1.2300000190734863,"c":[3.1400001
 console.log(offset); // 17
 ```
 ### Requirements
-Node >= 8.14.*
-
-
-
+Tested only on: Node 8.14.*
 ### Examples - Level 1, part 2
 ```javascript
 const { readBufferLE, makeBufferLE, writeBufferLE, } = require('c_struct');
@@ -50,6 +62,13 @@ struct = {
 [obj, offset] = readBufferLE(buffer, struct);
 console.log(JSON.stringify(obj)); // {"a":{"b":1.23,"c":[3.14,6.28]}}
 console.log(offset); // 24
+
+buffer = Buffer.from("James\0\0\0\0\0" + "Bond\0\0\0\0\0\0" + "007\0\0\0\0\0\0\0");
+console.log(buffer.toString('hex')); // 4a616d65730000000000426f6e6400000000000030303700000000000000
+struct = { user: { first: 's10', last: 's10', licence: 's10' } };
+[obj, offset] = readBufferLE(buffer, struct);
+console.log(JSON.stringify(obj)); // {"user":{"first":"James","last":"Bond","licence":"007"}}
+console.log(offset); //30
 
 buffer = Buffer.alloc(2 * 8);
 console.log(buffer.toString('hex').match(/\w{1,16}/g).join(' ')); // 0000000000000000 0000000000000000

@@ -3,24 +3,14 @@ const { parseStruct, readBufferLE, makeBufferLE, writeBufferLE, } = require('../
 let b, o, s, t, r, x;
 let buffer, arr, obj, offset, struct;
 
-buffer = Buffer.from('ae47e17a14aef33f 1f85eb51b81e0940 1f85eb51b81e1940'.replace(/ /g, ''), 'hex'); //{1.23, 3.14, 6.28}
-struct = {
-    a: {
-        b: 'd',
-        c: ['d', 'd']
-    }
-};
-[obj, offset] = readBufferLE(buffer, struct);
-console.log(JSON.stringify(obj)); // {"a":{"b":1.23,"c":[3.14,6.28]}}
-console.log(offset); // 24
 
-buffer = Buffer.alloc(2 * 8);
-console.log(buffer.toString('hex').match(/\w{1,16}/g).join(' ')); // 0000000000000000 0000000000000000
-struct = ['d', 'd'];
-arr = [1.23, 3.14];
-offset = writeBufferLE(buffer, struct, arr);
-console.log(buffer.toString('hex').match(/\w{1,16}/g).join(' ')); // ae47e17a14aef33f 1f85eb51b81e0940
-console.log(offset); // 16
+
+buffer = Buffer.from("James\0\0\0\0\0" + "Bond\0\0\0\0\0\0" + "007\0\0\0\0\0\0\0");
+console.log(buffer.toString('hex')); // 4a616d65730000000000426f6e6400000000000030303700000000000000
+struct = { user: { first: 's10', last: 's10', licence: 's10' } };
+[obj, offset] = readBufferLE(buffer, struct);
+console.log(JSON.stringify(obj)); // {"user":{"first":"James","last":"Bond","licence":"007"}}
+console.log(offset); //30
 
 
 
