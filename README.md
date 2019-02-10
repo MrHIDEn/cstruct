@@ -184,7 +184,7 @@ This section explains how to provide own sub structures.
 Structures can not be imbedded in case of circular dependency.
 Imbedding just does not work on purpouse.
 
-To prepare structure which contains own structures we need to use structure parser - `parseStruct(...)`.
+> To prepare structure which contains own structures we need to use structure parser - `parseStruct(...)`.
 ```javascript
 const { parseStruct, readBufferLE, makeBufferLE, writeBufferLE, } = require('../index');
 let buffer, arr, obj, offset, struct, types, base;
