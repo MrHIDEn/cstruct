@@ -5,12 +5,14 @@
 [Dillinger][Dillinger]
 
 #### TODO
-[x] assign .string for dynamic strings
-[x] string pre-length `s={"a.string":'u8', a:"string"}, o={a:"012345"}`
-[ ] simple proxy pbuffer.readx('u16le'[, offset]) pbuffer.writex('u16le', val[, offset])
-[ ] simple proxy pbuffer.readLE('u16'[, offset]) pbuffer.writeBE('u16le', val[, offset])
-[ ] simple proxy pbuffer.le.read('u16'[, offset]) pbuffer.be.write('u16', val[, offset])
-[ ] simple proxy pbuffer.le.read('s16'[, offset]) pbuffer.be.write('s16', val[, offset])
+|Status|Subject|
+|------|-------|
+|**done**|assign .string for dynamic strings|
+|**done**|string pre-length `s={"a.string":'u8', a:"string"}, o={a:"012345"}`|
+|todo|simple proxy pbuffer.readx('u16le'[, offset]) pbuffer.writex('u16le', val[, offset])|
+|todo|simple proxy pbuffer.readLE('u16'[, offset]) pbuffer.writeBE('u16le', val[, offset])|
+|todo|simple proxy pbuffer.le.read('u16'[, offset]) pbuffer.be.write('u16', val[, offset])|
+|todo|simple proxy pbuffer.le.read('s16'[, offset]) pbuffer.be.write('s16', val[, offset])|
 
 #### Functions
 ```javascript
