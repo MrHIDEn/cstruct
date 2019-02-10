@@ -1,7 +1,7 @@
 const {
     PRE_ALLOC_SIZE,
     parseStruct,
-    readBufferLe,
+    readBufferLE,
 } = require('../index');
 
 test('PRE_ALLOC_SIZE', () => {
@@ -79,8 +79,8 @@ test('parseStruct', () => {
 });
 
 
-test('readBufferLe', () => {
-    //readBufferLe(buffer, struct, { protect = false, position = 0 } = {})
+test('readBufferLE', () => {
+    //readBufferLE(buffer, struct, { protect = false, position = 0 } = {})
     let h, b, s, t, r, x;
 
     [h, s, x] = [
@@ -90,7 +90,7 @@ test('readBufferLe', () => {
         [{ a: 11, b: 12, c: 13, d: -11, e: -12, f: -13, g: 21, h: 22, i: 'abc' }, 31]
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, s))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, s))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 
@@ -101,7 +101,7 @@ test('readBufferLe', () => {
         [[11, 12, 13, 21], 11]
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, s))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, s))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 
@@ -113,7 +113,7 @@ test('readBufferLe', () => {
         [{ a: { x: 11, y: 12, z: 13 } }, 6]
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 
@@ -125,7 +125,7 @@ test('readBufferLe', () => {
         [{ a: [11, 12, 13] }, 6]
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 
@@ -137,7 +137,7 @@ test('readBufferLe', () => {
         [{ g: { x: 21, y: 21 } }, 8],
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 
@@ -149,7 +149,7 @@ test('readBufferLe', () => {
         [{ a: [{ x: 22, y: 22, z: 22 }] }, 26]
     ];
     b = Buffer.from(h, 'hex');
-    expect(JSON.stringify(r = readBufferLe(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
+    expect(JSON.stringify(r = readBufferLE(b, parseStruct(s, t)))).toBe(JSON.stringify(x));
     expect(r[0]).toBe(s);
     expect(r[1]).toBe(h.length / 2);
 

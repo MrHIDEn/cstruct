@@ -23,10 +23,10 @@ function hex4(buf) {
     return `[${buf.toString('hex').match(/.{2,8}/g)}]`;
 }
 
-let [b4, p4] = makeBufferLe(['f', 'f', 'f', 'f'], [1.1, 2.2, 3.3, 4.4]);
+let [b4, p4] = makeBufferLE(['f', 'f', 'f', 'f'], [1.1, 2.2, 3.3, 4.4]);
 console.log(hex4(b4));
 p4;
-let [o5, p5] = readBufferLe(b4, ['f', 'f', 'f', 'f'], { protect: true });
+let [o5, p5] = readBufferLE(b4, ['f', 'f', 'f', 'f'], { protect: true });
 o5;
 p5;
 ```

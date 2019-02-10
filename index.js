@@ -1,6 +1,5 @@
-// written by marekkrzyzowski 31.01.2019 0.3.0
+// 'c_struct' - written by marekkrzyzowski 31.01.2019 0.6.0
 'use strict';
-let s, t, o, r, y, b;
 
 let PRE_ALLOC_SIZE = 200;
 module.exports.PRE_ALLOC_SIZE = PRE_ALLOC_SIZE;
@@ -46,7 +45,7 @@ module.exports.parseStruct = parseStruct;
 /**@param {Object|Array} struct*/ // struct $= {}, []
 /**@param {Object} uTypes*/
 /**@returns {Array.<object, number>}*/ //[readObject, offset]
-function readBufferLe(buffer, struct, { protect = false, offset = 0 } = {}) {
+function readBufferLE(buffer, struct, { protect = false, offset = 0 } = {}) {
     let object = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     const readers = {
         u8() { return buffer.readUInt8((offset += 1) - 1); },
@@ -120,21 +119,7 @@ function readBufferLe(buffer, struct, { protect = false, offset = 0 } = {}) {
     recursion(object);
     return [object, offset];
 }
-[b, s, t, o, r, y] = [
-    Buffer.from('06 00 61 61 62 62 63 63'.replace(/ /g,''), 'hex'),
-    //Buffer.from('00 06 61 61 62 62 63 63'.replace(/ /g, ''), 'hex'),
-    { 'a.string': 'u16', a: 'string' },
-    {},
-    { a: 'aabbcc' }
-];
-r = parseStruct(s, t);
-s;
-r;
-[o, y] = readBufferLe(b, r);
-o;
-y;
-console.log(b);
-module.exports.readBufferLe = readBufferLe;
+module.exports.readBufferLE = readBufferLE;
 
 /**@param {Buffer} buffer*/
 /**@param {Number} offset*/
@@ -142,7 +127,7 @@ module.exports.readBufferLe = readBufferLe;
 /**@param {(Object|Array)} object*/
 /**@param {Object} uTypes*/
 /**@returns {Array.<object, number>}*/ //[readObject, offset]
-const writeBufferLe = (buffer, struct, object, { offset = 0 } = {}) => {
+const writeBufferLE = (buffer, struct, object, { offset = 0 } = {}) => {
     const writters = {
         u8(type, val = 0) { buffer.writeUInt8(val, (offset += 1) - 1); },
         u16(type, val = 0) { buffer.writeUInt16LE(val, (offset += 2) - 2); },
@@ -209,21 +194,9 @@ const writeBufferLe = (buffer, struct, object, { offset = 0 } = {}) => {
     recursion(struct, object);
     return offset;
 }
-[s, t, o, r, y] = [
-    { 'a.string': 'u32', a: 'string' },
-    {},
-    { a: 'aabbcc' }
-];
-r = parseStruct(s, t);
-s;
-r;
-b = Buffer.alloc(12, 0xff);
-y = writeBufferLe(b, r, o);
-y;
-console.log(b);
-module.exports.writeBufferLe = writeBufferLe;
+module.exports.writeBufferLE = writeBufferLE;
 
-function makeBufferLe(struct, object, { protect = false, trim = true } = {}) {
+function makeBufferLE(struct, object, { protect = false, trim = true } = {}) {
     struct = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     let buffer = Buffer.allocUnsafe(PRE_ALLOC_SIZE);
     let offset = 0;
@@ -319,34 +292,14 @@ function makeBufferLe(struct, object, { protect = false, trim = true } = {}) {
     if (trim) buffer = buffer.slice(0, offset);
     return [buffer, offset];
 }
-[s, t, o, r, y, b] = [
-    { 'a.string': 'u16', a: 'string' },
-    {},
-    { a: 'AABBCC' }
-];
-r = parseStruct(s, t);
-s;
-r;
-y = makeBufferLe(r, o);
-y;
-// let [s, t, o, r, y] = [
-//     { 'a.array': 'u16', a: 'u16' },
-//     {},
-//     { a: [12, 13, 14] }
-// ];
-// r = parseStruct(s, t);
-// s;
-// r;
-// y = makeBufferLe(r, o);
-// y;
-module.exports.makeBufferLe = makeBufferLe;
+module.exports.makeBufferLE = makeBufferLE;
 
 /**@returns {Object|Array}*/
 /**@param {Buffer} buffer*/
 /**@param {Number} offset*/
 /**@param {Object|Array} struct*/ // struct $= {}, []
 /**@param {Object} uTypes*/
-function readBufferBe(buffer, struct, { protect = false, offset = 0 } = {}) {
+function readBufferBE(buffer, struct, { protect = false, offset = 0 } = {}) {
     let object = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     const readers = {
         u8() { return buffer.readUInt8((offset += 1) - 1); },
@@ -420,21 +373,7 @@ function readBufferBe(buffer, struct, { protect = false, offset = 0 } = {}) {
     recursion(object);
     return [object, offset];
 }
-[b, s, t, o, r, y] = [
-    //Buffer.from('06 00 61 61 62 62 63 63'.replace(/ /g,''), 'hex')
-    Buffer.from('00 06 61 61 62 62 63 63'.replace(/ /g, ''), 'hex'),
-    { 'a.string': 'u16', a: 'string' },
-    {},
-    { a: 'aabbcc' }
-];
-r = parseStruct(s, t);
-s;
-r;
-[o, y] = readBufferBe(b, r);
-o;
-y;
-console.log(b);
-module.exports.readBufferBe = readBufferBe;
+module.exports.readBufferBE = readBufferBE;
 
 /**@returns {Object|Array}*/
 /**@param {Buffer} buffer*/
@@ -442,7 +381,7 @@ module.exports.readBufferBe = readBufferBe;
 /**@param {(Object|Array)} struct*/ // struct $= {}, []
 /**@param {(Object|Array)} object*/
 /**@param {Object} uTypes*/
-const writeBufferBe = (buffer, struct, object, { offset = 0 } = {}) => {
+const writeBufferBE = (buffer, struct, object, { offset = 0 } = {}) => {
     const writters = {
         u8(type, val = 0) { buffer.writeUInt8(val, (offset += 1) - 1); },
         u16(type, val = 0) { buffer.writeUInt16BE(val, (offset += 2) - 2); },
@@ -509,22 +448,9 @@ const writeBufferBe = (buffer, struct, object, { offset = 0 } = {}) => {
     recursion(struct, object);
     return offset;
 }
-[s, t, o, r, y] = [
-    { 'a.string': 'u32', a: 'string' },
-    {},
-    { a: 'aabbcc' }
-];
-r = parseStruct(s, t);
-s;
-r;
-b = Buffer.alloc(12, 0xff);
-y = writeBufferBe(b, r, o);
-y;
-console.log(b);
-module.exports.writeBufferBe = writeBufferBe;
+module.exports.writeBufferBE = writeBufferBE;
 
-
-function makeBufferBe(struct, object, { protect = false, trim = true } = {}) {
+function makeBufferBE(struct, object, { protect = false, trim = true } = {}) {
     struct = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     let buffer = Buffer.allocUnsafe(PRE_ALLOC_SIZE);
     let offset = 0;
@@ -620,24 +546,4 @@ function makeBufferBe(struct, object, { protect = false, trim = true } = {}) {
     if (trim) buffer = buffer.slice(0, offset);
     return [buffer, offset];
 }
-[s, t, o, r, y] = [
-    { 'a.string': 'u8', a: 'string' },
-    {},
-    { a: 'aabbcc' }
-];
-r = parseStruct(s, t);
-s;
-r;
-y = makeBufferBe(r, o);
-y;
-// [s, t, o, r, y] = [
-//     { 'a.array': 'u8', a: 'u8' },
-//     {},
-//     { a: [12, 13, 14] }
-// ];
-// r = parseStruct(s, t);
-// s;
-// r;
-// y = makeBufferBe(r, o);
-// y;
-module.exports.makeBufferBe = makeBufferBe;
+module.exports.makeBufferBE = makeBufferBE;
