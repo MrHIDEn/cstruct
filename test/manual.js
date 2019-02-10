@@ -1,25 +1,39 @@
-const {
-    parseStruct,
-    readBufferLE,
-    makeBufferLE,
-} = require('../index');
+const { parseStruct, readBufferLE, makeBufferLE, writeBufferLE, } = require('../index');
 
 let b, o, s, t, r, x;
 
-let [buff, off] = makeBufferLE({ a: { b: 'f', c: ['f', 'f', 's5'] } }, { a: { b: 1.23, c: [3.14, 6.28, 'Hello'] } });
-console.log(buff.toString('hex'));
-let buffer = Buffer.from('a4709d3f c3f54840 c3f5c840 48656c6c6f'.replace(/ /g, ''), 'hex'); //{1.23, 3.14, 6.28, 'Hello'}
-console.log(buffer.toString('hex'));
-let struct = { a: { b: 'f', c: ['f', 'f', 's5'] } };
-let [obj, offset] = readBufferLE(buffer, struct);
-obj;
-// {
+let buffer = Buffer.allocUnsafe(2 * 8);
+console.log(buffer.toString('hex').match(/\w{1,16}/g).join(' '));
+let struct = ['d', 'd'];
+let arr = [1.23, 3.14];
+let offset = writeBufferLE(buffer, arr);
+console.log(buffer.toString('hex').match(/\w{1,16}/g).join(' '));
+console.log(offset); // 17
+
+// let [buff, off] = makeBufferLE({ a: { b: 'd', c: ['d', 'd'] } }, { a: { b: 1.23, c: [3.14, 6.28] } });
+// console.log(buff.toString('hex').match(/\w{1,16}/g).join(' '));
+// let buffer = Buffer.from('ae47e17a14aef33f 1f85eb51b81e0940 1f85eb51b81e1940'.replace(/ /g, ''), 'hex'); //{1.23, 3.14, 6.28}
+// console.log(buffer.toString('hex'));
+// let struct = {
 //     a: {
-//         b: 1.2300000190734863,
-//         c: [3.140000104904175, 6.28000020980835, 'Hello']
+//         b: 'd',
+//         c: [
+//             'd', 'd'
+//         ]
 //     }
-// }
-offset; // 17
+// };
+// let [obj, offset] = readBufferLE(buffer, struct);
+// console.log(JSON.stringify(obj, null, 2));
+// // {
+// //     "a": {
+// //     "b": 1.23,
+// //         "c": [
+// //             3.14,
+// //             6.28
+// //         ]
+// //     }
+// // }
+// console.log(offset); // 17
 
 
 
