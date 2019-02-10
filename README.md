@@ -34,17 +34,17 @@ $ npm i c_struct
 ### Requirements
 Tested only on: Node 8.14.*
 ### Types
-|c_struct|C type|Sizeof|Note
+|c_struct|C type|Sizeof [B]|Note
 |:-:|:-:|:-:|:-
-|'u8'|uint8_t|1B
-|'u16'|uint16_t|2B
-|'u32'|uint32_t|4B
-|'i8'|int8_t|1B
-|'i16'|int16_t|2B
-|'i32'|int32_t|4B
-|'f'|float|4B
-|'d'|double|8B
-|'sSIZE'|string|SIZE B|s5 - string size 5B, ect
+|'u8'|uint8_t|1
+|'u16'|uint16_t|2
+|'u32'|uint32_t|4
+|'i8'|int8_t|1
+|'i16'|int16_t|2
+|'i32'|int32_t|4
+|'f'|float|4
+|'d'|double|8
+|'sSIZE'|string|SIZE|s5 - string size 5B, ect
 ### Examples - General description
 Below examples explain all aviable futures.
 Note that examples shows only Little Endian LE, but Big Endian BE functions are similar.
