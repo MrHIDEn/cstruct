@@ -5,10 +5,10 @@ let PRE_ALLOC_SIZE = 200;
 module.exports.PRE_ALLOC_SIZE = PRE_ALLOC_SIZE;
 
 /**@param {(Object|Array)} struct*/ // struct $= {}, []
-/**@param {Object} uTypes*/
+/**@param {Object} types*/
 /**@param {Boolean} protect*/
 /**@returns {(Object, Array)}*/ //processed struct
-function parseStruct(struct, uTypes = {}, { protect = false } = {}) {
+function parseStruct(struct, types = {}, { protect = false } = {}) {
     let result = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     function baseSize(type) {
         return {
@@ -23,10 +23,10 @@ function parseStruct(struct, uTypes = {}, { protect = false } = {}) {
             switch (typeof type) {
                 case 'object': recursion(struct[key]); break;
                 case 'string':
-                    let s = baseSize(type);
-                    if (s !== false) { break; }
-                    if (uTypes[type]) {
-                        recursion(struct[key] = Object.assign((Array.isArray(uTypes[type]) ? [] : {}), uTypes[type]), key);
+                    let size = baseSize(type);
+                    if (size !== false) { break; }
+                    if (types[type]) {
+                        recursion(struct[key] = Object.assign((Array.isArray(types[type]) ? [] : {}), types[type]), key);
                     }
                     else throw TypeError(`Unknown type "${type}"`);
                     break;
@@ -43,7 +43,6 @@ module.exports.parseStruct = parseStruct;
 /**@param {Buffer} buffer*/
 /**@param {Number} offset*/
 /**@param {Object|Array} struct*/ // struct $= {}, []
-/**@param {Object} uTypes*/
 /**@returns {Array.<object, number>}*/ //[readObject, offset]
 function readBufferLE(buffer, struct, { protect = false, offset = 0 } = {}) {
     let object = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
@@ -125,7 +124,6 @@ module.exports.readBufferLE = readBufferLE;
 /**@param {Number} offset*/
 /**@param {(Object|Array)} struct*/ // struct $= {}, []
 /**@param {(Object|Array)} object*/
-/**@param {Object} uTypes*/
 /**@returns {Array.<object, number>}*/ //[readObject, offset]
 const writeBufferLE = (buffer, struct, object, { offset = 0 } = {}) => {
     const writters = {
@@ -298,7 +296,6 @@ module.exports.makeBufferLE = makeBufferLE;
 /**@param {Buffer} buffer*/
 /**@param {Number} offset*/
 /**@param {Object|Array} struct*/ // struct $= {}, []
-/**@param {Object} uTypes*/
 function readBufferBE(buffer, struct, { protect = false, offset = 0 } = {}) {
     let object = !protect ? struct : JSON.parse(JSON.stringify(struct)); //copy
     const readers = {
@@ -380,7 +377,6 @@ module.exports.readBufferBE = readBufferBE;
 /**@param {Number} offset*/
 /**@param {(Object|Array)} struct*/ // struct $= {}, []
 /**@param {(Object|Array)} object*/
-/**@param {Object} uTypes*/
 const writeBufferBE = (buffer, struct, object, { offset = 0 } = {}) => {
     const writters = {
         u8(type, val = 0) { buffer.writeUInt8(val, (offset += 1) - 1); },

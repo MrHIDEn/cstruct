@@ -1,18 +1,36 @@
 const { parseStruct, readBufferLE, makeBufferLE, writeBufferLE, } = require('../index');
 
 let b, o, s, t, r, x;
-let buffer, arr, obj, offset, struct;
+let buffer, arr, obj, offset, struct, types, base;
 
 
+//buffer = Buffer.alloc(7, 0x00)
 
-buffer = Buffer.from("James\0\0\0\0\0" + "Bond\0\0\0\0\0\0" + "007\0\0\0\0\0\0\0");
-console.log(buffer.toString('hex')); // 4a616d65730000000000426f6e6400000000000030303700000000000000
-struct = { user: { first: 's10', last: 's10', licence: 's10' } };
-[obj, offset] = readBufferLE(buffer, struct);
-console.log(JSON.stringify(obj)); // {"user":{"first":"James","last":"Bond","licence":"007"}}
-console.log(offset); //30
+/* C struct
+typedef struct {
+    uint8_t x;
+    uint8_t y;
+    uint8_t z;
+} Xyx;         */
 
+// #2 - PARSE (struct is protected)
+buffer = Buffer.from('00 00 aa bb cc 00 00'.replace(/ /g, ''), 'hex');
+console.log(buffer.toString('hex')); // 0000aabbcc0000
+base = { xyz: 'Xyz' };
+types = { Xyz: { a: 'u8', b: 'u8', c: 'u8' } };
+console.log(JSON.stringify(base)); // {"xyz":"Xyz"}
+// PARSE
+struct = parseStruct(base, types, { protect: true });
 
+console.log(JSON.stringify(base)); // {"xyz":"Xyz"}  <== Unchanged
+console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
+
+// #2 READ + OFFSET (struct is protected)
+console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}
+[obj, offset] = readBufferLE(buffer, struct, { offset: 2, protect: true });
+console.log(JSON.stringify(obj)); // {"xyz":{"a":170,"b":187,"c":204}}
+console.log(offset); // 5
+console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}  <== Unchanged
 
 
 
