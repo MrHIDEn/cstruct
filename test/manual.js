@@ -3,6 +3,145 @@ const { parseStruct, readBufferLE, makeBufferLE, writeBufferLE, } = require('../
 let b, o, s, t, r, x;
 let buffer, arr, obj, offset, struct, types, base;
 
+var a = 5;
+b = 10;
+
+function struc(strings, ...values) {
+    console.log(strings.raw);
+    console.log(strings);
+    console.log(values);
+    let a = [];
+    let o = {};
+    for (let s of strings) {
+        let d = s.split('\n');
+        d;
+        for (let x of d) {
+            if (!x) continue;
+            x;
+            x = x.replace(/^\s*(.+);$/, '$1');
+            x;
+            let m = x.match(/^(\w[\w\d]*) (.*)$/);
+            m;
+            if (!m) continue;
+            let [, t, r] = m;
+            t;
+            r;
+            r = r.split(/\s*,\s*/);
+            r;
+            for (let k of r) {
+                let m = k.match(/^(\w[\w\d]*)\[(\d+)\]$/);
+                if (m == null)
+                    o[k] = t;
+                else {
+                    let [, n, s] = m;
+                    n;
+                    s;
+                    o[n] = Array(+s).fill(t);
+                }
+            }
+            o;
+            x;
+            a.push(x);
+        }
+    }
+    a;
+    o;
+    //class Schema
+    return { struct: o };
+}
+function struct(base, types = {}) {
+    if (typeof types == 'string') {
+        let tmp = types;
+        types = {};
+        tmp = tmp.replace(/\n/g, '');
+        tmp;
+        tmp = tmp.replace(/\}\s*;/g, '\n').split('\n');
+        tmp;
+        for (let x of tmp) {
+            if (!x) continue;
+            x;
+            let m = x.match(/^\s*(\w[\w\d]*)\s*\{\s*(.*;)\s*$/);//array? Xy [ u8, u8 ], niee
+            let [, type, r] = m;
+            r = r.split(';');
+            type;
+            r;
+            types[type] = {};
+            for (let x of r) {
+                if (!x) continue;
+                console.log(types[type]);
+                console.log([x]);
+                //todo cos nie trybi
+                x;
+                //r = r.split(/\s*,\s*/);
+                let m = x.match(/^\s*(\w[\w\d]*) (.*)$/);
+                m;
+                if (!m) continue;
+                let [, t, r] = m;
+                t;
+                r;
+                r = r.split(/\s*,\s*/);// ','
+                r;
+                //todo
+                for (let x of r) {
+                    x;
+                    console.log(types[type]);
+                    let m = x.match(/^(\w[\w\d]*)\[(\d+)\]$/);
+                    if (m == null)
+                        types[type][x] = t;
+                    else {
+                        let [, n, s] = m;
+                        n;
+                        s;
+                        types[type][n] = Array(+s).fill(t);
+                    }
+                    console.log(types[type]);
+                }
+                console.log(types[type]);
+            }
+
+            //types[type] = r;
+        }
+        types;
+    }
+    if (typeof base == 'string') {
+        base;
+    }
+    types;
+    base;
+
+    let model = new C_Struct();
+    return model;
+}
+
+let model = struct(
+    `Xy a[2];`,
+    `Xy {
+        u8 z[3];
+    };`
+);
+model;
+//wlasny format
+/*
+
+*/
+
+// let St1 = struc`
+//     u8 a[2];
+//     u8 b, c;
+//     u8 d;`
+// let St1 = struc`
+//     u8 a[2];`
+let St1 = { struct: { a: ['u8', 'u8'] } };
+St1;
+let St2 = struc`${St1} s;`;
+St2;
+
+// let Plot = struc`
+//     u8 x, y;//Hello 
+//     ${Color} color;
+//     //u16 g`;
+// Plot;
+return;
 
 //buffer = Buffer.alloc(7, 0x00)
 
@@ -53,7 +192,7 @@ console.log(offset); // 5
 console.log(JSON.stringify(struct)); // {"xyz":{"a":"u8","b":"u8","c":"u8"}}  <== Unchanged
 
 // #5 - PARSE (struct is protected)
-base = [ 'Xyz', 'Xyz', 'Xyz' ];
+base = ['Xyz', 'Xyz', 'Xyz'];
 types = { Xyz: { x: 'u8', y: 'u8', z: 'u8' } };
 console.log(JSON.stringify(base)); // ["Xyz","Xyz","Xyz"]
 // PARSE
