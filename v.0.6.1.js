@@ -111,10 +111,23 @@ function struct(base, types = {}) {
                         type;
                         if (k)
                             if (s) {
-                                //error 
                                 console.log(s);
                                 console.log(+s);
-                                base[k] = Array(+s).fill(type);
+                                type;
+                                //error 
+                                if (Number.isNaN(+s)) {
+                                    let ltype = type.toLowerCase();
+                                    if (ltype == 'string') {
+                                        base[k + '.string'] = s;
+                                        base[k] = 'string';
+                                    }
+                                    else {
+                                        base[k + '.array'] = s;
+                                        base[k] = type;
+                                    }
+                                }
+                                else
+                                    base[k] = Array(+s).fill(type);
                             }
                             else
                                 throw Error('Syntax error');
@@ -149,8 +162,9 @@ function struct(base, types = {}) {
 
 let model1 = struct(
     `
-    Xy d[u8];
+    string d[u8];
     `,
+    // Xy d[u8];
     // `
     // Xy a, b;
     // u16 h;
