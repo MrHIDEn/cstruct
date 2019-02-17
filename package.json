@@ -1,6 +1,6 @@
 {
   "name": "c_struct",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
   "main": "index.js",
   "directories": {
