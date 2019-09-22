@@ -9,9 +9,32 @@ console.log(buffer.toString('hex')); // abcABC
 model = struct(`
     s3 lower;
     s3 upper;
+`,`
+    Abc {
+        u8 a;
+        u16 b ;
+        u32 c,d  ;
+    }  ;
+`);
+
+model = struct(`
+    s3 lower;
+    s3 upper;
 `); // C_Struct {_offset: 0, _struct: "{"lower":"s3","upper":"s3"}"}
 read = model.readBE(buffer);
 console.log(read); // Object {lower: "abc", upper: "ABC"}
+
+model = struct(
+    `u8 a[u8];`
+);
+model = struct(`
+    A a
+    S s;
+`,`
+    A { u8 x[u8], y; };
+    S { string x[u8], y; };
+`);
+
 
 model = struct(`
     s3 lower;
