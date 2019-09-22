@@ -44,7 +44,7 @@ Tested only on: Node 8.14.*
 |'i32'|int32_t|4
 |'f'|float|4
 |'d'|double|8
-|'sSIZE'|string|SIZE|s5 - string size 5B, ect
+|'s<SIZE>'|string|<SIZE>|s5 - string size 5B, ect
 ### Examples - General description
 Below examples explain all aviable futures.
 Note that examples shows only Little Endian LE, but Big Endian BE functions are similar.
