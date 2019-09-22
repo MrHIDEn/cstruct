@@ -3,5 +3,5 @@
 
 const { preAllocSize, struct } = require('./lib/c_struct');
 
-module.export.preAllocSize = preAllocSize;
-module.export.struct = struct;
+module.exports.preAllocSize = preAllocSize;
+module.exports.struct = struct;
