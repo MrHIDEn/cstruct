@@ -6,6 +6,30 @@ buffer = Buffer.from("abcABC");
 console.log(buffer.toString('hex')); // 616263414243
 console.log(buffer.toString('hex')); // abcABC
 
+
+model = struct(`
+    s3 lower;
+    s3 upper;
+`,`
+    //T1 {   u8 [3]; };//ok
+    //T2 {u8[3]; };//ok
+    //T3 u8[3];//ok
+    T4 [u8,u16];
+`);
+
+model = struct(`
+    s3 lower;
+    s3 upper;
+`,`
+    T1 { u8 [3]; };
+    A3 [u8,u8,u8];
+`);
+model = struct(`
+    s3 lower;
+    s3 upper;
+`,`
+    A3 [u8,u8,u8];
+`);
 model = struct(`
     s3 lower;
     s3 upper;
