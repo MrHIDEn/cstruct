@@ -34,7 +34,7 @@ types:
 `A3 u8[3]` error
 `T3 u8[3]` ok
 // add parseBase `[u8,u16,u32]` = ['u8','u16','u32']
-`T4 [u8,u16];` error
+`T4 [u8,u16];` error TODO:
 
 
 model = struct(`

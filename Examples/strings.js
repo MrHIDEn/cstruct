@@ -11,6 +11,7 @@ model = struct(`
     s3 lower;
     s3 upper;
 `,`
+
     //T1 {   u8 [3]; };//ok
     //T2 {u8[3]; };//ok
     //T3 u8[3];//ok
