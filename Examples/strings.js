@@ -6,16 +6,20 @@ buffer = Buffer.from("abcABC");
 console.log(buffer.toString('hex')); // 616263414243
 console.log(buffer.toString('hex')); // abcABC
 
-
+model = struct(
+    `[u8,u16,u32]` //ok
+);
 model = struct(`
-    s3 lower;
-    s3 upper;
+    T4 ttt;
+    A4 aaa;
 `,`
 
     //T1 {   u8 [3]; };//ok
     //T2 {u8[3]; };//ok
     //T3 u8[3];//ok
-    T4 [u8,u16];
+    T4 [u8,u32];//ok
+    A3 [u8,u8,u8];//ok
+    A4 u8[3];//ok
 `);
 
 model = struct(`

@@ -2,7 +2,6 @@
 //TODO:
 // clear code
 // add tests
-// add parseBase `[u8,u16,u32]` = ['u8','u16','u32']
 
 
 function hex2(buf) {
@@ -20,9 +19,8 @@ model = struct(`
     T1 { u8 [3]; };
     A3 [u8,u8,u8];
 `);
-`[u8,u8,u8]` error
 model = struct(
-    `[u8,u8,u8]` error
+    `[u8,u8,u8]` ok
 );
 model = struct(
     `u8[3]` ok
@@ -30,11 +28,12 @@ model = struct(
 types:
 `T1 {   u8 [3]; }` ok => `T1: ["u8","u8","u8"]`
 `T2 {u8[3]; };` ok => `T2: ["u8","u8","u8"]`
-`A3 [u8,u8,u8];` error
-`A3 u8[3]` error
+`A3 [u8,u8,u8];` ok
+`A3 u8[3]` ok
 `T3 u8[3]` ok
-// add parseBase `[u8,u16,u32]` = ['u8','u16','u32']
-`T4 [u8,u16];` error TODO:
+`T4 [u8,u32];`ok
+`A3 [u8,u8,u8];`ok
+`A4 u8[3];`ok
 
 
 model = struct(`
@@ -54,8 +53,8 @@ model = struct(`
     }  ;
     T1 {   u8 [3]; };
     T2 {u8[3]; };
-    //A3 [u8,u8,u8]; error
-    //A3 u8[3]; error
+    //A3 [u8,u8,u8]; ok
+    //A3 u8[3]; ok
 `);
 
 
