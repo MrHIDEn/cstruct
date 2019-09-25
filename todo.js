@@ -2,6 +2,15 @@
 //TODO:
 // clear code
 // add tests
+// ['u8']
+// todo `{ a: u8 }` impossible/difficult, use 
+    //todo ["u8"]=eval(`t=["u8"]`), =eval(`t=${x.replace()}`)
+    // "[u8]".replace(/(u(8|16|32)|f|d|s[0-9]+)/g,'"$1"')
+    try {
+        m = x.replace(/(u(8|16|32)|f|d|s[0-9]+)/g,'"$1"');
+        r = eval(`t=${m}`);
+        //return JSON.parse(base);
+    } catch { }
 
 
 function hex2(buf) {
