@@ -2,7 +2,8 @@
 //TODO:
 // clear code
 // add tests
-// ['u8']
+// todo = struct('u8');
+// todo = struct('TestType', { TestType: {x:'u8', y:'u16', z:'u32'} });
 // todo `{ a: u8 }` impossible/difficult, use 
     //todo ["u8"]=eval(`t=["u8"]`), =eval(`t=${x.replace()}`)
     // "[u8]".replace(/(u(8|16|32)|f|d|s[0-9]+)/g,'"$1"')
