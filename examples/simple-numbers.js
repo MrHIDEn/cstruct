@@ -2,6 +2,16 @@ const { struct } = require('../index');
 let model, buffer, readBE, readLE, writeBE, writeLE, offset;
 
 /**
+ * This is just the bigining
+ * Below are some simple and more complex exchangers
+ * Models are prepared to be reusable, and there is no need to create them every time.
+ * It is better to create them once (parse time) and use them later for all exchanges.
+ * Just remember that model holds `offset` and which needs to be reset when reused.
+ * As default `offset` is set to 0.
+ * Read or write methods allow to set `offset` every time it is needed.
+ */
+
+/**
  * Simple struct parser/reader
  * readBE(BASE)
  */
