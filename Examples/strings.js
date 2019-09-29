@@ -3,8 +3,10 @@ const { struct } = require('../index');
 let model, buffer, read, write;
 
 buffer = Buffer.from("abcABC");
-console.log(buffer.toString('hex')); // 616263414243
-console.log(buffer.toString('hex')); // abcABC
+console.log(buffer.toString('hex'));
+// 616263414243
+
+
 
 model = struct(
     `[u8,u16,u32]` //ok
@@ -49,9 +51,10 @@ model = struct(`
 model = struct(`
     s3 lower;
     s3 upper;
-`); // C_Struct {_offset: 0, _struct: "{"lower":"s3","upper":"s3"}"}
+`);
 read = model.readBE(buffer);
-console.log(read); // Object {lower: "abc", upper: "ABC"}
+console.log(read);
+// { lower: "abc", upper: "ABC" }
 
 model = struct(
     `u8 a[u8];`
@@ -82,16 +85,18 @@ model = struct(`
     }  ;
 `); // C_Struct {_offset: 0, _struct: "{"lower":"s3","upper":"s3"}"}
 read = model.readBE(buffer);
-console.log(read); // Object {lower: "abc", upper: "ABC"}
+console.log(read);
+// { lower: "abc", upper: "ABC" }
 
 
 
 model = struct(`
     string lower[3];
     string upper[3];
-`); // C_Struct {_offset: 0, _struct: "{"lower":["string","string","string"],"upper":["string","string","string"]}"}
+`);
 read = model.readBE(buffer);
-console.log(read); // Object {msg: "Hello World!"}
+console.log(read);
+// { lower: [ '', '', '' ], upper: [ '', '', '' ] } 
 
 
 // buffer = Buffer.concat([Buffer.from([12]), Buffer.from("Hello World!")]);
@@ -105,7 +110,8 @@ console.log(read); // Object {msg: "Hello World!"}
 
 
 buffer = Buffer.concat([Buffer.from([0, 12]), Buffer.from("Hello World!")]);
-console.log(buffer.toString('hex')); // 000c48656c6c6f20576f726c6421
+console.log(buffer.toString('hex'));
+// 000c48656c6c6f20576f726c6421
 
 model = struct(`
     // comments will be removed
@@ -113,5 +119,5 @@ model = struct(`
     // another comment
 `); // C_Struct {_offset: 0, _struct: "{"msg.string":"u16","msg":"string"}"}
 read = model.readBE(buffer);
-console.log(read); // Object {msg: "Hello World!"}
-console.log(read); // 
+console.log(read);
+// { msg: 'Hello World!' }

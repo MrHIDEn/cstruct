@@ -1,11 +1,14 @@
 {
   "name": "c_struct",
-  "version": "0.6.1",
+  "version": "0.8.0",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
   "main": "index.js",
   "directories": {
     "example": "examples",
     "test": "test"
+  },
+  "jest": {
+    "verbose": true
   },
   "scripts": {
     "test": "jest"
