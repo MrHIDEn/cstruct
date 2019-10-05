@@ -9,11 +9,16 @@ function parser(model, types) {
     switch (typeof types) {
         case "string":
             types = parser(types);
+            types = JSON.parse(types);
         case "object":
-            types = Object.entries(JSON.parse(types));
+            types;
+            console.log(typeof types);
+            types = Object.entries(types);
+            types;//?
+            //? .reduce((y, [k, v]) => Object.assign(y, { [k]: JSON.stringify(v) }), {});
             break;
     }
-    let y = model;
+    let y = (typeof model === 'string') ? model : JSON.stringify(model);
     y = y.replace(/\/\/.*$/gm, ``); // remove comments
     y;
     y = y.replace(/\s+/m, ``); // remove empty lines
@@ -44,35 +49,40 @@ function parser(model, types) {
     return y;
 }
 
-let model = parser(`//model
-{
-    "aa1" : {a:Efg}  // comment 2
-    // bb2 { //comment 3
-    //     u8 a,b,c;//comment 4
-    // }
-    // cc3 [
-    //     u8,u8//comment5
-    // ]
-    dd4 {
-        f x , y , z;
-    }
-    ee5[Abc, Abc]
-}`, `//types
-{
-Abc{u16 a,b,c;}
-Efg[u16,u16,u16]
-}`);
+// let model = parser(`//model
+// {
+//     "aa1" : {a:Efg}  // comment 2
+//     // bb2 { //comment 3
+//     //     u8 a,b,c;//comment 4
+//     // }
+//     // cc3 [
+//     //     u8,u8//comment5
+//     // ]
+//     dd4 {
+//         f x , y , z;
+//     }
+//     ee5[Abc, Abc]
+// }`, `//types
+// {
+// Abc{u16 a,b,c;}
+// Efg[u16,u16,u16]
+// }`);
 
-model;
-let j = JSON.parse(model);
-j;
-j;//? $.aa1
-j;//? $.bb2
-j;//? $.cc3
-j;//? $.dd4
-j;//? $.ee5
+// model;
+// let j = JSON.parse(model);
+// j;
+// j;//? $.aa1
+// j;//? $.bb2
+// j;//? $.cc3
+// j;//? $.dd4
+// j;//? $.ee5
 
-j=JSON.parse(parser(`
-u32
-`));
-j;
+// j=JSON.parse(parser(`
+// u32
+// `));
+// j;
+
+parser(['Xyz','Xyz'],{Xyz:['u8','u8','u8']});//?
+parser('Xyz',{Xyz:['u8','u8','u8']});//?
+
+
