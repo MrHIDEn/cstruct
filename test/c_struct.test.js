@@ -1,12 +1,29 @@
 const {
-    PRE_ALLOC_SIZE,
+    parseBase,
+    parseTypes,
     parseStruct,
-    readBufferLE,
-} = require('../index');
+    readLE,
+    writeLE,
+    makeLE,
+    readBE,
+    writeBE,
+    makeBE,
+    C_Struct
+} = require('../lib/c_struct');
+const { struct } = require('../index')
 
-test('PRE_ALLOC_SIZE', () => {
-    expect(PRE_ALLOC_SIZE).toBe(200);
+
+test('if preAllocSize initial is 200', () => {
+    const model = struct(['b8']);
+    expect(model.preAllocSize).toBe(200);
 });
+
+test('if preAllocSize, set/get', () => {
+    model = struct(['b8']);
+    model.preAllocSize = 321;
+    expect(model.preAllocSize).toBe(321);
+});
+
 
 test('parseStruct', () => {
     //parseStruct(struct, uTypes = {}, { protect = false } = {})
