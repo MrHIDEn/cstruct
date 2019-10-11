@@ -1,5 +1,6 @@
 // c_struct
 //TODO:
+// dynamic arrays wiyh any kind of length i8..d
 // clear code
 // add tests
 // todo = struct('u8');

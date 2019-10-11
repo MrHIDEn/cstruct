@@ -32,15 +32,69 @@ function parser(model, types) {
     y = y.replace(/([\w0-9])\s*:?\s*([{\[])/g, `$1:$2`); // add missing : between key and { or [ and remove ' ' around :
     y = y.replace(/\s*:\s*/g, ':'); // remove spaces around :
     y = y.replace(/\"/g, ''); // remove all "
-    let m = (y.match(/{([_a-zA-Z]\w*)\s+([\w0-9,]+);}/g) || []);
+    y;
+    let m;
+
+    m = (y.match(/\w+:\[\w+\/\w+=?\w*\]/g) || []);
+    m;
+    for(let x of m) {
+        x;
+        const m = x.match(/(\w+):\[(\w+)\/(\w+)\]/);
+        m;
+        if (m !== null && m.length === 4) {
+            let [, k, s, t] = m;
+            let n = +s || -1;
+            k;
+            s;
+            t;
+            n;
+            let r;
+            r = n >= 0 
+                ? `${k}:[${Array(n).fill(t)}]` 
+                : `${k}.array:${s},${k}:${t}`;
+            r;
+            //r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
+            y = y.split(x).join(r);
+            y;
+        }
+    }
+    y;
+
+    m = (y.match(/\[\w+\/\w+=?\w*\]/g) || []);
+    m;
+    for(let x of m) {
+        x;
+        const m = x.match(/\[(\w+)\/(\w+)\]/);
+        m;
+        if (m !== null && m.length === 3) {
+            let [, s, t] = m;
+            let n = +s || -1;
+            s;
+            t;
+            n;
+            let r;
+            r = n >= 0 
+                ? `[${Array(n).fill(t)}]` 
+                : `xxx`;
+            r;
+            //r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
+            y = y.split(x).join(r);
+            y;
+        }
+    }
+    y;
+
+    m = (y.match(/{([_a-zA-Z]\w*)\s+([\w0-9,]+);}/g) || []);
     for (let x of m) {
-        let m = x.match(/{([_a-zA-Z]\w*)\s*(.*);}/);
+        const m = x.match(/{([_a-zA-Z]\w*)\s*(.*);}/);
+        m;
         if (m !== null && m.length === 3) {
             let [, t, r] = m;
             r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
             y = y.split(x).join(r);
         }
     }
+    y;
     y = y.replace(/([_a-zA-Z]\w*)/g, '"$1"');
     if(typeof types === 'object') {
         types.forEach(([k,v]) => y = y.split(`"${k}"`).join(JSON.stringify(v)));
@@ -48,7 +102,7 @@ function parser(model, types) {
     y;
     return y;
 }
-
+parser('a[u8/u32]');//?
 // let model = parser(`//model
 // {
 //     "aa1" : {a:Efg}  // comment 2
@@ -82,7 +136,20 @@ function parser(model, types) {
 // `));
 // j;
 
-parser(['Xyz','Xyz'],{Xyz:['u8','u8','u8']});//?
-parser('Xyz',{Xyz:['u8','u8','u8']});//?
+//parser(['Xyz','Xyz'],{Xyz:['u8','u8','u8']});//?
+//parser('Xyz',{Xyz:['u8','u8','u8']});//?
+//parser('a [u8/u8]');//?
+//parser('[u8/u32]');//?
 
 
+/*
+a typ[len]
+a [len.typ]
+a [len/typ]
+a [len*typ]
+a [len;typ]
+"a.array":len, "a":typ
+{a:[u16]}
+        { 'a.array': 'u16', a: 'XYZ' },
+        { XYZ: { x: 'd', y: 'd', z: 'd' } },
+*/
