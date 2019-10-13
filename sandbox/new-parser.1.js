@@ -41,15 +41,11 @@ function jparser(model, types) {
     y = y.replace(/\"/g, ''); // remove all "
 
     //todo: if /regex// and {}
-    //done: test
-    y = y.replace(/[^{]([_a-zA-Z]\w*\s+[\w0-9,]+);/g, '{$1;}'); // close objects
+    //done: test ERROR with jparser(`{u8 a;u16 a,b;}`);//?
+    y = y.replace(/[^{]([_a-zA-Z]\w*\s+[\w0-9,]+);(?!})/g, '{$1;}'); // close objects
     y;
-    let m;
 
-    m = (y.match(/[}\]]\s*[{\[]/g) || []);//?
-    //y = y.replace(/([}\]])\s*([{\[])/g, '$1,$2'); // add missing ',' between }] and {[
-    y;
-    m = (y.match(/[}\]]\s*[{\[]/g) || []);//?
+    let m;
 
     /** Special: a[u8/u8],a[3/u8],a[u8/string],a[3/string]
      * A) array, <k>:[<n>/<t>], k-key, n-size, t-type
@@ -106,8 +102,7 @@ function jparser(model, types) {
     }
     y;
 
-    // {<t> <v1>,<v2,...}
-    // {<v1>:<t>,<v2>:<t>,...}
+    //todo:
     m = (y.match(/{([_a-zA-Z]\w*)\s+([\w0-9,]+);}/g) || []);
     m;
     for (let x of m) {
@@ -118,8 +113,32 @@ function jparser(model, types) {
             t;
             r;
             x;
-            y;
             r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
+            y;
+            x;
+            r;
+            y = y.split(x).join(r);
+            y;
+        }
+    }
+    y;
+
+    // {<t> <v1>,<v2>,...}
+    // {<v1>:<t>,<v2>:<t>,...}
+    m = (y.match(/([_a-zA-Z]\w*)\s+([\w0-9,]+);/g) || []);
+    m;
+    for (let x of m) {
+        const m = x.match(/([_a-zA-Z]\w*)\s*(.*);/);
+        m;
+        if (m !== null && m.length === 3) {
+            let [, t, r] = m;
+            t;
+            r;
+            x;
+            r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
+            y;
+            x;
+            r;
             y = y.split(x).join(r);
             y;
         }
@@ -224,14 +243,17 @@ function jparser(model, types) {
 // (+)
 //jparser('{f x,y,z;}');//?
 //jparser('User', '{ User: { f x,y,z; }}');//?
-jparser('A,B,C', '{ A {u8 aa; }, B {u16 bb;}, C [2/u64] }');//?
+//jparser('A,B,C', '{ A {u8 aa; }, B {u16 bb;}, C [2/u64] }');//?
 
 // {} []
+//todo
+jparser(`{u8 a;u16 a,b;}`);//?
+jparser(`{{u8 a;}{u16 a,b;}}`);//?
 // jparser(`{
 // u8 a;
 // u16 a,b;
-// a[2/u8];
-// b{c:f}
+// //a[2/u8];
+// //b{c:f}
 // }`);//?
 
 
