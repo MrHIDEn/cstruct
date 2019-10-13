@@ -6,26 +6,13 @@
  * @returns {object} model
  */
 function jparser(model, types) {
-    /*todo:
-    d, double, 0x402670A3D70A3D71 = 11.22
-    http://www.binaryconvert.com/result_double.html?decimal=049049046050050
-    https://stackoverflow.com/questions/25942516/double-to-byte-array-conversion-in-javascript
-    */
-   let b = new ArrayBuffer(8);         // JS numbers are 8 bytes long, or 64 bits
-   let f64 = new Float64Array(b);  // so equivalent to Float64
-   f64[0] = 11.22;
-   let u1 = new Uint8Array(f64.buffer);
-   let u2 = new Uint8Array(f64.buffer);
-   let b1 = Buffer.from(b);
-   let b2 = Array.from(new Uint8Array(b)).reverse();  // reverse to get little endian
-   let v1 = new DataView(b);
-   let v2 = new DataView(new ArrayBuffer(b2));
-   b2 = b2.toString('hex').match(/.{2,8}/g).join(' ');
-   b2;
-
+    model;
+    types;
     switch (typeof types) {
         case "string":
+            types;
             types = jparser(types);
+            types;
             types = JSON.parse(types);
         case "object":
             types;
@@ -42,15 +29,20 @@ function jparser(model, types) {
     y = y.replace(/^\s+$/m, ``); // remove empty lines
     y = y.replace(/\s{2,}/g, ` `); // reduce ' ' to one ' '
     y = y.replace(/\n/g, ``); // remove line breaks
-    // ??y = y.replace(/^(["\w].*)$/, `{$1}`); // add {} if missing {} or []
+    y;
     y = y.replace(/\s*,\s*/g, `,`); //x remove spaces before/after ,
     y = y.replace(/\s*([}\]])\s*;?\s*/g, `$1`); // remove ending ; for } or ] and trim ' ' on start and ' '
     y = y.replace(/([{\[])\s*(\w)/g, `$1$2`); // remove spaces after { or [
+    y;
     y = y.replace(/([}\]])\s*(\w+)/g, `$1,$2`); // add , between keys
     y = y.replace(/([\w0-9])\s*:?\s*([{\[])/g, `$1:$2`); // add missing : between key and { or [ and remove ' ' around :
     y = y.replace(/\s*:\s*/g, ':'); // remove spaces around :
+    y;
     y = y.replace(/\"/g, ''); // remove all "
-    y = y.replace(/([_a-zA-Z]\w*\s+[\w0-9,]+);/g, '{$1;}'); // close objects
+
+    //todo: if /regex// and {}
+    //done: test
+    y = y.replace(/[^{]([_a-zA-Z]\w*\s+[\w0-9,]+);/g, '{$1;}'); // close objects
     y;
     let m;
 
@@ -123,8 +115,13 @@ function jparser(model, types) {
         m;
         if (m !== null && m.length === 3) {
             let [, t, r] = m;
+            t;
+            r;
+            x;
+            y;
             r = `{${r.split(/\s*,\s*/).map(k => `${k}:${t}`).join()}}`;
             y = y.split(x).join(r);
+            y;
         }
     }
     y;
@@ -150,18 +147,96 @@ function jparser(model, types) {
     }
     y;
 
-    // Add missing {} if missing ;)
-    if (/^.+:.+$/.test(y) && !/^{.+:.+}$/.test(y)) {
+    // Add missing {}
+    if (/^.+:.+$/.test(y) && !(/^{.+:.+}$/.test(y) || /^\[.+:.+\]$/.test(y))) {
         y;
         y = `{${y}}`;
         y;
     }
+    // Add missing []
+    else if (/^.+,.+$/.test(y) && !(/^{.+,.+}$/.test(y) || /^\[.+,.+\]$/.test(y))) {
+        y;
+        y = `[${y}]`;
+        y;
+    }
     y;
 
-
-    y;
+    console.log("Y:", y);
     return y;
 }
+
+// // Object/Array,String approach
+// jparser('u8');//?
+// jparser(['u8']);//?
+// jparser(['u8', 'u8']);//?
+// jparser({ a: 'u8', b: 'u8' });//?
+// jparser({ a: ['u8', 'u8'] });//?
+// jparser({ "a.array": 'f', a: 'f' });//?
+// jparser({ "a.string": 'f', a: 'string' });//?
+// jparser({ a: 'f' });//?
+// jparser({ a: { b: 'f' } });//?
+// jparser({ a: 'User' });//?
+// jparser({ a: 'User' }, { User: 'u8' });//?
+// jparser({ a: 'User' }, { User: ['u8','u16'] });//?
+// jparser('User', { User: ['u8','u16'] });//?
+// jparser('User', { User: { x: 'f', y: 'f', z: 'f' }});//?
+// jparser(['User'], { User: { x: 'f', y: 'f', z: 'f' }});//?
+// jparser({ u: 'User' }, { User: { x: 'f', y: 'f', z: 'f' } });//?
+// jparser({ u: 'User' }, { User: { nested: 'Ab' }, Ab: { a: 'i64', b: 'i64' } });//?
+
+// // JSON approach
+// jparser('u8');//?
+// jparser('["u8"]');//?
+// jparser('["u8", "u8"]');//?
+// jparser('{ a: "u8", b: "u8" }');//?
+// jparser('{ a: ["u8", "u8"] }');//?
+// jparser('{ "a.array": "f", a: "f" }');//?
+// jparser('{ "a.string": "f", a: "string" }');//?
+// jparser('{ a: "f" }');//?
+// jparser('{ a: { b: "f" } }');//?
+// jparser('{ a: "User" }');//?
+// jparser('{ a: "User" }', '{ User: "u8" }');//?
+// jparser('{ a: "User" }', '{ User: ["u8","u16"] }');//?
+// jparser('User', '{ User: ["u8","u16"] }');//?
+// jparser('User', '{ User: { x: "f", y: "f", z: "f" }}');//?
+// jparser('["User"]', '{ User: { x: "f", y: "f", z: "f" }}');//?
+// jparser('{ u: "User" }', '{ User: { x: "f", y: "f", z: "f" } }');//?
+// jparser('{ u: "User" }', '{ User: { nested: "Ab" }, Ab: { a: "i64", b: "i64" } }');//?
+
+// // C-KIND approach
+// jparser('u8');//?
+// jparser('[u8]');//?
+// jparser('[u8, u8]');//?
+// jparser('{ a: 8, b: u8 }');//?
+// jparser('{ a: [u8, u8] }');//?
+// jparser('{ a: [f/f]');//?
+// jparser('{ a: [f/string]');//?
+// jparser('{ a: f }');//?
+// jparser('{ a: { b: f } }');//?
+// jparser('{ a: User }');//?
+// jparser('{ a: User }', '{ User: u8 }');//?
+// jparser('{ a: User }', '{ User: [u8,u16] }');//?
+// jparser('User', '{ User: [u8,u16] }');//?
+// jparser('User', '{ User: { x: f, y: f, z: f }}');//?
+// jparser('[User]', '{ User: { x: f, y: f, z: f }}');//?
+// jparser('{ u: User }', '{ User: { x: f, y: f, z: f } }');//?
+// jparser('{ u: User }', '{ User: { nested: Ab }, Ab: { a: i64, b: i64 } }');//?
+// (+)
+//jparser('{f x,y,z;}');//?
+//jparser('User', '{ User: { f x,y,z; }}');//?
+jparser('A,B,C', '{ A {u8 aa; }, B {u16 bb;}, C [2/u64] }');//?
+
+// {} []
+// jparser(`{
+// u8 a;
+// u16 a,b;
+// a[2/u8];
+// b{c:f}
+// }`);//?
+
+
+
+
 //jparser('{octave11:[f/Octave]}');//?
 // jparser('{octave11:[f/Octave]}','{Octave:{b:[f,f,f],v:[f,f,f]}}');//?
 //jparser('Aaa','{Aaa:[Bbb],Bbb:[Ccc,Ccc],Ccc:{d:u8}}');//?
@@ -197,44 +272,3 @@ function jparser(model, types) {
 // }`);//?
 // jparser('a:u8');//?
 // jparser('{a:u8}');//?
-jparser({a:'f'})
-
-
-// let model = jparser(`//model
-// {
-//     "aa1" : {a:Efg}  // comment 2
-//     // bb2 { //comment 3
-//     //     u8 a,b,c;//comment 4
-//     // }
-//     // cc3 [
-//     //     u8,u8//comment5
-//     // ]
-//     dd4 {
-//         f x , y , z;
-//     }
-//     ee5[Abc, Abc]
-// }`, `//types
-// {
-// Abc{u16 a,b,c;}
-// Efg[u16,u16,u16]
-// }`);
-
-// model;
-// let j = JSON.parse(model);
-// j;
-// j;//? $.aa1
-// j;//? $.bb2
-// j;//? $.cc3
-// j;//? $.dd4
-// j;//? $.ee5
-
-// j=JSON.parse(jparser(`
-// u32
-// `));
-// j;
-
-//jparser(['Xyz','Xyz'],{Xyz:['u8','u8','u8']});//?
-//jparser('Xyz',{Xyz:['u8','u8','u8']});//?
-//jparser('a [u8/u8]');//?
-//jparser('[u8/u32]');//?
-
