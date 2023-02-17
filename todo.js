@@ -68,4 +68,11 @@ model = struct(`
     //A3 u8[3]; ok
 `);
 
+eslint
+https://khalilstemmler.com/blogs/typescript/eslint-for-typescript/
+
+ts package
+https://itnext.io/step-by-step-building-and-publishing-an-npm-typescript-package-44fe7164964c
+with:
+jestconfig.json
 

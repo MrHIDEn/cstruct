@@ -1,4 +1,4 @@
-const { jparser } = require('./../lib/c_struct').$test;
+const { jparser } = require('../c_struct').$test;
 const struct = require('./../index');
 
 // Object/Array,String approach

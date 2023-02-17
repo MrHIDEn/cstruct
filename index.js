@@ -1,7 +1,7 @@
 // 'c_struct' - written by Marek Krzyzowski 29.09.2019 0.8.0
 'use strict';
 
-const lib = require('./lib/c_struct');
+const lib = require('./c_struct');
 
 /**
  * 

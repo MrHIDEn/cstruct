@@ -14,6 +14,12 @@
 |todo|simple proxy pbuffer.le.read('u16'[, offset]) pbuffer.be.write('u16', val[, offset])|
 |todo|simple proxy pbuffer.le.read('s16'[, offset]) pbuffer.be.write('s16', val[, offset])|
 
+Add aliases for read/write
+Note: Aliases can be added by Types `{bool: 'b', int8: 'i8', uint8: 'u8', int16: 'i16', uint16: 'u16', int32: 'i32', uint32: 'u32', float: 'f', double: 'd', string: 's'}`
+
+Check Types against predefined types:
+['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f', 'd', 's', type.match(/^s(\d+)$/), 'b']
+
 #### Functions
 ```javascript
 function hex2(buf) {

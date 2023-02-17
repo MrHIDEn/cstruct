@@ -5,7 +5,7 @@ let model, buffer, readBE, readLE, writeBE, writeLE, offset;
  * Read/try `examples\simple-numbers.js` first to get general idea of using this library
  * This examples focus on the strings and read.try numbers first
  * 
- * Take a look on `examples\simple-strings.js`
+ * Take a look on `examples\simple-strings.ts`
  * 
  */
 

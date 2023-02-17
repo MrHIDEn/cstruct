@@ -9,7 +9,7 @@ const {
     writeBE,
     makeBE,
     C_Struct
-} = require('../lib/c_struct');
+} = require('../c_struct');
 const { struct } = require('../index')
 
 

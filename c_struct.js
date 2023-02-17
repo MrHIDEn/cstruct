@@ -194,7 +194,7 @@ function readLE(buffer, model, offset = 0) {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must folow array declaration 'aKey.array'.`);
                 let typeLength = struct[keyArray];
                 let reader = leLenReaders[typeLength];
                 if (reader) struct[keyArray] = reader(typeLength);
@@ -208,8 +208,8 @@ function readLE(buffer, model, offset = 0) {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (object[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (object[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
                 let typeLength = object[keyString];
                 let reader = leLenReaders[typeLength];
                 if (reader) object[keyString] = reader(typeLength);
@@ -267,8 +267,8 @@ const writeLE = (buffer, model, object, offset = 0) => {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.array'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must follow array declaration 'aKey.array'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'aKey' must follow array declaration 'aKey.array'.`);
                 let typeLength = model[keyArray];
                 let writter = leLenWritters[typeLength];
                 if (writter) writter(object[key].length);
@@ -278,9 +278,9 @@ const writeLE = (buffer, model, object, offset = 0) => {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (model[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
-                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'akey' must equal 'string' after declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (model[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
+                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'aKey' must equal 'string' after declaration 'aKey.string'.`);
                 let typeLength = model[keyString];
                 let writter = leLenWritters[typeLength];
                 if (writter) {
@@ -336,8 +336,8 @@ function makeLE(model, object, trim = true, preAllocSize = 200) {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.array'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must follow array declaration 'aKey.array'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'aKey' must follow array declaration 'aKey.array'.`);
                 let typeLength = model[keyArray];
                 let writter = leLenWritters[typeLength];
                 if (writter) {
@@ -365,9 +365,9 @@ function makeLE(model, object, trim = true, preAllocSize = 200) {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (model[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
-                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'akey' must equal 'string' after declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (model[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
+                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'aKey' must equal 'string' after declaration 'aKey.string'.`);
                 let typeLength = model[keyString];
                 let writter = leLenWritters[typeLength];
                 if (writter) {
@@ -438,7 +438,7 @@ function readBE(buffer, model, offset = 0) {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must folow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must folow array declaration 'aKey.array'.`);
                 let typeLength = object[keyArray];
                 let reader = beLenReaders[typeLength];
                 if (reader) object[keyArray] = reader(typeLength);
@@ -452,8 +452,8 @@ function readBE(buffer, model, offset = 0) {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (object[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (object[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
                 let typeLength = object[keyString];
                 let reader = beLenReaders[typeLength];
                 if (reader) object[keyString] = reader(typeLength);
@@ -511,8 +511,8 @@ const writeBE = (buffer, model, object, offset = 0) => {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.array'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must follow array declaration 'aKey.array'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'aKey' must follow array declaration 'aKey.array'.`);
                 let typeLength = model[keyArray];
                 let writter = beLenWritters[typeLength];
                 if (writter) writter(object[key].length);
@@ -522,9 +522,9 @@ const writeBE = (buffer, model, object, offset = 0) => {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (model[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
-                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'akey' must equal 'string' after declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (model[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
+                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'aKey' must equal 'string' after declaration 'aKey.string'.`);
                 let typeLength = model[keyString];
                 let writter = beLenWritters[typeLength];
                 if (writter) {
@@ -580,8 +580,8 @@ function makeBE(model, object, trim = true, preAllocSize = 200) {
         let keyString;
         for (let [key, type] of entries) {
             if (keyArray !== undefined) {
-                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'akey' must follow array declaration 'akey.array'.`);
-                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'akey' must follow array declaration 'akey.array'.`);
+                if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must follow array declaration 'aKey.array'.`);
+                if (!Array.isArray(object[key])) throw SyntaxError(`An array 'aKey' must follow array declaration 'aKey.array'.`);
                 let typeLength = model[keyArray];
                 let writter = beLenWritters[typeLength];
                 if (writter) {
@@ -609,9 +609,9 @@ function makeBE(model, object, trim = true, preAllocSize = 200) {
                 continue;
             }
             else if (keyString !== undefined) {
-                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'akey' must follow string declaration 'akey.string'.`);
-                if (model[key] != 'string') throw SyntaxError(`An object 'akey' must be type 'string' after string declaration 'akey.string'.`);
-                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'akey' must equal 'string' after declaration 'akey.string'.`);
+                if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
+                if (model[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
+                if (typeof object[key] != 'string') throw SyntaxError(`An folowed 'aKey' must equal 'string' after declaration 'aKey.string'.`);
                 let typeLength = model[keyString];
                 let writter = beLenWritters[typeLength];
                 if (writter) {

@@ -1,0 +1,13 @@
+import { WriteBuffer } from "./write-buffer";
+export declare class WriteBufferLE extends WriteBuffer {
+    constructor();
+    _u16(val?: number): void;
+    _i16(val?: number): void;
+    _u32(val?: number): void;
+    _i32(val?: number): void;
+    _u64(val?: bigint): void;
+    _i64(val?: bigint): void;
+    _f(val?: number): void;
+    _d(val?: number): void;
+}
+//# sourceMappingURL=write-buffer-le.d.ts.map
