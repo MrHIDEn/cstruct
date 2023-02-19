@@ -34,7 +34,11 @@ export class ReadBuffer {
         if (!size || size < 0) {
             throw new Error(`Invalid string size ${size ?? typeof size}`);
         }
-        const val = this._buffer.toString('utf8', this._offset, this._offset + size);
+
+        // Consider using "utf16le" encoding as well as "utf8" encoding
+        const val = this._buffer
+            .toString('utf8', this._offset, this._offset + size)
+            .replace(/\x00+$/,"");
         this._offset += size;
         return val;
     }

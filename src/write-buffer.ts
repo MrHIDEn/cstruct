@@ -30,17 +30,19 @@ export class WriteBuffer {
             throw new Error(`Invalid string value ${val}`);
         }
 
+        // Consider using "utf16le" encoding as well as "utf8" encoding
         let buffer: Buffer;
         if (size === undefined) {
             size = val.length;
             buffer = Buffer.allocUnsafe(size);
-            buffer.write(val, 0, size);
+            buffer.write(val, 0, size, 'utf8');
         } else {
             if (size < 0) {
                 throw new Error(`Invalid string size ${size}`);
             }
             buffer = Buffer.allocUnsafe(size);
-            buffer.write(val.padEnd(size, '\0'), 0, size);
+            const paddedVal = val.padEnd(size, '\0');
+            buffer.write(paddedVal, 0, size, 'utf8');
         }
 
         this._buffers.push(buffer);

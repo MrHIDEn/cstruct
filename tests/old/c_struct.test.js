@@ -9,8 +9,8 @@ const {
     writeBE,
     makeBE,
     C_Struct
-} = require('../c_struct');
-const { struct } = require('../index')
+} = require('../../c_struct');
+const { struct } = require('../../index')
 
 
 test('if preAllocSize initial is 200', () => {
