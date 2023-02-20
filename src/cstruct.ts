@@ -11,13 +11,25 @@ import { ModelParser } from "./model-parser";
  */
 export class CStruct<T> {
     _jsonModel: string;
+    _jsonTypes: string;
 
     constructor(model: Model, types?: Types) {
-        this._jsonModel = ModelParser.parse(model, types);
+        if (types) {
+            this._jsonTypes = ModelParser.parseModel(types);
+        }
+        this._jsonModel = ModelParser.parseModel(model, this._jsonTypes);
+    }
+
+    get jsonTypes(): string {
+        return this._jsonTypes;
     }
 
     get jsonModel(): string {
         return this._jsonModel;
+    }
+
+    get typesClone(): Model {
+        return JSON.parse(this._jsonTypes) as Model;
     }
 
     get modelClone(): Model {

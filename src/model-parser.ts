@@ -1,4 +1,4 @@
-import { Model, Types } from "./types";
+import { Model, Types, TypesEntries } from "./types";
 
 export class ModelParser {
     private static _prepareJson(json: string): string {
@@ -173,14 +173,16 @@ export class ModelParser {
     }
 
     private static _replaceModelTypesWithUserTypes(json: string, types?: Types): string {
-        // Replace model types with user types
-        if (Array.isArray(types)) {
-            // replace model with user types, stage 1
-            types.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
-            // reverse user types to replace nested user types
-            types.reverse();
-            // replace model with reverse user types, stage 2
-            types.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
+        if (types) {
+            types = this.parseTypes(types);
+            const typeEntries: [string, string][] = Object.entries(types);
+            // Replace model with user types, stage 1
+            typeEntries.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
+            // Reverse user types to replace nested user types
+            typeEntries.reverse();
+            // Replace model with reverse user types, stage 2
+            typeEntries.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
+
         }
         return json;
     }
@@ -194,28 +196,28 @@ export class ModelParser {
         }
     }
 
-    private static _parseTypes(types: Types): Types {
-        let entries: [string, string][]; // [key, value]
-        switch (typeof types) {
-            case "string": {
-                const json = ModelParser.parse(types);
-                const typesModel = JSON.parse(json);
-                entries = Object.entries(typesModel);
-                break;
-            }
-            case "object":
-                entries = Object.entries(types);
-                break;
-            default:
-                break;
+    static parseTypes(types: Types): string {
+        if (!types) {
+            return;
         }
-        return entries;
+        if (Array.isArray(types)) {
+            throw Error(`Invalid types '${types}'`);
+        }
+
+        switch (typeof types) {
+            case "string":
+            case "object":
+                return ModelParser.parseModel(types);
+            default:
+                throw Error(`Invalid types '${types}'`);
+        }
     }
 
-    static parse(model: Model, types?: Types): string {
-        types = this._parseTypes(types);
-
-        let json = (typeof model === 'string') ? model : JSON.stringify(model); // stringify
+    static parseModel(model: Model, types?: Types): string {
+        if (!model) {
+            throw Error(`Invalid model '${model ?? typeof model}'`);
+        }
+        let json = (typeof model) === 'string' ? model as string : JSON.stringify(model); // stringify
         json = this._prepareJson(json);
         json = this._dynamicArrayOrString1(json);
         json = this._staticArrayOrString(json);
