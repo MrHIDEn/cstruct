@@ -42,7 +42,7 @@ ModelParser.parseModel('{ u: "User" }', '{ User: { nested: "Ab" }, Ab: { a: "i64
 ModelParser.parseModel('u8');//?
 ModelParser.parseModel('[u8]');//?
 ModelParser.parseModel('[u8, u8]');//?
-ModelParser.parseModel('{ a: 8, b: u8 }');//?
+ModelParser.parseModel('{ a: u8, b: u8 }');//?
 ModelParser.parseModel('{ a: [u8, u8] }');//?
 ModelParser.parseModel('{ a: [f/f] }');//?
 ModelParser.parseModel('{ a: [f/string] }');//?
@@ -61,7 +61,7 @@ ModelParser.parseModel('[2/User]', '{ User: { x: f, y: f, z: f }}');//?
 ModelParser.parseModel('{f x,y,z;}');//?
 ModelParser.parseModel('User', '{ User: { f x,y,z; }}');//?
 ModelParser.parseModel('[A,B,C]', '{ A {u8 aa; }, B {u16 bb;}, C [2/u64] }');//?
-ModelParser.parseModel(`{u8 a;u16 a,b;}`);//?
+ModelParser.parseModel(`{u8 a;u16 b,c;}`);//?
 ModelParser.parseModel('{octaves:[f/Octave]}','{Octave:{b:[f,f,f],v:[f,f,f]}}');//?
 ModelParser.parseModel(`{u16 a,b;}`);//?
 ModelParser.parseModel(`{
