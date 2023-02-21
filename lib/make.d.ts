@@ -20,5 +20,6 @@ export declare class Make<T> {
     get offset(): number;
     get size(): number;
     getBufferAndOffset(): (number | Buffer)[];
+    toAtoms(): string[];
 }
 //# sourceMappingURL=make.d.ts.map

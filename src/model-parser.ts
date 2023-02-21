@@ -142,25 +142,6 @@ export class ModelParser {
         return json;
     }
 
-    // private static _special5CKind(json: string): string {
-    //     // Special-5
-    //     // `<t> <v1>,<v2>,...;`
-    //     // => `<v1>:<t>,<v2>:<t>,...`
-    //     const matches = (json.match(/\s*([_a-zA-Z]\w*)\s+([\w0-9,]+);/g) ?? []);
-    //     const commas = Array(matches.length - 1).fill(',');
-    //     matches.forEach((match, idx) => {
-    //         const m = match.match(/\s*([_a-zA-Z]\w*)\s*(.*);/);
-    //         if (m !== null && m.length === 3) {
-    //             const [, t, r] = m;
-    //             const keys = r.split(/\s*,\s*/);
-    //             const pairs = keys.map(k => `${k}:${t}`);
-    //             const j = pairs.join(',') + (commas[idx] ?? '');
-    //             json = json.split(match).join(j);
-    //         }
-    //     });
-    //     return json;
-    // }
-
     private static _special5CKindBracketNess(json: string): string {
         // Special-5
         // `{<t> <v1>,<v2>,...;}`

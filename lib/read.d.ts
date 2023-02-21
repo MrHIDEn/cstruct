@@ -18,5 +18,6 @@ export declare class Read<T> {
     toStruct(): T;
     get size(): number;
     get offset(): number;
+    toAtoms(): string[];
 }
 //# sourceMappingURL=read.d.ts.map

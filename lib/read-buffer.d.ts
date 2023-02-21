@@ -1,16 +1,21 @@
 /// <reference types="node" />
+import { ReaderFunctions, ReaderValue } from "./types";
 export declare class ReadBuffer {
-    _buffer: Buffer;
-    _offset: number;
-    _beginOffset: number;
-    _readers: Map<string, Function>;
+    protected _types: string[];
+    protected _buffers: Buffer[];
+    protected _buffer: Buffer;
+    protected _offset: number;
+    protected _beginOffset: number;
+    protected _readers: Map<string, ReaderFunctions>;
     constructor(buffer: Buffer, offset?: number);
-    _u8(): number;
-    _i8(): number;
-    _s(type: string): string;
-    _str(size: number): string;
-    read(type: string, size?: number): any;
+    private _u8;
+    private _i8;
+    private _s;
+    addAlias(alias: string, type: string): void;
+    read(type: string): ReaderValue;
     get size(): number;
     get offset(): number;
+    protected addAtom(type: string, size: number): void;
+    toAtoms(): string[];
 }
 //# sourceMappingURL=read-buffer.d.ts.map

@@ -1,16 +1,21 @@
 /// <reference types="node" />
+import { WriterFunctions, WriterValue } from "./types";
 export declare class WriteBuffer {
-    _buffers: Buffer[];
-    _offset: number;
-    _writers: Map<string, Function>;
-    _u8(val?: number): void;
-    _i8(val?: number): void;
-    _s(val: string, type: string): void;
-    _str(val?: string): void;
+    protected _types: string[];
+    protected _buffers: Buffer[];
+    protected _offset: number;
+    protected _writers: Map<string, WriterFunctions>;
+    private _u8;
+    private _i8;
+    private _s;
+    addAlias(alias: string, type: string): void;
+    write(type: string, val: WriterValue): void;
     get buffer(): Buffer;
     toBuffer(): Buffer;
     get size(): number;
+    get offset(): number;
+    protected addAtom(atom: string, buffer: Buffer): void;
+    toAtoms(): string[];
     get size2(): number;
-    write(type: string, val: any): void;
 }
 //# sourceMappingURL=write-buffer.d.ts.map

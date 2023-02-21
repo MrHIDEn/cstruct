@@ -10,8 +10,11 @@ import { Model, Types } from "./types";
  */
 export declare class CStruct<T> {
     _jsonModel: string;
+    _jsonTypes: Types;
     constructor(model: Model, types?: Types);
+    get jsonTypes(): string;
     get jsonModel(): string;
+    get typesClone(): Model;
     get modelClone(): Model;
     read(buffer: Buffer, offset?: number): void;
     write(buffer: Buffer, struct: T, offset?: number): void;
