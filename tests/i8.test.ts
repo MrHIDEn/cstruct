@@ -1,4 +1,4 @@
-import { CStructBE, CStructLE } from "../src";
+import { CStructBE, CStructLE } from "../src/tests";
 
 describe('i8 - signed char', () => {
     describe('BE', () => {

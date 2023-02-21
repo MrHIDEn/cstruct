@@ -4,7 +4,7 @@
     "module": "esnext",
     "lib": [
       "ES5",
-      "ES2015",
+      "ES2020",
     ],
     "declaration": true,
     "declarationMap": true,

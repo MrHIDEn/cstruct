@@ -12,10 +12,12 @@ export interface CStructReadResult<T> {
     struct: T;
     offset: number;
     size: number;
+    toAtoms: () => string[];
 }
 
 export interface CStructWriteResult {
     buffer: Buffer;
     offset: number;
     size: number;
+    toAtoms: () => string[];
 }

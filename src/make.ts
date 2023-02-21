@@ -123,4 +123,8 @@ export class Make<T> {
     getBufferAndOffset() {
         return [this.toBuffer(), this.offset];
     }
+
+    toAtoms(): string[] {
+        return this._writer.toAtoms();
+    }
 }

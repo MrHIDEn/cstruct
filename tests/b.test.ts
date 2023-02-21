@@ -1,4 +1,4 @@
-import { CStructBE, CStructLE } from "../src";
+import { CStructBE, CStructLE } from "../src/tests";
 
 
 describe('b - boolean', () => {

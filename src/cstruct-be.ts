@@ -23,6 +23,7 @@ export class CStructBE<T> extends CStruct<T> {
             struct: reader.toStruct(),
             offset: reader.offset,
             size: reader.size,
+            toAtoms: reader.toAtoms,
         };
     }
 
@@ -32,6 +33,7 @@ export class CStructBE<T> extends CStruct<T> {
             buffer: writer.toBuffer(),
             offset: writer.offset,
             size: writer.size,
+            toAtoms: writer.toAtoms,
         }
     }
 
@@ -41,6 +43,7 @@ export class CStructBE<T> extends CStruct<T> {
             buffer: writer.toBuffer(),
             offset: writer.offset,
             size: writer.size,
+            toAtoms: writer.toAtoms,
         }
     }
 }

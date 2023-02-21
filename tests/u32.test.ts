@@ -1,5 +1,4 @@
-import { CStructBE, CStructLE } from "../src";
-import { hexToBuffer } from "./hex-to-buffer.utils";
+import { hexToBuffer, CStructBE, CStructLE } from "../src/tests";
 
 
 describe('u32 - unsigned int32', () => {

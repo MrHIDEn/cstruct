@@ -19,6 +19,7 @@ Note: Aliases can be added by Types `{bool: 'b', int8: 'i8', uint8: 'u8', int16:
 
 Check Types against predefined types:
 ['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f', 'd', 's', type.match(/^s(\d+)$/), 'b']
+rise error if not match
 
 #### Functions
 ```javascript

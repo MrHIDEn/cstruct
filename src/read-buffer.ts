@@ -1,6 +1,8 @@
 import { ReaderFunctions, ReaderValue } from "./types";
 
 export class ReadBuffer {
+    protected _types: string[] = [];
+    protected _buffers: Buffer[] = [];
     protected _buffer: Buffer;
     protected _offset: number;
     protected _beginOffset: number;
@@ -20,13 +22,13 @@ export class ReadBuffer {
 
     private _u8() {
         const val = this._buffer.readUInt8(this._offset);
-        this._offset += 1;
+        this.addAtom('u8', 1);
         return val;
     }
 
     private _i8() {
         const val = this._buffer.readInt8(this._offset);
-        this._offset += 1;
+        this.addAtom('i8', 1);
         return val;
     }
 
@@ -38,8 +40,8 @@ export class ReadBuffer {
         // Consider using "utf16le" encoding as well as "utf8" encoding
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
-            .replace(/\x00+$/,"");
-        this._offset += size;
+            .replace(/\0+$/,"");
+        this.addAtom(`s${size}`, size);
         return val;
     }
 
@@ -75,6 +77,17 @@ export class ReadBuffer {
     get offset() {
         return this._offset;
     }
+
+    protected addAtom(type: string, size: number) {
+        const buffer: Buffer = this._buffer.slice(this._offset, this._offset + size);
+        this._types.push(type);
+        this._buffers.push(buffer);
+        this._offset += buffer.length;
+    }
+
+    toAtoms(): string[] {
+        return this._types.map((a, i) => `${a}:${this._buffers[i].toString('hex')}`);
+    }
 }
 
 function f(type) {
@@ -85,9 +98,3 @@ function f(type) {
         return sSize;
     }
 }
-
-f('s1');//?
-f('s2');//?
-f('s');//?
-f('sa');//?
-f('s1a');//?
