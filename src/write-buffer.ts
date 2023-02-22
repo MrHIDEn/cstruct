@@ -1,16 +1,11 @@
 import { WriterFunctions, WriterValue } from "./types";
+import { BaseBuffer } from "./base-buffer";
 
-export class WriteBuffer {
+export class WriteBuffer extends BaseBuffer {
     protected _types: string[] = [];
     protected _buffers: Buffer[] = [];
     protected _offset = 0;
-
-    protected _writers = new Map<string, WriterFunctions>([
-        ['b', (val: boolean) => this._u8(+Boolean(val))],
-        ['u8', (val: number) => this._u8(val)],
-        ['i8', (val: number) => this._i8(val)],
-        ['s', (val: string, size?: number) => this._s(val, size)],
-    ]);
+    protected _atomFunctions: Map<string, WriterFunctions>;
 
     private _u8(val = 0) {
         const buffer = Buffer.allocUnsafe(1);
@@ -44,12 +39,22 @@ export class WriteBuffer {
         this.addAtom(`s${size}`, buffer);
     }
 
-    addAlias(alias: string, type: string) {
-        if (this._writers.has(type)) {
-            throw new Error(`Type ${type} already exists`);
-        }
-        const reader = this._writers.get(type);
-        this._writers.set(alias, reader);
+    constructor() {
+        super();
+        this._atomFunctions = new Map<string, WriterFunctions>([
+            ['b8', (val: boolean) => this._i8(+Boolean(val))],
+            ['u8', (val: number) => this._u8(val)],
+            ['i8', (val: number) => this._i8(val)],
+            ['s', (val: string, size?: number) => this._s(val, size)],
+        ]);
+    }
+
+    addAlias(type: string, ...alias: string[]) {
+        alias.forEach((alias) => {
+            if(this.isProtectedType(alias)) throw new Error(`Atom types are protected.`);
+            const reader = this._atomFunctions.get(type);
+            this._atomFunctions.set(alias, reader);
+        });
     }
 
     write(type: string, val: WriterValue) {
@@ -61,8 +66,8 @@ export class WriteBuffer {
                 size = +match[1];
             }
         }
-        if (this._writers.has(type)) {
-            const writer = this._writers.get(type);
+        if (this._atomFunctions.has(type)) {
+            const writer = this._atomFunctions.get(type);
             writer(val, size);
         } else {
             throw new Error(`Unknown type ${type}`);
@@ -95,6 +100,7 @@ export class WriteBuffer {
         return this._types.map((a, i) => `${a}:${this._buffers[i].toString('hex')}`);
     }
 
+    // TODO: Remove this method
     get size2(): number {
         return this._buffers.reduce((acc, b) => acc + b.length, 0);
     }

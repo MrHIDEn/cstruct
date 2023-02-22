@@ -21,6 +21,8 @@ Check Types against predefined types:
 ['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f', 'd', 's', type.match(/^s(\d+)$/), 'b']
 rise error if not match
 
+read/erite bits/flags inside atom type
+
 #### Functions
 ```javascript
 function hex2(buf) {

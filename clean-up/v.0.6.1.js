@@ -1,4 +1,4 @@
-const { parseStruct, readBufferLE, writeBufferLE, makeBufferLE, } = require('./index');
+const { parseStruct, readBufferLE, writeBufferLE, makeBufferLE, } = require('../index');
 //module.exports = require('./lib/api')
 
 class C_Struct {

@@ -1,24 +1,13 @@
 import { ReaderFunctions, ReaderValue } from "./types";
+import { BaseBuffer } from "./base-buffer";
 
-export class ReadBuffer {
+export class ReadBuffer extends BaseBuffer {
     protected _types: string[] = [];
     protected _buffers: Buffer[] = [];
     protected _buffer: Buffer;
     protected _offset: number;
     protected _beginOffset: number;
-
-    protected _readers = new Map<string, ReaderFunctions>([
-        ['b', () => Boolean(this._u8())],
-        ['u8', () => this._u8()],
-        ['i8', () => this._i8()],
-        ['s', (size: number) => this._s(size)],
-    ]);
-
-    constructor(buffer: Buffer, offset = 0) {
-        this._buffer = buffer;
-        this._offset = offset;
-        this._beginOffset = offset;
-    }
+    protected _atomFunctions: Map<string, ReaderFunctions>;
 
     private _u8() {
         const val = this._buffer.readUInt8(this._offset);
@@ -45,12 +34,18 @@ export class ReadBuffer {
         return val;
     }
 
-    addAlias(alias: string, type: string) {
-        if (this._readers.has(type)) {
-            throw new Error(`Type ${type} already exists`);
-        }
-        const reader = this._readers.get(type);
-        this._readers.set(alias, reader);
+    constructor(buffer: Buffer, offset = 0) {
+        super();
+        this._buffer = buffer;
+        this._offset = offset;
+        this._beginOffset = offset;
+
+        this._atomFunctions = new Map<string, ReaderFunctions>([
+            ['b8', () => Boolean(this._i8())],
+            ['u8', () => this._u8()],
+            ['i8', () => this._i8()],
+            ['s', (size: number) => this._s(size)],
+        ])
     }
 
     read(type: string): ReaderValue {
@@ -62,8 +57,8 @@ export class ReadBuffer {
                 size = +match[1];
             }
         }
-        if (this._readers.has(type)) {
-            const reader = this._readers.get(type);
+        if (this._atomFunctions.has(type)) {
+            const reader = this._atomFunctions.get(type);
             return reader(size);
         } else {
             throw new Error(`Unknown type ${type}`);

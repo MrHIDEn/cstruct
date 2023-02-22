@@ -2,21 +2,6 @@ import { ReadBuffer } from "./read-buffer";
 import { ReaderFunctions } from "./types";
 
 export class ReadBufferBE extends ReadBuffer {
-    constructor(buffer: Buffer, offset = 0) {
-        super(buffer, offset);
-        this._readers = new Map<string, ReaderFunctions>([
-            ...this._readers,
-            ['u16', () => this._u16()],
-            ['i16', () => this._i16()],
-            ['u32', () => this._u32()],
-            ['i32', () => this._i32()],
-            ['u64', () => this._u64()],
-            ['i64', () => this._i64()],
-            ['f', () => this._f()],
-            ['d', () => this._d()],
-        ]);
-    }
-
     _u16() {
         const val = this._buffer.readUInt16BE(this._offset);
         this._offset += 2;
@@ -63,5 +48,28 @@ export class ReadBufferBE extends ReadBuffer {
         const val = this._buffer.readDoubleBE(this._offset);
         this._offset += 8;
         return val;
+    }
+
+    constructor(buffer: Buffer, offset = 0) {
+        super(buffer, offset);
+        this._atomFunctions = new Map<string, ReaderFunctions>([
+            ...this._atomFunctions,
+            ['b16', () => Boolean(this._i16())],
+            ['b32', () => Boolean(this._i32())],
+            ['b64', () => Boolean(this._i64())],
+
+            ['u16', () => this._u16()],
+            ['u32', () => this._u32()],
+            ['u64', () => this._u64()],
+
+            ['i16', () => this._i16()],
+            ['i32', () => this._i32()],
+            ['i64', () => this._i64()],
+
+            ['f', () => this._f()],
+            ['d', () => this._d()],
+        ]);
+
+        this.addPredefinedAliases();
     }
 }

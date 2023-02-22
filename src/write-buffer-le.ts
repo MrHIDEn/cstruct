@@ -2,20 +2,6 @@ import { WriteBuffer } from "./write-buffer";
 import { WriterFunctions } from "./types";
 
 export class WriteBufferLE extends WriteBuffer {
-    constructor() {
-        super();
-        this._writers = new Map<string, WriterFunctions>([
-            ...this._writers,
-            ['u16', (val = 0) => this._u16(val as number)],
-            ['i16', (val = 0) => this._i16(val as number)],
-            ['u32', (val = 0) => this._u32(val as number)],
-            ['i32', (val = 0) => this._i32(val as number)],
-            ['u64', (val = 0n) => this._u64(val as bigint)],
-            ['i64', (val = 0n) => this._i64(val as bigint)],
-            ['f', (val = 0) => this._f(val as number)],
-            ['d', (val = 0) => this._d(val as number)],
-        ]);
-    }
 
     _u16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
@@ -63,5 +49,28 @@ export class WriteBufferLE extends WriteBuffer {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeDoubleLE(val);
         this.addAtom('d', buffer);
+    }
+
+    constructor() {
+        super();
+        this._atomFunctions = new Map<string, WriterFunctions>([
+            ...this._atomFunctions,
+            ['b16', (val: boolean) => this._i16(+Boolean(val))],
+            ['b32', (val: boolean) => this._i32(+Boolean(val))],
+            ['b64', (val: boolean) => this._i64(BigInt(val))],
+
+            ['u16', (val = 0) => this._u16(val as number)],
+            ['u32', (val = 0) => this._u32(val as number)],
+            ['u64', (val = 0n) => this._u64(val as bigint)],
+
+            ['i16', (val = 0) => this._i16(val as number)],
+            ['i32', (val = 0) => this._i32(val as number)],
+            ['i64', (val = 0n) => this._i64(val as bigint)],
+
+            ['f', (val = 0) => this._f(val as number)],
+            ['d', (val = 0) => this._d(val as number)],
+        ]);
+
+        this.addPredefinedAliases();
     }
 }
