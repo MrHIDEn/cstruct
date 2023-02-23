@@ -23,7 +23,6 @@ export class ModelParser {
         json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
         json = json.replace(/\s{2,}/g, ` `); // reduce ' 'x to one ' '
         json = json.replace(/(\w+)({.*?}|\[.*?\])/g, `$1:$2`); // add missing `:` between key and { or [
-        json;//?
 
         return json;
     }
@@ -135,7 +134,6 @@ export class ModelParser {
                 }
             }
         }
-        json;//?
         return json;
     }
 
@@ -163,7 +161,7 @@ export class ModelParser {
         for (const match of matches) {
             const m = match.match(/(?<type>\w+)\s(?<key>\w+):\[(?<size>\w+)\]/);
             if (m?.length === 4) {
-                const { type, key, size } = m.groups!;
+                const { type, key, size } = m.groups;
                 const typeIsString = ["string","s"].includes(type);
                 const isSize = !Number.isNaN(+size); // number or type string
 
@@ -197,7 +195,6 @@ export class ModelParser {
         // `u8 [3];` => `["u8","u8","u8"]`
         // `s [3];` => `s3`
         // `string [3];` => `s3`
-        json;//?
         const matches = json.match(/\w+:\[[0-9]+\];?/g) ?? [];
         for (const match of matches) {
             const m = match.match(/(?<type>\w+):\[(?<body>[0-9]+)\];?/);
@@ -274,180 +271,19 @@ export class ModelParser {
         if (!model) {
             throw Error(`Invalid model '${model ?? typeof model}'`);
         }
+
         let json = (typeof model) === 'string' ? model as string : JSON.stringify(model); // stringify
         json = this.prepareJson(json);
-        json;//?
-
         json = this.dynamicStringOrArray(json);
-        json;//?
-
         json = this.staticArray(json);
-        json;//?
-
         json = this.CKindStruct(json);
-        json;//?
-
         json = this.CKindFields(json);
-        json;//?
-
         json = this.CKindStaticAndDynamicArrayOrString(json);
-        json;//?
-
         json = this.CKindStaticArrayOrString(json);
-        json;//?
-
         json = this.clearJson(json);
-        json;//?
-
         json = this.replaceModelTypesWithUserTypes(json, types);
-        json;//?
-
         json = this.fixJson(json);
-        json;//?
 
         return json;
     }
 }
-let types;
-let json = `
-        // struct  myStructA  {
-        //     u8  one , a  ;
-        //     u16  two , b  ;
-        // }  ;   
-        //
-        // typedef  struct  {
-        //     i8  three , c ;
-        //     i16  four , d ;
-        // }  myStructB  ; 
-        
-        // myStructC  {
-        //     u8  a , b ;
-        //     i16  c , d ;
-        // } 
-        // myStructD : {
-        //     u8  a , b ;
-        //     i16  c , d ;
-        // } 
-        // myStructE  {
-        //     u8  a , b ;
-        //     i16  c , d ;
-        // } ; 
-        // myStructF : {
-        //     u8  a , b ;
-        //     i16  c , d ;
-        // } ;
-        
-        // Special2
-        // u8 a,b, c, d;
-        
-        // Type Key[2]
-        // Type Key[u8]
-        // string Key[2]
-        // string Key[u8]
-        // s Key[2]
-        // s Key[u8]
-        
-        // u8[3];
-        // u8 [3];
-        // string [3];
-        // s [3];
-        // {
-        //     a: u8 [3],
-        //     b: u8 [3],
-        // }
-        
-        // {a[3/s]}
-        // {a[3/string]}
-        // {a[3/u8]}
-        // {a[u8/u8]}
-        
-        // [3/u8]
-        
-        // { abc: [f/f] } +
-        // {str:[f/string]} +
-        // {a:u8,b:u16,c:u32} +
-        // {a[3/u8]} +
-        // {u8 a,b;} +
-        
-        {
-            u8 a;
-            u16 b,c;
-            d[2/u8];
-            e:{f:u64}
-        }
-        
-        // {u8 a,b,c;}
-        
-        // { 
-        //     A {u8 aa; } 
-        //     B {u16 bb;} 
-        //     C [2/u64] ;
-        // }
-`;
-json = `{
-    u8 a;
-    u16 b,c;
-    d[2/u8];
-    e{f:u64}
-}`;
-json = `{
-    struct  myStructA  {
-        u8  a , b  ;
-        u16  c , d  ;
-    }  ;
-}`;
-json = `{
-typedef  struct  {
-    u8  a , b  ;
-    u16  c , d  ;
-}  myStructB  ;
-}`;
-json = `{
-    myStructC  {
-        u8  a , b ;
-        i16  c , d ;
-    } ;
-}`;
-json = `{
-    Type Key[2]
-}`;
-json = `u8 [3];`;
-json = `s [3];`;
-json = `string [3];`;
-json = `[2/Sensor]`;
-json = `{sensors: [2/Sensor]}`;
-types = `{Sensor: {type: u8, value: f, time: u64 }}`;
-// json = `{ A {u8 aa; }; B {u16 bb;}; C [2/u64] }`;
-// json = `{ abc: [f/f] }`;
-json;//?
-// json = (ModelParser as any).prepareJson(json);//?
-// json;//?
-// const matches = json.match(/(\w+)\s(\w+):\[(\w+)\]/g);
-// matches;//?
-const model = ModelParser.parseModel(json, types);
-model;//?
-JSON.parse(model);//?
-// json = `
-// myStructC  {
-//            u8  a , b ;
-//            i16  c , d ;
-//         }  ;
-// `;
-// json = `
-// myStructC : {
-//            u8  a , b ;
-//            i16  c , d ;
-//         }  ;
-// `;
-// json = `
-// myStructC  {
-//            u8  a , b ;
-//            i16  c , d ;
-//         }
-// `;
-// json = `
-// myStructC : {
-//            u8  a , b ;
-//            i16  c , d ;
-//         }
-// `;

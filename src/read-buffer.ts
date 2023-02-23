@@ -84,12 +84,3 @@ export class ReadBuffer extends BaseBuffer {
         return this._types.map((a, i) => `${a}:${this._buffers[i].toString('hex')}`);
     }
 }
-
-function f(type) {
-    const match = type.match(/^s(\d+)$/);
-    if (match) {
-        const [, sSize] = match;
-        sSize;//?
-        return sSize;
-    }
-}

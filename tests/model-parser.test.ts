@@ -397,9 +397,11 @@ describe('ModelParser', () => {
         });
 
         describe('model as special string', () => {
+            const ModelParserAny = ModelParser as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
             describe('prepareJson', () => {
                 it('should remove comments', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         // comment
                     }`);
                     const expected = `{}`;
@@ -407,7 +409,7 @@ describe('ModelParser', () => {
                 });
 
                 it('should remove empty lines', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                     
                         a: u8
                         
@@ -417,7 +419,7 @@ describe('ModelParser', () => {
                 });
 
                 it('should remove line breaks', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         \n
                         a: u8
                         
@@ -427,14 +429,14 @@ describe('ModelParser', () => {
                 });
 
                 it('should trim', () => {
-                    const json = (ModelParser as any).prepareJson(`  {  
+                    const json = ModelParserAny.prepareJson(`  {  
                     }  `);
                     const expected = `{}`;
                     expect(json).toEqual(expected);
                 });
 
                 it('should remove all `\'"`', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         'a' : 1,
                         "b": "   u8  "
                         
@@ -444,7 +446,7 @@ describe('ModelParser', () => {
                 });
 
                 it('should remove spaces around `,:;{}[]`', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         a : [ u8 ,  u8 ] , b : { c  :  u8 }
                         
                     }`);
@@ -453,7 +455,7 @@ describe('ModelParser', () => {
                 });
 
                 it('should reduce ` `x to one ` `', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         a      b:"     u8     "
                         
                     }`);
@@ -462,7 +464,7 @@ describe('ModelParser', () => {
                 });
 
                 it('should add missing `:` between key and { or [', () => {
-                    const json = (ModelParser as any).prepareJson(`{
+                    const json = ModelParserAny.prepareJson(`{
                         a{b:u8},
                         c[d:u8]                        
                     }`);

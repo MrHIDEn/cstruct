@@ -4,49 +4,49 @@ import { ReaderFunctions } from "./types";
 export class ReadBufferBE extends ReadBuffer {
     _u16() {
         const val = this._buffer.readUInt16BE(this._offset);
-        this._offset += 2;
+        this.addAtom('u16', 2);
         return val;
     }
 
     _i16() {
         const val = this._buffer.readInt16BE(this._offset);
-        this._offset += 2;
+        this.addAtom('i16', 2);
         return val;
     }
 
     _u32() {
         const val = this._buffer.readUInt32BE(this._offset);
-        this._offset += 4;
+        this.addAtom('u32', 4);
         return val;
     }
 
     _i32() {
         const val = this._buffer.readInt32BE(this._offset);
-        this._offset += 4;
+        this.addAtom('i32', 4);
         return val;
     }
 
     _u64() {
         const val = this._buffer.readBigUInt64BE(this._offset);
-        this._offset += 8;
+        this.addAtom('u64', 8);
         return val;
     }
 
     _i64() {
         const val = this._buffer.readBigInt64BE(this._offset);
-        this._offset += 8;
+        this.addAtom('i64', 8);
         return val;
     }
 
     _f() {
         const val = this._buffer.readFloatBE(this._offset);
-        this._offset += 4;
+        this.addAtom('f', 4);
         return val;
     }
 
     _d() {
         const val = this._buffer.readDoubleBE(this._offset);
-        this._offset += 8;
+        this.addAtom('d', 8);
         return val;
     }
 

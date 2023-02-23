@@ -1,14 +1,16 @@
 /// <reference types="node" />
 import { WriterFunctions, WriterValue } from "./types";
-export declare class WriteBuffer {
+import { BaseBuffer } from "./base-buffer";
+export declare class WriteBuffer extends BaseBuffer {
     protected _types: string[];
     protected _buffers: Buffer[];
     protected _offset: number;
-    protected _writers: Map<string, WriterFunctions>;
+    protected _atomFunctions: Map<string, WriterFunctions>;
     private _u8;
     private _i8;
     private _s;
-    addAlias(alias: string, type: string): void;
+    constructor();
+    addAlias(type: string, ...alias: string[]): void;
     write(type: string, val: WriterValue): void;
     get buffer(): Buffer;
     toBuffer(): Buffer;

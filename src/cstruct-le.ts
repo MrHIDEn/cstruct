@@ -23,7 +23,9 @@ export class CStructLE<T> extends CStruct<T> {
             struct: reader.toStruct() as T,
             offset: reader.offset,
             size: reader.size,
-            toAtoms: reader.toAtoms,
+            toAtoms(): string[] {
+                return reader.toAtoms();
+            },
         };
     }
 
@@ -33,7 +35,9 @@ export class CStructLE<T> extends CStruct<T> {
             buffer: writer.toBuffer(),
             offset: writer.offset,
             size: writer.size,
-            toAtoms: writer.toAtoms,
+            toAtoms(): string[] {
+                return writer.toAtoms();
+            },
         }
     }
 
@@ -43,7 +47,9 @@ export class CStructLE<T> extends CStruct<T> {
             buffer: writer.toBuffer(),
             offset: writer.offset,
             size: writer.size,
-            toAtoms: writer.toAtoms,
+            toAtoms(): string[] {
+                return writer.toAtoms();
+            },
         }
     }
 }
