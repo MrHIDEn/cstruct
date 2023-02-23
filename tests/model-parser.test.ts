@@ -78,7 +78,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a simple type 6', () => {
-                const types = ModelParser.parseTypes(`{ A {u8 aa; }, B {u16 bb;}, C [2/u64] }`);
+                const types = ModelParser.parseTypes(`{ A {u8 aa; }; B {u16 bb;}; C [2/u64] }`);
                 const expected = JSON.stringify({A: {aa: 'u8'}, B: {bb: 'u16'}, C: ['u64', 'u64']});
                 expect(types).toEqual(expected);
             });
@@ -394,122 +394,333 @@ describe('ModelParser', () => {
                 });
                 expect(model).toEqual(expected);
             });
-
-            it('should parse model 6', () => {
-                const model = ModelParser.parseModel(
-                    `
-                        u8 a;
-                        u16 b,c;
-                        d[2/u8];
-                        e{f:u64}
-                    `
-                );
-                const expected = JSON.stringify({
-                    a: 'u8',
-                    b: 'u16',
-                    c: 'u16',
-                    d: ['u8', 'u8'],
-                    e: {f: 'u64'}
-                });
-                expect(model).toEqual(expected);
-            });
         });
 
         describe('model as special string', () => {
-            it('should parse model Special-1.1', () => {
-                const model = ModelParser.parseModel(`{u8 a[3];}`);
-                const expected = JSON.stringify({a: ['u8', 'u8', 'u8']});
-                expect(model).toEqual(expected);
+            describe('prepareJson', () => {
+                it('should remove comments', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        // comment
+                    }`);
+                    const expected = `{}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should remove empty lines', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                    
+                        a: u8
+                        
+                    }`);
+                    const expected = `{a:u8}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should remove line breaks', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        \n
+                        a: u8
+                        
+                    }`);
+                    const expected = `{a:u8}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should trim', () => {
+                    const json = (ModelParser as any).prepareJson(`  {  
+                    }  `);
+                    const expected = `{}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should remove all `\'"`', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        'a' : 1,
+                        "b": "   u8  "
+                        
+                    }`);
+                    const expected = `{a:1,b:u8}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should remove spaces around `,:;{}[]`', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        a : [ u8 ,  u8 ] , b : { c  :  u8 }
+                        
+                    }`);
+                    const expected = `{a:[u8,u8],b:{c:u8}}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should reduce ` `x to one ` `', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        a      b:"     u8     "
+                        
+                    }`);
+                    const expected = `{a b:u8}`;
+                    expect(json).toEqual(expected);
+                });
+
+                it('should add missing `:` between key and { or [', () => {
+                    const json = (ModelParser as any).prepareJson(`{
+                        a{b:u8},
+                        c[d:u8]                        
+                    }`);
+                    const expected = `{a:{b:u8},c:[d:u8]}`;
+                    expect(json).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-1.2', () => {
-                const model = ModelParser.parseModel(`{u16 a[u8];}`);
-                const expected = JSON.stringify({"a.array": "u8", a: "u16"});
-                expect(model).toEqual(expected);
+            describe('dynamicStringOrArray', () => {
+                it('should make static string', () => {
+                    const model = ModelParser.parseModel(`{
+                        a:[3/s],
+                        b:[4/string]                        
+                    }`);
+                    const expected = JSON.stringify({
+                        a: "s3",
+                        b: "s4"
+                    });
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make dynamic string', () => {
+                    const model = ModelParser.parseModel(`{
+                        a:[i16/s],
+                        b:[i16/string]
+                    }`);
+                    const expected = JSON.stringify({
+                        "a.string": "i16", a: "string",
+                        "b.string": "i16", b: "string",
+                    });
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make static array', () => {
+                    const model = ModelParser.parseModel(`{
+                        a:[3/u16]                   
+                    }`);
+                    const expected = JSON.stringify({
+                        a: ['u16', 'u16', 'u16']
+                    });
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make dynamic array', () => {
+                    const model = ModelParser.parseModel(`{
+                        a:[i16/u16]
+                    }`);
+                    const expected = JSON.stringify({
+                        "a.array": "i16", a: "u16",
+                    });
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-1.3', () => {
-                const model = ModelParser.parseModel(`{string a[2];}`);
-                const expected = JSON.stringify({a: 's2'});
-                expect(model).toEqual(expected);
+            describe('staticArray', () => {
+                it('should make static array', () => {
+                    const model = ModelParser.parseModel(`
+                        [3/u8],
+                    `);
+                    const expected = JSON.stringify(
+                        ['u8', 'u8', 'u8']
+                    );
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-1.4', () => {
-                const model = ModelParser.parseModel(`{string a[u8];}`);
-                const expected = JSON.stringify({"a.string": "u8", a: "string"});
-                expect(model).toEqual(expected);
+            describe('CKindStruct', () => {
+                it('should parse model A)', () => {
+                    const model = ModelParser.parseModel(`{
+                    struct  myStructA  {
+                        u8  a , b  ;
+                        u16  c , d  ;
+                    }  ;
+                }`);
+                    const expected = JSON.stringify({myStructA: {a: 'u8', b: 'u8', c: 'u16', d: 'u16'}});
+                    expect(model).toEqual(expected);
+                });
+
+                it('should parse model B)', () => {
+                    const model = ModelParser.parseModel(`{
+                    typedef  struct  {
+                        u8  a , b  ;
+                        u16  c , d  ;
+                    }  myStructB  ;
+                }`);
+                    const expected = JSON.stringify({myStructB: {a: 'u8', b: 'u8', c: 'u16', d: 'u16'}});
+                    expect(model).toEqual(expected);
+                });
+
+                it('should parse model C)', () => {
+                    const model = ModelParser.parseModel(`{
+                     myStructC  {
+                        u8  a , b ;
+                        i16  c , d ;
+                    } ;
+                }`);
+                    const expected = JSON.stringify({myStructC: {a: 'u8', b: 'u8', c: 'i16', d: 'i16'}});
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-2.1', () => {
-                const model = ModelParser.parseModel(`u8 [3];`);
-                const expected = JSON.stringify(['u8', 'u8', 'u8']);
-                expect(model).toEqual(expected);
+            describe('CKindFields', () => {
+                it('should make fields of type', () => {
+                    const model = ModelParser.parseModel(`{
+                        u8 a,b,c;
+                    }`);
+                    const expected = JSON.stringify(
+                        {a: 'u8', b: 'u8', c: 'u8'}
+                    );
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-2.2', () => {
-                const model = ModelParser.parseModel(`string [3];`);
-                const expected = JSON.stringify('s3');
-                expect(model).toEqual(expected);
+            describe('CKindStaticAndDynamicArrayOrString', () => {
+                it('should make static array', () => {
+                    const model = ModelParser.parseModel(`{
+                        Type Key[2]
+                    }`);
+                    const expected = JSON.stringify(
+                        {Key: ['Type', 'Type']}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make dynamic array', () => {
+                    const model = ModelParser.parseModel(`{
+                        Type Key[u8]
+                    }`);
+                    const expected = JSON.stringify(
+                        {"Key.array": "u8", Key: "Type"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make static string s', () => {
+                    const model = ModelParser.parseModel(`{
+                        s Key[2]
+                    }`);
+                    const expected = JSON.stringify(
+                        {Key: "s2"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make dynamic string s', () => {
+                    const model = ModelParser.parseModel(`{
+                        s Key[u8]
+                    }`);
+                    const expected = JSON.stringify(
+                        {"Key.string": "u8", Key: "string"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make static string string', () => {
+                    const model = ModelParser.parseModel(`{
+                        string Key[2]
+                    }`);
+                    const expected = JSON.stringify(
+                        {Key: "s2"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make dynamic string string', () => {
+                    const model = ModelParser.parseModel(`{
+                        string Key[u8]
+                    }`);
+                    const expected = JSON.stringify(
+                        {"Key.string": "u8", Key: "string"}
+                    );
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-3.1', () => {
-                const model = ModelParser.parseModel(`{a[3/string]}`);
-                const expected = JSON.stringify({a: 's3'});
-                expect(model).toEqual(expected);
+            describe('CKindStaticArrayOrString', () => {
+                it('should make static array', () => {
+                    const model = ModelParser.parseModel(`
+                        u8 [3];
+                    `);
+                    const expected = JSON.stringify(
+                        ["u8","u8","u8"]
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make static string s', () => {
+                    const model = ModelParser.parseModel(`
+                        s [3];
+                    `);
+                    const expected = JSON.stringify(
+                        "s3"
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should make static string s', () => {
+                    const model = ModelParser.parseModel(`
+                        string [3];
+                    `);
+                    const expected = JSON.stringify(
+                        "s3"
+                    );
+                    expect(model).toEqual(expected);
+                });
             });
 
-            it('should parse model Special-3.2', () => {
-                const model = ModelParser.parseModel(`{a[u8/string]}`);
-                const expected = JSON.stringify({"a.string": "u8", a: "string"});
-                expect(model).toEqual(expected);
-            });
+            describe('replaceModelTypesWithUserTypes', () => {
+                it('should replace Error', () => {
+                    const model = ModelParser.parseModel(
+                        `{Error e;}`,
+                        {Error: {msg: 's20', code: 'i16'}}
+                    );
+                    const expected = JSON.stringify(
+                        {e: {msg: 's20', code: 'i16'}}
+                    );
+                    expect(model).toEqual(expected);
+                });
 
-            it('should parse model Special-3.3', () => {
-                const model = ModelParser.parseModel(`{a[3/u8]}`);
-                const expected = JSON.stringify({a: ['u8', 'u8', 'u8']});
-                expect(model).toEqual(expected);
-            });
+                it('should replace Sensor 1', () => {
+                    const model = ModelParser.parseModel(
+                        `[2/Sensor]`,
+                        `{Sensor: {type: u8, value: f, time: u64 }}`
+                    );
+                    const expected = JSON.stringify(
+                        [{type: 'u8', value: 'f', time: 'u64'},{type: 'u8', value: 'f', time: 'u64'}]
+                    );
+                    expect(model).toEqual(expected);
+                });
 
-            it('should parse model Special-3.4', () => {
-                const model = ModelParser.parseModel(`{a[u8/u8]}`);
-                const expected = JSON.stringify({"a.array": "u8", a: "u8"});
-                expect(model).toEqual(expected);
-            });
-
-            it('should parse model Special-4', () => {
-                const model = ModelParser.parseModel(`[2/u8]`);
-                const expected = JSON.stringify(['u8', 'u8']);
-                expect(model).toEqual(expected);
-            });
-
-            it('should parse model Special-5', () => {
-                const model = ModelParser.parseModel(`{u8 a,b;}`);
-                const expected = JSON.stringify({a: 'u8', b: 'u8'});
-                expect(model).toEqual(expected);
-            });
-
-            it('should parse model Special-6', () => {
-                const model = ModelParser.parseModel(`u8 a,b;`);
-                const expected = JSON.stringify({a: 'u8', b: 'u8'});
-                expect(model).toEqual(expected);
+                it('should replace Sensor 2', () => {
+                    const model = ModelParser.parseModel(
+                        `{sensors: [2/Sensor]}`,
+                        `{Sensor: {type: u8, value: f, time: u64 }}`
+                    );
+                    const expected = JSON.stringify(
+                        {sensors: [{type: 'u8', value: 'f', time: 'u64'},{type: 'u8', value: 'f', time: 'u64'}]}
+                    );
+                    expect(model).toEqual(expected);
+                });
             });
         });
 
         describe('fix json', () => {
             it('should parse model 1', () => {
-                const model = ModelParser.parseModel(`a:u8,b:u16,c:u32`);
+                const model = ModelParser.parseModel(`{a:u8,b:u16,c:u32}`);
                 const expected = JSON.stringify({a: 'u8', b: 'u16', c: 'u32'});
                 expect(model).toEqual(expected);
             });
 
             it('should parse model 2', () => {
-                const model = ModelParser.parseModel(`a[3/u8]`);
+                const model = ModelParser.parseModel(`{a:[3/u8]}`);
                 const expected = JSON.stringify({a: ['u8', 'u8', 'u8']});
                 expect(model).toEqual(expected);
             });
 
             it('should parse model 3', () => {
-                const model = ModelParser.parseModel(`u8 a,b;`);
+                const model = ModelParser.parseModel(`{u8 a,b;}`);
                 const expected = JSON.stringify({a: 'u8', b: 'u8'});
                 expect(model).toEqual(expected);
             });

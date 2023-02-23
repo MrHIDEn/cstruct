@@ -23,6 +23,8 @@ rise error if not match
 
 read/erite bits/flags inside atom type
 
+default values? '=123'
+
 #### Functions
 ```javascript
 function hex2(buf) {
