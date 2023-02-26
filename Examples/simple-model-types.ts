@@ -214,3 +214,38 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
     console.log(buffer.toString('hex'));
     // 67
 }
+
+{
+    // Nested types
+    const types = {
+        A: {
+            b: 'B',
+        },
+        B: {
+            c: 'C',
+        },
+        C: ['u8', 'u8', 'u8'],
+    };
+    const model = {
+        table: [
+            'A',
+            'A',
+        ]
+    };
+    const cStruct = new CStructBE(model, types);
+    console.log(cStruct.modelClone);
+    // { table:
+    //    [ { b: { c: [ 'u8', 'u8', 'u8' ] } },
+    //      { b: { c: [ 'u8', 'u8', 'u8' ] } } ] }
+    const data = {
+        table: [
+            {b: {c: [0x01, 0x02, 0x03]}},
+            {b: {c: [0xF1, 0xF2, 0xF3]}},
+        ]
+    };
+
+    const {buffer} = cStruct.make(data);
+
+    console.log(buffer.toString('hex'));
+    // 010203f1f2f3
+}

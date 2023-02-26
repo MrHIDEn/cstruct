@@ -1,88 +1,55 @@
 import { ReadBufferBE } from "./read-buffer-be";
 import { ReadBufferLE } from "./read-buffer-le";
 
+
 export class Read<T> {
-    _struct: T;
-    _reader: ReadBufferLE | ReadBufferBE;
+    protected _struct: T;
+    protected _reader: ReadBufferLE | ReadBufferBE;
+    private _dynamicLengthRegex = /^(?<itemKey>\w+)\.(?<itemLengthType>\w+)$/;
 
     _recursion(struct: T) {
         const entries = Object.entries(struct);
-        let keyArray;
-        let keyString;
 
         for (const [key, type] of entries) {
-            // Dynamic array.
-            if (typeof keyArray === 'string') {
-                this._readDynamicArray(keyArray, key, struct);
-                keyArray = undefined;
-                continue;
-            }
-            // Dynamic string.
-            else if (typeof keyString === 'string') {
-                this._readDynamicString(keyString, key, struct);
-                keyString = undefined;
-                continue;
-            }
+            // Catch dynamic item
+            const dynamicLengthMatch = key.match(this._dynamicLengthRegex);
 
-            // Prepare dynamic array.
-            if (key.endsWith('.array')) {
-                keyArray = key;
-                continue;
+            // Dynamic item
+            if (dynamicLengthMatch) {
+                const {itemKey, itemLengthType} = dynamicLengthMatch.groups;
+                this._readDynamicItem(key, type, struct, itemKey, itemLengthType);
             }
-            // Prepare dynamic string.
-            else if (key.endsWith('.string')) {
-                keyString = key;
-                continue;
-            }
-            // Normal item/items
+            // Static item
             else {
-                keyArray = undefined;
-                keyString = undefined;
+                this._read(struct, key, type);
             }
-
-            // Read item
-            this._read(struct, key, type);
         }
     }
 
-    /**
-     * Reading dynamic array. Array length is written before array items.
-     * <arrayLength><arrayItem1><arrayItem2>...
-     */
-    private _readDynamicArray(keyArray: string, key: string, struct: T) {
-        if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must folow array declaration 'aKey.array'.`);
+    private _readDynamicItem(key: string, itemsType: string, struct: T, itemKey: string, itemLengthType: string) {
+        const itemTypeIsString = itemsType === 's';
 
-        // Read array length
-        const typeLength = struct[keyArray];
-        const arrayLength = this._reader.read(typeLength);
-
-        // Read array items
-        const itemsType = struct[key];
-        struct[key] = Array(arrayLength).fill(itemsType);
-        this._recursion(struct[key]);
-
-        // Delete array length key
-        delete struct[keyArray];
-    }
-
-    /**
-     * Reading dynamic string. String length is written before string.
-     * <stringLength><string>
-     */
-    private _readDynamicString(keyString: string, key: string, struct: T) {
-        if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
-        if (struct[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
-
-        // Read string length
-        const typeLength = struct[keyString];
-        const stringLength = this._reader.read(typeLength);
+        // Read length
+        const length = this._reader.read(itemLengthType);
+        // (some.i32: u8)
+        // key: some.i32, itemsType: u8, itemKey: some, itemLengthType: i32
+        // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
+        delete struct[key];
 
         // Read string
-        const stringValue = this._reader.read(`s${stringLength}`);
-        struct[key] = stringValue;
-
-        // Delete string length key
-        delete struct[keyString];
+        if (itemTypeIsString) {
+            const stringValue = this._reader.read(`s${length}`);
+            struct[itemKey] = stringValue;
+        }
+        // Read array of itemsType
+        else {
+            // TODO test it
+            if (typeof itemsType !== 'string') {
+                throw Error(`itemsType is not string.`);
+            }
+            struct[itemKey] = Array(length).fill(itemsType);
+            this._recursion(struct[itemKey]);
+        }
     }
 
     _read(struct: T, key: string, type: string) {

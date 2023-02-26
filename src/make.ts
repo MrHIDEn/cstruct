@@ -3,96 +3,61 @@ import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 
 export class Make<T> {
-    _writer: WriteBufferLE | WriteBufferBE;
+    protected _writer: WriteBufferLE | WriteBufferBE;
+    private _dynamicLengthRegex = /^(?<itemKey>\w+)\.(?<itemLengthType>\w+)$/;
 
     _recursion(model: Model, struct: T) {
         const entries = Object.entries(model);
-        let keyArray: string;
-        let keyString: string;
 
         for (const [key, type] of entries) {
-            // Dynamic array.
-            if (typeof keyArray === 'string') {
-                this._writeDynamicArray(keyArray, key, struct, model, type);
-                keyArray = undefined;
-                continue;
-            }
-            // Dynamic string.
-            else if (typeof keyString === 'string') {
-                this._writeDynamicString(keyString, key, model, struct);
-                keyString = undefined;
-                continue;
-            }
+            // Catch dynamic item
+            const dynamicLengthMatch = key.match(this._dynamicLengthRegex);
 
-            // Prepare dynamic array.
-            if (key.endsWith('.array')) {
-                keyArray = key;
-                continue;
+            // Dynamic item
+            if (dynamicLengthMatch) {
+                const {itemKey, itemLengthType} = dynamicLengthMatch.groups;
+                this._writeDynamicItem(key, type, model, struct, itemKey, itemLengthType);
             }
-            // Prepare dynamic string.
-            else if (key.endsWith('.string')) {
-                keyString = key;
-                continue;
-            }
-            // Normal item/items
+            // Static item
             else {
-                keyArray = undefined;
-                keyString = undefined;
+                this._write(model, struct, key, type);
             }
-
-            // Write item
-            this._write(model, struct, key, type);
         }
     }
 
-    /**
-     * Writing dynamic array. Array length is written before array items.
-     * <stringLength><string>
-     */
-    private _writeDynamicArray(keyArray: string, key, struct: T, model: Model, types: Types) {
-        if (keyArray.slice(0, -6) !== key) throw SyntaxError(`A key 'aKey' must follow array declaration 'aKey.array'.`);
-        if (!Array.isArray(struct[key])) throw SyntaxError(`An array 'aKey' must follow array declaration 'aKey.array'.`);
+    private _writeDynamicItem(key: string, itemsType: object | string, model: Model, struct: T, itemKey: string, itemLengthType: string) {
+        const itemTypeIsString = itemsType === 's';
+        const value = struct[itemKey];
+        const length = value.length;
+        // (some.i32: u8)
+        // key: some.i32, itemsType: u8, itemKey: some, itemLengthType: i32
+        // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
+        // delete struct[key];
 
-        // Write array length
-        const typeLength = model[keyArray];
-        const arrayLength = struct[key].length;
-        this._writer.write(typeLength, arrayLength);
-
-        // Write array items
-        const itemsType = model[key];
-        switch (typeof itemsType) {
-            case 'object':
-                for (const structItem of struct[key]) {
-                    this._recursion(itemsType, structItem);
-                }
-                break;
-            case 'string':
-                for (const itemValue of struct[key]) {
-                    this._writer.write(itemsType, itemValue);
-                }
-                break;
-            default:
-                throw TypeError(`Unknown type "${types}"`);
-        }
-    }
-
-    /**
-     * Writing dynamic string. String length is written before string.
-     * <stringLength><string>
-     */
-    private _writeDynamicString(keyString: string, key, model: Model, struct: T) {
-        if (keyString.slice(0, -7) !== key) throw SyntaxError(`A key 'aKey' must follow string declaration 'aKey.string'.`);
-        if (model[key] != 'string') throw SyntaxError(`An object 'aKey' must be type 'string' after string declaration 'aKey.string'.`);
-        if (typeof struct[key] != 'string') throw SyntaxError(`An followed 'aKey' must equal 'string' after declaration 'aKey.string'.`);
-
-        // Write string length
-        const stringValue = struct[key];
-        const typeLength = model[keyString];
-        const stringLength = stringValue.length;
-        this._writer.write(typeLength, stringLength);
+        // Write length
+        this._writer.write(itemLengthType, length);
 
         // Write string
-        this._writer.write('s', stringValue);
+        if (itemTypeIsString) {
+            this._writer.write('s', value);
+        }
+        // Write array of itemsType
+        else {
+            switch (typeof itemsType) {
+                case 'object':
+                    for (const structItem of value) {
+                        this._recursion(itemsType, structItem);
+                    }
+                    break;
+                case 'string':
+                    for (const itemValue of value) {
+                        this._writer.write(itemsType, itemValue);
+                    }
+                    break;
+                default:
+                    throw TypeError(`Unknown type "${itemsType}"`);
+            }
+        }
     }
 
     _write(model: Model, struct: T, key: string, type: string) {

@@ -462,15 +462,6 @@ describe('ModelParser', () => {
                     const expected = `{a b:u8}`;
                     expect(json).toEqual(expected);
                 });
-
-                it('should add missing `:` between key and { or [', () => {
-                    const json = ModelParserAny.prepareJson(`{
-                        a{b:u8},
-                        c[d:u8]                        
-                    }`);
-                    const expected = `{a:{b:u8},c:[d:u8]}`;
-                    expect(json).toEqual(expected);
-                });
             });
 
             describe('dynamicStringOrArray', () => {

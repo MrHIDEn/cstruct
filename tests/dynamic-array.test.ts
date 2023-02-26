@@ -4,8 +4,8 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/tests";
 describe('dynamic array', () => {
     describe('BE', () => {
         describe(`read`, () => {
-            it(`should read {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should read {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructBE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0002 1234 5678');
 
@@ -15,8 +15,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should read {r.array: number, r: number[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should read {r: 'u16[i16]'} with offset 2`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructBE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0002 1234 5678');
 
@@ -26,8 +26,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should read {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should read {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructBE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0002 61620000 63640000');
 
@@ -37,8 +37,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should read {r.array: number, r: string[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should read {r: 's4[i16]'} with offset 2`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructBE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 0002 61620000 63640000');
 
@@ -50,8 +50,8 @@ describe('dynamic array', () => {
         });
 
         describe(`make`, () => {
-            it(`should make {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should make {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructBE<{ r: number[] }>(model);
 
                 const result = cStruct.make({r: [0x1234, 0x5678]});
@@ -60,8 +60,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should make {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should make {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructBE<{ r: string[] }>(model);
 
                 const result = cStruct.make({r: ['ab', 'cd']});
@@ -72,8 +72,8 @@ describe('dynamic array', () => {
         });
 
         describe(`write`, () => {
-            it(`should write {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should write {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructBE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0002 1234 5678');
@@ -85,8 +85,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should write {r.array: number, r: number[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should write {r: 'u16[i16]'} with offset 2`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructBE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0000 0000 0000');
                 const expected = hexToBuffer('0000 0002 1234 5678');
@@ -98,8 +98,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should write {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should write {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructBE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 00000000 00000000');
                 const expected = hexToBuffer('0002 61620000 63640000');
@@ -111,8 +111,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should write {r.array: number, r: string[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should write {r: 's4[i16]'} with offset 2`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructBE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 0000 00000000 00000000');
                 const expected = hexToBuffer('0000 0002 61620000 63640000');
@@ -128,8 +128,8 @@ describe('dynamic array', () => {
 
     describe('LE', () => {
         describe(`read`, () => {
-            it(`should read {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should read {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructLE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0200 3412 7856');
 
@@ -139,8 +139,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should read {r.array: number, r: number[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should read {r: 'u16[i16]'} with offset 2`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructLE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0200 3412 7856');
 
@@ -150,8 +150,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should read {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should read {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructLE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0200 61620000 63640000');
 
@@ -161,8 +161,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should read {r.array: number, r: string[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should read {r: 's4[i16]'} with offset 2`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructLE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 0200 61620000 63640000');
 
@@ -174,8 +174,8 @@ describe('dynamic array', () => {
         });
 
         describe(`make`, () => {
-            it(`should make {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should make {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructLE<{ r: number[] }>(model);
 
                 const result = cStruct.make({r: [0x1234, 0x5678]});
@@ -184,8 +184,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should make {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should make {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructLE<{ r: string[] }>(model);
 
                 const result = cStruct.make({r: ['ab', 'cd']});
@@ -196,8 +196,8 @@ describe('dynamic array', () => {
         });
 
         describe(`write`, () => {
-            it(`should write {r.array: number, r: number[]}`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should write {r: 'u16[i16]'}`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructLE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0200 3412 7856');
@@ -209,8 +209,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should write {r.array: number, r: number[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 'u16'};
+            it(`should write {r: 'u16[i16]'} with offset 2`, () => {
+                const model = {r: 'u16[i16]'};
                 const cStruct = new CStructLE<{ r: number[] }>(model);
                 const buffer = hexToBuffer('0000 0000 0000 0000');
                 const expected = hexToBuffer('0000 0200 3412 7856');
@@ -222,8 +222,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(6);
             });
 
-            it(`should write {r.array: number, r: string[]}`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should write {r: 's4[i16]'}`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructLE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 00000000 00000000');
                 const expected = hexToBuffer('0200 61620000 63640000');
@@ -235,8 +235,8 @@ describe('dynamic array', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should write {r.array: number, r: string[]} with offset 2`, () => {
-                const model = {'r.array': 'i16', r: 's4'};
+            it(`should write {r: 's4[i16]'} with offset 2`, () => {
+                const model = {r: 's4[i16]'};
                 const cStruct = new CStructLE<{ r: string[] }>(model);
                 const buffer = hexToBuffer('0000 0000 00000000 00000000');
                 const expected = hexToBuffer('0000 0200 61620000 63640000');

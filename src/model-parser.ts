@@ -1,16 +1,65 @@
 import { Model, Types } from "./types";
 
 export class ModelParser {
+    private static _allowedLengthTypes = 'u8,u16,u32,u64,i8,i16,i32,i64'.split(',');
+
+    private static _checkWhetherTypeIsString(type: string): boolean {
+        return ["string", "s"].includes(type);
+    }
+
+    private static _checkWhetherSizeIsNumber(size: string): boolean {
+        return !Number.isNaN(+size);
+    }
+
+    private static _checkWhetherLengthTypeIsAllowed(lengthType: string): boolean {
+        return this._allowedLengthTypes.includes(lengthType);
+    }
+
+    private static _translateStaticAndDynamic(json: string, match: string, matchArray: RegExpMatchArray) {
+        if (matchArray?.length === 4) {
+            const {key, size, type} = matchArray.groups;
+            const typeIsString = this._checkWhetherTypeIsString(type);
+            const isStatic = this._checkWhetherSizeIsNumber(size);
+
+            let replacer: string;
+            // Static
+            if (isStatic) {
+                if (+size < 0) {
+                    throw Error(`Size must be >= 0.`)
+                }
+                if (typeIsString) {
+                    replacer = `${key}:s${size}`;
+                } else {
+                    replacer = `${key}:[${Array(+size).fill(type)}]`;
+                }
+            }
+            // Dynamic
+            else {
+                if (!this._checkWhetherLengthTypeIsAllowed(size)) {
+                    throw Error(`Unsupported dynamic length type.`);
+                }
+                if (typeIsString) {
+                    replacer = `${key}.${size}:s`;
+                } else {
+                    replacer = `${key}.${size}:${type}`;
+                }
+            }
+
+            json = json.split(match).join(replacer);
+        }
+        return json;
+    }
+
     private static _extractCKindFields(body: string, end = ''): string {
         return (body
-            .match(/\w+\s[\w,]+;/g) ?? [])
-            .map(m => m.match(/(?<type>\w+)\s(?<fields>[\w,]+);/))
-            .map(({groups: {type, fields}}) => {
-                const keys = fields.split(',');
-                const pairs = keys.map(k => `${k}:${type}`);
-                return pairs.join(',');
-            })
-            .join(',')
+                .match(/\w+\s[\w,]+;/g) ?? [])
+                .map(m => m.match(/(?<type>\w+)\s(?<fields>[\w,]+);/))
+                .map(({groups: {type, fields}}) => {
+                    const keys = fields.split(',');
+                    const pairs = keys.map(k => `${k}:${type}`);
+                    return pairs.join(',');
+                })
+                .join(',')
             + end;
     }
 
@@ -22,69 +71,51 @@ export class ModelParser {
         json = json.replace(/['"]/g, ''); // remove all `'"`
         json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
         json = json.replace(/\s{2,}/g, ` `); // reduce ' 'x to one ' '
-        json = json.replace(/(\w+)({.*?}|\[.*?\])/g, `$1:$2`); // add missing `:` between key and { or [
 
         return json;
     }
 
     private static dynamicStringOrArray(json: string): string {
-        // S1) string / s, <key>:[<static-size>/string], static-size is number
-        //  `a:[3/s]` => `{a:s<static-size>}`
-        //  `a:[3/string]` => `{a:s<static-size>}`
-        // S2) string, <key>:[<dynamic-size>/string], dynamic-size is type string (u8, ect)
-        //  `a:[u8/s]` => `{a.string:u8,a:string}`
-        //  `a:[u8/string]` => `{a.string:u8,a:string}`
-        // A1) array, <key>:[<static-size>/<type>], static-size is number
-        //  `a:[3/u8]` => a:[u8,u8,u8]
-        // A2) array, <key>:[<dynamic-size>/<type>], dynamic-size is type string (u8, ect)
-        //  `a:[u8/u8]` => {a.string:u8,a:u8}
-        const matches = json.match(/\w+:?\[\w+\/\w+\];?/g) ?? [];
+        // {some s[i8]}      => {some.i8: s}
+        // {some string[i8]} => {some.i8: s}
+        // {some:s[i8]}      => {some.i8: s}
+        // {some:string[i8]} => {some.i8: s}
+        // {some Abc[i8]}    => {some.i8: Abc}
+        // {some:Abc[i8]}    => {some.i8: Abc}
+        const matches = json.match(/\w+:?\w+\[\w+\];?/g) ?? [];
         for (const match of matches) {
-            const m = match.match(/(?<key>\w+):?\[(?<size>\w+)\/(?<type>\w+)\];?/);
-            if (m?.length === 4) {
-                const { key, size, type } = m.groups;
-                const typeIsString = ["string","s"].includes(type);
-                const isSize = !Number.isNaN(+size); // or is type string
-
-                let replacer: string;
-                // string
-                if (typeIsString) {
-                    if (isSize) {
-                        replacer = `${key}:s${size}`; // static string
-                    } else {
-                        replacer = `${key}.string:${size},${key}:string`; // dynamic string
-                    }
-                }
-                // array
-                else {
-                    if (isSize) {
-                        replacer = `${key}:[${Array(+size).fill(type)}]`; // static array
-                    } else {
-                        replacer = `${key}.array:${size},${key}:${type}`; // dynamic array
-                    }
-                }
-
-                json = json.split(match).join(replacer);
-            }
+            const matchArray = match.match(/(?<key>\w+):?(?<type>\w+)\[(?<size>\w+)\];?/);
+            json = this._translateStaticAndDynamic(json, match, matchArray);
         }
         return json;
     }
 
     private static staticArray(json: string): string {
-        // `[<size>/<type>]` => `[<type>,<type>,<type>,...]`
         // `[3/u8]` => `[u8,u8,u8]`
+        // `[3/s]`  => `s3`
+        // `[3/string]`  => `s3`
+        // TODO? `u8[3]` => `[u8,u8,u8]` ?
+        // TODO?`u8[i8]` => `u8.i8` ?
         const matches = json.match(/\[\w+\/\w+\]/g) ?? [];
         for (const match of matches) {
-            const m = match.match(/\[(?<n>\w+)\/(?<type>\w+)\]/);
+            const m = match.match(/\[(?<size>\w+)\/(?<type>\w+)\]/);
             if (m?.length === 3) {
-                const { n, type } = m.groups;
-                const isSize = !Number.isNaN(+n);
-                const size = +n;
-                if (isSize && size >= 0) {
-                    const replacer = `[${Array(size).fill(type)}]`;
+                const {size, type} = m.groups;
+                const isNumber = this._checkWhetherSizeIsNumber(size);
+                const typeIsString = this._checkWhetherTypeIsString(type);
+                if (isNumber) {
+                    if (+size < 0) {
+                        throw Error(`Size must be >= 0.`)
+                    }
+                    let replacer: string;
+                    if (typeIsString) {
+                        replacer = `s${size}`;
+                    } else {
+                        replacer = `[${Array(+size).fill(type)}]`;
+                    }
                     json = json.split(match).join(replacer);
                 } else {
-                    throw Error(`Syntax error, ${n}`);
+                    throw Error(`Size must be a number, '${size}'.`);
                 }
             }
         }
@@ -105,7 +136,7 @@ export class ModelParser {
         // }  myStructB  ;
         // => `{"myStructB":{"three":"i8","c":"i8"}}`
         // C)
-        // myStructC [:] {
+        // myStructC {
         //     u8  a , b ;
         //     i16  c , d ;
         // } [;]
@@ -116,14 +147,14 @@ export class ModelParser {
         // myStructC:{u8 a,b;i16 c,d;}
         // => `{"myStructC":{"a":"u8","b":"u8","c":"i16","d":"i16"}}`
         const matches =
-            json.match(/struct\s(\w+):{(.*)};/g) ??
-            json.match(/typedef\s+struct:{(.*)}(\w+);/g) ??
-            json.match(/(\w+):?{([\w ,;]+)};?/g) ??
+            json.match(/struct(\w+){(.*)};/g) ??
+            json.match(/typedef\sstruct{(.*)}(\w+);/g) ??
+            json.match(/(\w+){([\w ,;]+)};?/g) ??
             [];
         for (const match of matches) {
             const m =
-                match.match(/struct\s+(?<name>\w+)\s*{\s*(?<body>.*)}\s*;/) ??
-                match.match(/typedef\s+struct:{(?<body>.*)}(?<name>\w+);/) ??
+                match.match(/struct\s(?<name>\w+){(?<body>.*)};/) ??
+                match.match(/typedef\sstruct:{(?<body>.*)}(?<name>\w+);/) ??
                 match.match(/(?<name>\w+):?{(?<body>[\w ,;]+)};?/);
             if (m?.length === 3) {
                 const {name, body} = m.groups;
@@ -138,8 +169,7 @@ export class ModelParser {
     }
 
     private static CKindFields(json: string): string {
-        // `{u8 a,b,c;}`
-        // => `{a:u8,b:u8,c:u8}`
+        // `{u8 a,b,c;}` => `{a:u8,b:u8,c:u8}`
         const matches = json.match(/(\w+)\s([\w ,;]+);/g) ?? [];
         for (const match of matches) {
             const replacer = this._extractCKindFields(match, ',');
@@ -151,63 +181,39 @@ export class ModelParser {
     }
 
     private static CKindStaticAndDynamicArrayOrString(json: string): string {
-        // `{Type Key[2]}` => `{Key:[Type,Type]}`, n times
-        // `{Type Key[u8]}` => `{Key.array:u8,Key:Type}`
         // `{s Key[2]}` => `{Key:s2}`
         // `{s Key[u8]}` => `{Key.string:u8,Key:string}`
         // `{string Key[2]}` => `{Key:s2}`
         // `{string Key[u8]}` => `{Key.string:u8,Key:string}`
+        // `{Type Key[2]}` => `{Key:[Type,Type]}`, n times
+        // `{Type Key[u8]}` => `{Key.array:u8,Key:Type}`
         const matches = json.match(/\w+\s\w+:\[\w+\]/g) ?? [];
         for (const match of matches) {
-            const m = match.match(/(?<type>\w+)\s(?<key>\w+):\[(?<size>\w+)\]/);
-            if (m?.length === 4) {
-                const { type, key, size } = m.groups;
-                const typeIsString = ["string","s"].includes(type);
-                const isSize = !Number.isNaN(+size); // number or type string
-
-                let replacer: string;
-                // <key.string>
-                if (typeIsString) {
-                    if (isSize) {
-                        replacer = `${key}:s${size}`;
-                    } else {
-                        replacer = `${key}.string:${size},${key}:string`;
-                    }
-                }
-                // <key.array>
-                else {
-                    if (isSize) {
-                        replacer = `${key}:[${Array(+size).fill(type)}]`;
-                    } else {
-                        replacer = `${key}.array:${size},${key}:${type}`;
-                    }
-                }
-
-                json = json.split(match).join(replacer);
-            }
+            const matchArray = match.match(/(?<type>\w+)\s(?<key>\w+):\[(?<size>\w+)\]/);
+            json = this._translateStaticAndDynamic(json, match, matchArray);
         }
         return json;
     }
 
     private static CKindStaticArrayOrString(json: string): string {
-        // Special-5
-        // Special-2
         // `u8 [3];` => `["u8","u8","u8"]`
         // `s [3];` => `s3`
         // `string [3];` => `s3`
         const matches = json.match(/\w+:\[[0-9]+\];?/g) ?? [];
         for (const match of matches) {
-            const m = match.match(/(?<type>\w+):\[(?<body>[0-9]+)\];?/);
+            const m = match.match(/(?<type>\w+):\[(?<size>[0-9]+)\];?/);
             if (m?.length === 3) {
-                const { type, body } = m.groups;
-                const isSize = !Number.isNaN(+body);
-                const size = +body;
-                if (isSize && size >= 0) {
-                    const typeIsString = ["string","s"].includes(type);
-                    const replacer = typeIsString ? `s${body}` : `[${Array(size).fill(type)}]`;
+                const {type, size} = m.groups;
+                const isNumber = this._checkWhetherSizeIsNumber(size);
+                if (isNumber) {
+                    if (+size < 0) {
+                        throw Error(`Size must be >= 0.`)
+                    }
+                    const typeIsString = this._checkWhetherTypeIsString(type);
+                    const replacer = typeIsString ? `s${size}` : `[${Array(+size).fill(type)}]`;
                     json = json.split(match).join(replacer);
                 } else {
-                    throw Error(`Syntax error '${body}'`);
+                    throw Error(`Size must be a number.`);
                 }
             }
         }
@@ -218,7 +224,7 @@ export class ModelParser {
         json = json.replace(/,([}\]])/g, '$1'); // remove last useless ','
         json = json.replace(/(.*),$/, '$1'); // remove last ','
         json = json.replace(/([}\]])\s*([{[\w])/g, '$1,$2'); // add missing ',' between }] and {[
-        json = json.replace(/([_a-zA-Z]\w*\.?\w*)/g, '"$1"'); // Add missing ""
+        json = json.replace(/(\w+\.?\w*)/g, '"$1"'); // Add missing ""
         return json;
     }
 
@@ -287,3 +293,11 @@ export class ModelParser {
         return json;
     }
 }
+let obj;
+let types;
+let json;
+let model;
+
+json = `{A:{u8 a,b;};`;
+json;//?
+model = ModelParser.parseModel(json, types);
