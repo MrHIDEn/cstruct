@@ -155,52 +155,6 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
 }
 
 {
-    // Model and Types for Sender & Receiver
-    const types = `{
-        Sensor: {
-            id: u32,
-            type: u8,
-            value: d,
-            timestamp: u64,
-        }
-    }`;
-    const iotModel = `{
-        iotName: s20,
-        sensor: Sensor,
-    }`;
-
-    // IOT Sender
-    const sender = new CStructBE(iotModel, types);
-    const senderData = {
-        iotName: 'IOT-1',
-        sensor: {
-            id: 123456789,
-            type: 0x01,
-            value: 123.456,
-            timestamp: 1677277903685n,
-        }
-    };
-    const { buffer: senderFrame } = sender.make(senderData);
-
-    // Transmitting frame
-    console.log(senderFrame.toString('hex'));
-
-    // IOT Receiver
-    const receiver = new CStructBE(iotModel, types);
-    const { struct: receiverData } = receiver.read(senderFrame);
-    console.log(receiverData);
-    // {
-    //   iotName: 'IOT-1',
-    //   sensor: {
-    //      id: 123456789,
-    //      type: 1,
-    //      value: 123.456,
-    //      timestamp: 1677277903685
-    //    }
-    //  }
-}
-
-{
     const types = {
         U8a: {
             a: 'u8',

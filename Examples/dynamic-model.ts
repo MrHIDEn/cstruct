@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
+import { CStructBE } from "../src";
 
 {
     // Dynamic (length) array
@@ -57,4 +57,73 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // { ab: [ { a: -1, b: 1 }, { a: -2, b: 2 } ] }
+}
+
+{
+    // Dynamic (length) string
+    const model = {
+        txt1: "s[i16]",
+        txt2: "string[i16]",
+    };
+
+    const cStruct = new CStructBE(model);
+
+    console.log(cStruct.modelClone);
+    // { 'txt1.i16': 's', 'txt2.i16': 's' }
+
+    const data = {
+        txt1: "ABCDE",
+        txt2: "AB"
+    };
+    const {buffer} = cStruct.make(data);
+
+    console.log(buffer.toString('hex'));
+    // 0005414243444500024142
+    // 0005_4142434445 0002_4142
+
+    const {struct: extractedData} = cStruct.read(buffer);
+    console.log(extractedData);
+    // { txt1: 'ABCDE', txt2: 'AB' }
+}
+
+{
+    // Dynamic (length) array with dynamic strings
+    const model = {
+        txt: "S[i8]",
+    };
+
+    const types = {
+        S: {t: 's[i8]'}
+    };
+
+    const cStruct = new CStructBE(model, types);
+
+    console.log(cStruct.jsonModel);
+    // {"txt.i8":{"t.i8":"s"}}
+    console.log(cStruct.jsonTypes);
+    // {"S":{"t.i8":"s"}}
+
+    console.log(cStruct.modelClone);
+    // {"txt.i8":{"t.i8":"s"}}
+
+    const data = {
+        txt: [
+            {t: "ABCDE"},
+            {t: "AB"},
+            {t: "A"},
+        ]
+    };
+    const {buffer} = cStruct.make(data);
+
+    console.log(buffer.toString('hex'));
+    // 030541424344450241420141
+    // 03 05_4142434445 02_4142 01_41
+    // 3
+    //       ABCDE
+    //                     AB
+    //                             A
+
+    const {struct: extractedData} = cStruct.read(buffer);
+    console.log(extractedData);
+    // { txt: [ { t: 'ABCDE' }, { t: 'AB' }, { t: 'A' } ] }
 }
