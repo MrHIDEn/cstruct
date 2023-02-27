@@ -268,3 +268,23 @@ import { hexToBuffer, CStructBE } from "../src";
     console.log(readStruct);
     // { m: 258, n: 259 }
 }
+
+{
+    // Mixed model and types
+    // Make buffer from struct based on model and types
+    const cStruct = new CStructBE({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
+
+    const {buffer, offset, size} = cStruct.make({
+        errors: [
+            {code: 0x12, message: 'message1'},
+            {code: 0x34, message: 'message2'},
+        ]
+    });
+
+    console.log(buffer.toString('hex'));
+    // 00126d65737361676531000000346d657373616765320000
+    console.log(offset);
+    // 24
+    console.log(size);
+    // 24
+}

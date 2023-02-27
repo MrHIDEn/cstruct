@@ -125,6 +125,30 @@ export class ModelParser {
         return json;
     }
 
+    private static cKindStructs(json: string): string {
+        /* C STRUCTS
+        typedef struct {
+            uint8_t x;
+            uint8_t y;
+            uint8_t z;
+        } Xyz;*/
+        // `{typedef struct{uint8_t x;uint8_t y;uint8_t z;}Xyz;}` => `{Xyz:{x:uint8_t,y:uint8_t,z:uint8_t}}`
+        const matches =
+            json.match(/typedef\sstruct\{[\w\s,:]+}\w+;/g) ?? // match `typedef struct {u8 x,y,z;}Xyz;`
+            [];
+        // {typedef struct{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz1;typedef struct{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz2;}
+        for(const match of matches){
+            const matchArray = match.match(/typedef\sstruct\{(?<fields>[\w\s,:]+)}(?<structType>\w+);/);
+            if(matchArray?.length === 3){
+                const {fields, structType} = matchArray.groups;
+                const replacer = `${structType}:{${fields}}`;
+                json = json.split(match).join(replacer);
+            }
+        }
+        // {Xyz1:{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz2:{x:uint8_t,y:uint8_t,z:uint8_t,}}
+        return json;
+    }
+
     private static clearJson(json: string): string {
         json = json.replace(/,([}\]])/g, '$1'); // remove last useless ','
         json = json.replace(/(.*),$/, '$1'); // remove last ','
@@ -188,6 +212,7 @@ export class ModelParser {
         json = this.staticArray(json);
         json = this.staticOrDynamic(json);
         json = this.cKindFields(json);
+        json = this.cKindStructs(json);
         json = this.clearJson(json);
         json = this.replaceModelTypesWithUserTypes(json, types);
         json = this.fixJson(json);

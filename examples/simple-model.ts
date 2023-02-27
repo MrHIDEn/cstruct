@@ -9,7 +9,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // BE - Big endian
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
-    const cStruct = new CStructBE(`{a:u8, b:u16, c:u32}`);
+    const cStruct = new CStructBE({a: 'u8', b: 'u16', c: 'u32'});
 
     const { struct } = cStruct.read(buffer);
 
@@ -26,7 +26,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // LE - Little endian
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
-    const cStruct = new CStructLE(`{a: u8, b: u16, c: u32}`);
+    const cStruct = new CStructLE({a: 'u8', b: 'u16', c: 'u32'});
     const { struct } = cStruct.read(buffer);
 
     console.log(struct);
@@ -40,10 +40,10 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // 000000000000000000000000000000010001000000010000000000000001
 
     // Boolean data
-    const cStruct = new CStructBE(`[
-        {a: b8, b: b16, c: b32, d: b64},
-        {a: b8, b: b16, c: b32, d: b64}
-    ]`);
+    const cStruct = new CStructBE([
+        {a: 'b8', b: 'b16', c: 'b32', d: 'b64'},
+        {a: 'b8', b: 'b16', c: 'b32', d: 'b64'}
+    ]);
 
     const { struct } = cStruct.read(buffer);
 
@@ -60,7 +60,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     console.log(buffer.toString('hex'));
     // 000100020003
 
-    const cStruct = new CStructBE(`[u16, u16, u16]`);
+    const cStruct = new CStructBE(['u16', 'u16', 'u16']);
 
     const { struct } = cStruct.read(buffer);
 
@@ -74,7 +74,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     console.log(buffer.toString('hex'));
     // 010002000300
 
-    const cStruct = new CStructLE(`[u16, u16, u16]`);
+    const cStruct = new CStructLE(['u16', 'u16', 'u16']);
 
     const { struct } = cStruct.read(buffer);
 
@@ -88,7 +88,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     console.log(buffer.toString('hex'));
     // 000f616263000000000000000000000000
 
-    const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
+    const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
     const { struct, offset, size, toAtoms } = cStruct.read(buffer);
 
@@ -108,7 +108,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     console.log(buffer.toString('hex'));
     // 010002000300
 
-    const cStruct = new CStructLE(`[u16, u16, u16]`);
+    const cStruct = new CStructLE(['u16', 'u16', 'u16']);
 
     // Read with offset 3
     const { struct } = cStruct.read(buffer, 3);
@@ -119,7 +119,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
 {
     // Make buffer from struct based on model
-    const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
+    const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
     const { buffer, offset, size, toAtoms } = cStruct.make({ error: { code: 10, message: 'xyz' } });
 
@@ -138,7 +138,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     const buffer = hexToBuffer('111111 22222222222222222222222222222222222222222222 333333');
     console.log(buffer.toString('hex'));
 
-    const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
+    const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
     const { buffer: b, offset, size, toAtoms } = cStruct.write(
         buffer,
@@ -147,29 +147,11 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     );
 
     console.log(b.toString('hex'));
-    // 111111004478797a0000000000000000000000000000000000333333
-    // 111111 0044_78797a0000000000000000000000000000000000 333333
+    // 1111110044_78797a0000000000000000000000000000000000333333
     console.log(offset);
     // 25
     console.log(size);
     // 22
     console.log(toAtoms());
     // [ 'u16:0044', 's20:78797a0000000000000000000000000000000000' ]
-}
-
-{
-    // C-kind fields {u8 a,b;i32 x,y,z;} into JSON
-    const model = `{u8 a,b;}`;
-    const cStruct = new CStructBE(model);
-
-    const makeStruct = { a: 1, b: 2 };
-    const { buffer: structBuffer } = cStruct.make(
-        makeStruct
-    );
-    console.log(structBuffer.toString('hex'));
-    // 0102
-
-    const { struct: readStruct } = cStruct.read(structBuffer);
-    console.log(readStruct);
-    // { a: 1, b: 2 }
 }

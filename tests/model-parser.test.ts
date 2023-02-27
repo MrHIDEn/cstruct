@@ -461,6 +461,24 @@ describe('ModelParser', () => {
                 });
             });
 
+            describe('cKindStructs', () => {
+                it('should translate c-kind fields {typedef struct{uint8_t x;uint8_t y;uint8_t z;}Xyz;}', () => {
+                    const model = ModelParser.parseModel(
+                        `{
+                        typedef struct {
+                            uint8_t x;
+                            uint8_t y;
+                            uint8_t z;
+                            } Xyz;
+                        }`
+                    );
+                    const expected = JSON.stringify(
+                        {Xyz: {x: "uint8_t", y: "uint8_t", z: "uint8_t"}}
+                    );
+                    expect(model).toEqual(expected);
+                });
+            });
+
             describe('replaceModelTypesWithUserTypes', () => {
                 it('should replace Error', () => {
                     const model = ModelParser.parseModel(

@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE } from "../src/index";
+import { hexToBuffer, CStructBE } from "../src";
 
 {
     // Buffer to read from
