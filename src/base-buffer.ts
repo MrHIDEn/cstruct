@@ -19,17 +19,17 @@ export class BaseBuffer {
             ['b32', ['bool32']],
             ['b64', ['bool64']],
 
-            ['u8', ['uint8', 'uint8_t', 'unsigned char', 'BYTE']],
-            ['u16', ['uint16', 'uint16_t', 'unsigned short', 'WORD']],
-            ['u32', ['uint32', 'uint32_t', 'unsigned int', 'DWORD']],
-            ['u64', ['uint64', 'uint64_t', 'unsigned long', 'LWORD']],
+            ['u8', ['uint8', 'uint8_t', 'BYTE', 'uchar']],
+            ['u16', ['uint16', 'uint16_t', 'WORD', 'ushort']],
+            ['u32', ['uint32', 'uint32_t', 'DWORD', 'uint']],
+            ['u64', ['uint64', 'uint64_t', 'LWORD', 'ulong']],
 
-            ['i8', ['int8', 'int8_t', 'signed char', 'SINT']],
-            ['i16', ['int16', 'int16_t', 'signed short', 'short', 'INT']],
-            ['i32', ['int32', 'int32_t', 'signed int', 'int', 'DINT']],
-            ['i64', ['int64', 'int64_t', 'signed long', 'long', 'LINT']],
+            ['i8', ['int8', 'int8_t', 'SINT', 'char']],
+            ['i16', ['int16', 'int16_t', 'INT', 'short']],
+            ['i32', ['int32', 'int32_t', 'DINT', 'int']],
+            ['i64', ['int64', 'int64_t', 'LINT', 'long']],
 
-            ['f', ['float', 'float32', 'float32_t', 'REAL']],
+            ['f', ['float', 'float32', 'float32_t', 'REAL', 'single']],
             ['d', ['double', 'float64', 'float64_t', 'LREAL']],
         ];
         aliases.forEach(([type, aliases]) => this.addAlias(type, ...aliases));
@@ -37,7 +37,7 @@ export class BaseBuffer {
 
     addUserAliases(aliases: Alias[]) {
         aliases.forEach(([type, ...aliasesList]) =>
-                this.addAlias(type, ...aliasesList)
+            this.addAlias(type, ...aliasesList)
         );
     }
 
