@@ -147,7 +147,8 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
     );
 
     console.log(b.toString('hex'));
-    // 1111110044_78797a0000000000000000000000000000000000333333
+    // 111111004478797a0000000000000000000000000000000000333333
+    // 111111 0044_78797a0000000000000000000000000000000000 333333
     console.log(offset);
     // 25
     console.log(size);
