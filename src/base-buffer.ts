@@ -1,4 +1,4 @@
-import { ReaderFunctions, WriterFunctions } from "./types";
+import { Alias, ReaderFunctions, WriterFunctions } from "./types";
 
 export class BaseBuffer {
     private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s`.split(',');
@@ -13,18 +13,32 @@ export class BaseBuffer {
 
     protected addPredefinedAliases() {
         const aliases: [type: string, aliases: string[]][] = [
-            ['u8', ['uint8', 'unsigned char']],
-            ['i8', ['int8', 'signed char']],
+            // TODO What bool should be? ['b8', ['bool']],
+            ['b8', ['bool8', 'BOOL']],
+            ['b16', ['bool16']],
+            ['b32', ['bool32']],
+            ['b64', ['bool64']],
 
-            ['u16', ['uint16', 'unsigned short']],
-            ['u32', ['uint32', 'unsigned int']],
-            ['u64', ['uint64', 'unsigned long']],
+            ['u8', ['uint8', 'uint8_t', 'unsigned char', 'BYTE']],
+            ['u16', ['uint16', 'uint16_t', 'unsigned short', 'WORD']],
+            ['u32', ['uint32', 'uint32_t', 'unsigned int', 'DWORD']],
+            ['u64', ['uint64', 'uint64_t', 'unsigned long', 'LWORD']],
 
-            ['i16', ['int16', 'signed short', 'short']],
-            ['i32', ['int32', 'signed int', 'int']],
-            ['i64', ['int64', 'signed long', 'long']],
+            ['i8', ['int8', 'int8_t', 'signed char', 'SINT']],
+            ['i16', ['int16', 'int16_t', 'signed short', 'short', 'INT']],
+            ['i32', ['int32', 'int32_t', 'signed int', 'int', 'DINT']],
+            ['i64', ['int64', 'int64_t', 'signed long', 'long', 'LINT']],
+
+            ['f', ['float', 'float32', 'float32_t', 'REAL']],
+            ['d', ['double', 'float64', 'float64_t', 'LREAL']],
         ];
         aliases.forEach(([type, aliases]) => this.addAlias(type, ...aliases));
+    }
+
+    addUserAliases(aliases: Alias[]) {
+        aliases.forEach(([type, ...aliasesList]) =>
+                this.addAlias(type, ...aliasesList)
+        );
     }
 
     addAlias(type: string, ...alias: string[]) {

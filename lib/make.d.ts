@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Model } from "./types";
+import { Model, Type } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 export declare class Make<T> {
@@ -7,7 +7,7 @@ export declare class Make<T> {
     private _dynamicLengthRegex;
     _recursion(model: Model, struct: T): void;
     private _writeDynamicItem;
-    _write(model: Model, struct: T, key: string, type: string): void;
+    _write(model: Model, struct: T, key: string, type: Type): void;
     toBuffer(): Buffer;
     get offset(): number;
     get size(): number;

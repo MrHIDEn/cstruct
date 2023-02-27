@@ -49,14 +49,6 @@ export class WriteBuffer extends BaseBuffer {
         ]);
     }
 
-    addAlias(type: string, ...alias: string[]) {
-        alias.forEach((alias) => {
-            if(this.isProtectedType(alias)) throw new Error(`Atom types are protected.`);
-            const reader = this._atomFunctions.get(type);
-            this._atomFunctions.set(alias, reader);
-        });
-    }
-
     write(type: string, val: WriterValue) {
         let size: number;
         if (type[0] === 's') {

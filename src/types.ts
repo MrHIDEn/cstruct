@@ -8,6 +8,7 @@ export type Model = object | ModelValue[] | string;
 export type Types = object | string;
 export type Type = object | string;
 export type StructEntry = [key: string, type: Type];
+export type Alias = string[]; // [type: string, ...aliases: string[]]
 
 export interface CStructReadResult<T> {
     struct: T;

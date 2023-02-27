@@ -1,6 +1,6 @@
 import { hexToBuffer, CStructBE, CStructLE } from "../src/tests";
 
-describe('array', () => {
+describe('Array', () => {
     describe('BE', () => {
         describe(`read`, () => {
             it(`should read {r: number[]}`, () => {

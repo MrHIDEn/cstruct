@@ -1,5 +1,5 @@
 import { ReadBuffer } from "./read-buffer";
-import { ReaderFunctions } from "./types";
+import { Alias, ReaderFunctions } from "./types";
 
 export class ReadBufferLE extends ReadBuffer {
     _u16() {
@@ -50,7 +50,7 @@ export class ReadBufferLE extends ReadBuffer {
         return val;
     }
 
-    constructor(buffer: Buffer, offset = 0) {
+    constructor(buffer: Buffer, offset = 0, aliases: Alias[]) {
         super(buffer, offset);
         this._atomFunctions = new Map<string, ReaderFunctions>([
             ...this._atomFunctions,
@@ -71,5 +71,7 @@ export class ReadBufferLE extends ReadBuffer {
         ]);
 
         this.addPredefinedAliases();
+
+        this.addUserAliases(aliases);
     }
 }

@@ -1,4 +1,4 @@
-import { Model, Types } from "./types";
+import { Alias, Model, Types } from "./types";
 import { ModelParser } from "./model-parser";
 
 /**
@@ -10,8 +10,9 @@ import { ModelParser } from "./model-parser";
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStruct<T> {
-    _jsonModel: string;
-    _jsonTypes: Types;
+    protected _jsonModel: string;
+    protected _jsonTypes: Types;
+    protected _aliases: Alias[];
 
     constructor(model: Model, types?: Types) {
         this._jsonTypes = types;

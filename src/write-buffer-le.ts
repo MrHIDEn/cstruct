@@ -1,5 +1,5 @@
 import { WriteBuffer } from "./write-buffer";
-import { WriterFunctions } from "./types";
+import { Alias, WriterFunctions } from "./types";
 
 export class WriteBufferLE extends WriteBuffer {
 
@@ -51,7 +51,7 @@ export class WriteBufferLE extends WriteBuffer {
         this.addAtom('d', buffer);
     }
 
-    constructor() {
+    constructor(aliases: Alias[]) {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
             ...this._atomFunctions,
@@ -72,5 +72,7 @@ export class WriteBufferLE extends WriteBuffer {
         ]);
 
         this.addPredefinedAliases();
+
+        this.addUserAliases(aliases);
     }
 }
