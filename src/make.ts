@@ -1,4 +1,4 @@
-import { Model } from "./types";
+import { Model, StructEntry, Type } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 
@@ -7,7 +7,7 @@ export class Make<T> {
     private _dynamicLengthRegex = /^(?<itemKey>\w+)\.(?<itemLengthType>\w+)$/;
 
     _recursion(model: Model, struct: T) {
-        const entries = Object.entries(model);
+        const entries: StructEntry[] = Object.entries(model);
 
         for (const [key, type] of entries) {
             // Catch dynamic item
@@ -16,7 +16,7 @@ export class Make<T> {
             // Dynamic item
             if (dynamicLengthMatch) {
                 const {itemKey, itemLengthType} = dynamicLengthMatch.groups;
-                this._writeDynamicItem(key, type, model, struct, itemKey, itemLengthType);
+                this._writeDynamicItem(key, type, struct, itemKey, itemLengthType);
             }
             // Static item
             else {
@@ -25,7 +25,7 @@ export class Make<T> {
         }
     }
 
-    private _writeDynamicItem(key: string, itemsType: object | string, model: Model, struct: T, itemKey: string, itemLengthType: string) {
+    private _writeDynamicItem(key: string, itemsType: Type, struct: T, itemKey: string, itemLengthType: string) {
         const itemTypeIsString = itemsType === 's';
         const value = struct[itemKey];
         const length = value.length;
@@ -58,7 +58,7 @@ export class Make<T> {
         }
     }
 
-    _write(model: Model, struct: T, key: string, type: string) {
+    _write(model: Model, struct: T, key: string, type: Type) {
         switch (typeof type) {
             case 'object':
                 this._recursion(model[key], struct[key]);

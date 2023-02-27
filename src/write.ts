@@ -11,7 +11,12 @@ export class Write<T> extends Make<T> {
     }
 
     toBuffer() {
-        this._writer.toBuffer().copy(this._buffer, this._offset);
+        const makeBuffer = this._writer.toBuffer();
+        const leftSpace = this._buffer.length - this._offset;
+        if (leftSpace < this.size) {
+            throw Error(`Write buffer is too short. Needs ${this.size - leftSpace} byte/s more.`)
+        }
+        makeBuffer.copy(this._buffer, this._offset);
         return this._buffer;
     }
 
