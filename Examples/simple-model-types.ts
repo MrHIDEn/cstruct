@@ -157,7 +157,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
 {
     // Model and Types for Sender & Receiver
     const types = `{
-        Sensor {
+        Sensor: {
             id: u32,
             type: u8,
             value: d,

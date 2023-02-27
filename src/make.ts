@@ -31,8 +31,6 @@ export class Make<T> {
         const length = value.length;
         // (some.i32: u8)
         // key: some.i32, itemsType: u8, itemKey: some, itemLengthType: i32
-        // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
-        // delete struct[key];
 
         // Write length
         this._writer.write(itemLengthType, length);

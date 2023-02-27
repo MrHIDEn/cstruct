@@ -38,17 +38,23 @@ export class Read<T> {
 
         // Read string
         if (itemTypeIsString) {
-            const stringValue = this._reader.read(`s${length}`);
-            struct[itemKey] = stringValue;
+            struct[itemKey] = this._reader.read(`s${length}`);
         }
         // Read array of itemsType
         else {
-            // TODO test it
-            if (typeof itemsType !== 'string') {
-                throw Error(`itemsType is not string.`);
+            switch (typeof itemsType) {
+                case 'object':
+                    const json = JSON.stringify(itemsType);
+                    struct[itemKey] = Array(length).fill(0).map(_ => JSON.parse(json));
+                    this._recursion(struct[itemKey]);
+                    break;
+                case 'string':
+                    struct[itemKey] = Array(length).fill(itemsType);
+                    this._recursion(struct[itemKey]);
+                    break;
+                default:
+                    throw TypeError(`Unknown type "${itemsType}"`);
             }
-            struct[itemKey] = Array(length).fill(itemsType);
-            this._recursion(struct[itemKey]);
         }
     }
 
