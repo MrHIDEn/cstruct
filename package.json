@@ -49,10 +49,17 @@
     "url": "git+https://github.com/MrHIDEn/c_struct.git"
   },
   "keywords": [
-    "C",
+    "c",
+    "c++",
+    "cpp",
     "struct",
     "bytes",
-    "buffer"
+    "buffer",
+    "js",
+    "javascript",
+    "ts",
+    "typescript",
+    "json"
   ],
   "author": "Marek Krzyżowski",
   "license": "MIT",
