@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { Alias, Model, Types } from "./types";
+import { Model, Types } from "./types";
 /**
  * CStruct
  * Binary/Object and vice versa parser for JavaScript
@@ -11,7 +11,6 @@ import { Alias, Model, Types } from "./types";
 export declare class CStruct<T> {
     protected _jsonModel: string;
     protected _jsonTypes: Types;
-    protected _aliases: Alias[];
     constructor(model: Model, types?: Types);
     get jsonTypes(): string;
     get jsonModel(): string;

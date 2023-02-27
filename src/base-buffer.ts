@@ -12,41 +12,36 @@ export class BaseBuffer {
     }
 
     protected addPredefinedAliases() {
-        const aliases: [type: string, aliases: string[]][] = [
-            // TODO What bool should be? ['b8', ['bool']],
-            ['b8', ['bool8', 'BOOL']],
-            ['b16', ['bool16']],
-            ['b32', ['bool32']],
-            ['b64', ['bool64']],
+        const aliases: [type: string, ...aliases: string[]][] = [
+            ['b8', 'BOOL', 'bool8'],
+            ['b16', 'bool16'],
+            ['b32', 'bool32'],
+            ['b64', 'bool64'],
 
-            ['u8', ['uint8', 'uint8_t', 'BYTE', 'uchar']],
-            ['u16', ['uint16', 'uint16_t', 'WORD', 'ushort']],
-            ['u32', ['uint32', 'uint32_t', 'DWORD', 'uint']],
-            ['u64', ['uint64', 'uint64_t', 'LWORD', 'ulong']],
+            ['u8', 'BYTE', 'uint8', 'uint8_t'],
+            ['u16', 'WORD', 'uint16', 'uint16_t'],
+            ['u32', 'DWORD', 'uint32', 'uint32_t'],
+            ['u64', 'LWORD', 'uint64', 'uint64_t'],
 
-            ['i8', ['int8', 'int8_t', 'SINT', 'char']],
-            ['i16', ['int16', 'int16_t', 'INT', 'short']],
-            ['i32', ['int32', 'int32_t', 'DINT', 'int']],
-            ['i64', ['int64', 'int64_t', 'LINT', 'long']],
+            ['i8', 'SINT', 'int8', 'int8_t'],
+            ['i16', 'INT', 'int16', 'int16_t'],
+            ['i32', 'DINT', 'int32', 'int32_t'],
+            ['i64', 'LINT', 'int64', 'int64_t'],
 
-            ['f', ['float', 'float32', 'float32_t', 'REAL', 'single']],
-            ['d', ['double', 'float64', 'float64_t', 'LREAL']],
+            ['f', 'REAL', 'float', 'float32', 'float32_t', 'single'],
+            ['d', 'LREAL', 'double', 'float64', 'float64_t'],
         ];
-        aliases.forEach(([type, aliases]) => this.addAlias(type, ...aliases));
+        this.addAliases(aliases);
     }
 
-    addUserAliases(aliases: Alias[]) {
+    addAliases(aliases: Alias[]) {
         aliases.forEach(([type, ...aliasesList]) =>
-            this.addAlias(type, ...aliasesList)
+            aliasesList.forEach((alias) => {
+                if (this.isProtectedType(alias)) throw new Error(`Atom types are protected.`);
+                const reader = this._atomFunctions.get(type);
+                this._atomFunctions.set(alias, reader);
+            })
         );
-    }
-
-    addAlias(type: string, ...alias: string[]) {
-        alias.forEach((alias) => {
-            if (this.isProtectedType(alias)) throw new Error(`Atom types are protected.`);
-            const reader = this._atomFunctions.get(type);
-            this._atomFunctions.set(alias, reader);
-        });
     }
 
     protected _atomFunctions: Map<string, WriterFunctions | ReaderFunctions>;

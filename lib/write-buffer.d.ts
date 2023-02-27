@@ -10,7 +10,6 @@ export declare class WriteBuffer extends BaseBuffer {
     private _i8;
     private _s;
     constructor();
-    addAlias(type: string, ...alias: string[]): void;
     write(type: string, val: WriterValue): void;
     get buffer(): Buffer;
     toBuffer(): Buffer;

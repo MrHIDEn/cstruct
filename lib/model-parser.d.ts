@@ -8,6 +8,7 @@ export declare class ModelParser {
     private static prepareJson;
     private static staticArray;
     private static staticOrDynamic;
+    private static cKindFields;
     private static clearJson;
     private static replaceModelTypesWithUserTypes;
     private static fixJson;

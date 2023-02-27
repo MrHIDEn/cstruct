@@ -1,8 +1,7 @@
 import { WriteBuffer } from "./write-buffer";
-import { Alias, WriterFunctions } from "./types";
+import { WriterFunctions } from "./types";
 
 export class WriteBufferLE extends WriteBuffer {
-
     _u16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
         buffer.writeUInt16LE(val);
@@ -51,7 +50,7 @@ export class WriteBufferLE extends WriteBuffer {
         this.addAtom('d', buffer);
     }
 
-    constructor(aliases: Alias[]) {
+    constructor() {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
             ...this._atomFunctions,
@@ -72,7 +71,5 @@ export class WriteBufferLE extends WriteBuffer {
         ]);
 
         this.addPredefinedAliases();
-
-        this.addUserAliases(aliases);
     }
 }

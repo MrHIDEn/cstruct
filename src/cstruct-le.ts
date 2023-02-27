@@ -1,6 +1,6 @@
 import { CStruct } from "./cstruct";
 import { ReadLE } from "./read-le";
-import { Alias, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { WriteLE } from "./write-le";
 import { MakeLE } from "./make-le";
 
@@ -13,13 +13,12 @@ import { MakeLE } from "./make-le";
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStructLE<T> extends CStruct<T> {
-    constructor(model: Model, types?: Types, aliases?: Alias[]) {
+    constructor(model: Model, types?: Types) {
         super(model, types);
-        this._aliases = aliases ?? [];
     }
 
     read(buffer: Buffer, offset = 0): CStructReadResult<T> {
-        const reader = new ReadLE<T>(this.modelClone, buffer, offset, this._aliases);
+        const reader = new ReadLE<T>(this.modelClone, buffer, offset);
         return {
             struct: reader.toStruct() as T,
             offset: reader.offset,
@@ -31,7 +30,7 @@ export class CStructLE<T> extends CStruct<T> {
     }
 
     write(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
-        const writer = new WriteLE<T>(this.modelClone, struct, buffer, offset, this._aliases);
+        const writer = new WriteLE<T>(this.modelClone, struct, buffer, offset);
         return {
             buffer: writer.toBuffer(),
             offset: writer.offset,
@@ -43,7 +42,7 @@ export class CStructLE<T> extends CStruct<T> {
     }
 
     make(struct: T): CStructWriteResult {
-        const writer = new MakeLE<T>(this.modelClone, struct, this._aliases);
+        const writer = new MakeLE<T>(this.modelClone, struct);
         return {
             buffer: writer.toBuffer(),
             offset: writer.offset,
