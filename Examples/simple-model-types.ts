@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
+import { hexToBuffer, CStructBE } from "../src/index";
 
 {
     // Buffer to read from
@@ -63,7 +63,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
 {
     const writeBuffer = hexToBuffer('111111 000000000000000000000000000000000000000000000000 3333');
     // Write struct to buffer from struct based on model and types
-    const cStruct = new CStructBE<{}>({errors: ['Error', 'Error']}, {Error: {code: 'u16', message: 's10'}});
+    const cStruct = new CStructBE({errors: ['Error', 'Error']}, {Error: {code: 'u16', message: 's10'}});
 
     const {buffer, offset, size, toAtoms} = cStruct.write(
         writeBuffer,

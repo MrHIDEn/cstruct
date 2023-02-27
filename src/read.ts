@@ -43,11 +43,12 @@ export class Read<T> {
         // Read array of itemsType
         else {
             switch (typeof itemsType) {
-                case 'object':
+                case 'object': {
                     const json = JSON.stringify(itemsType);
-                    struct[itemKey] = Array(length).fill(0).map(_ => JSON.parse(json));
+                    struct[itemKey] = Array(length).fill(JSON.parse(json));
                     this._recursion(struct[itemKey]);
                     break;
+                }
                 case 'string':
                     struct[itemKey] = Array(length).fill(itemsType);
                     this._recursion(struct[itemKey]);
