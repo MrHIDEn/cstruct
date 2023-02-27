@@ -1,7 +1,4 @@
-# c_struct
-`$ npm install c_struct`
-
-#### TODO
+### TODO
 | Status   | Subject                                             |
 |----------|-----------------------------------------------------|
 | done     | add CKind fields string-struct support `uint8 a,b;` |
