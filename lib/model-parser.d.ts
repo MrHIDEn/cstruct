@@ -1,13 +1,13 @@
 import { Model, Types } from "./types";
 export declare class ModelParser {
-    private static _extractCKindFields;
+    private static _allowedLengthTypes;
+    private static _checkWhetherTypeIsString;
+    private static _checkWhetherSizeIsNumber;
+    private static _checkWhetherLengthTypeIsAllowed;
+    private static _translateStaticAndDynamic;
     private static prepareJson;
-    private static dynamicStringOrArray;
     private static staticArray;
-    private static CKindStruct;
-    private static CKindFields;
-    private static CKindStaticAndDynamicArrayOrString;
-    private static CKindStaticArrayOrString;
+    private static staticOrDynamic;
     private static clearJson;
     private static replaceModelTypesWithUserTypes;
     private static fixJson;

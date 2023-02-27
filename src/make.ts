@@ -1,4 +1,4 @@
-import { Model, Types } from "./types";
+import { Model } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 
