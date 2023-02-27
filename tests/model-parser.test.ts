@@ -439,6 +439,28 @@ describe('ModelParser', () => {
                 });
             });
 
+            describe('cKindFields', () => {
+                it('should translate c-kind fields {u8 a,b;i32 x,y,z;} into JSON', () => {
+                    const model = ModelParser.parseModel(
+                        `{u8 a,b;i32 x,y,z;}`
+                    );
+                    const expected = JSON.stringify(
+                        {a: "u8", b: "u8", x: "i32", y: "i32", z: "i32"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should translate c-kind fields {u8 a,b;i32 x,y,z;} into JSON', () => {
+                    const model = ModelParser.parseModel(
+                        `{Xyz x,y,z;}`
+                    );
+                    const expected = JSON.stringify(
+                        {x: "Xyz", y: "Xyz", z: "Xyz"}
+                    );
+                    expect(model).toEqual(expected);
+                });
+            });
+
             describe('replaceModelTypesWithUserTypes', () => {
                 it('should replace Error', () => {
                     const model = ModelParser.parseModel(
@@ -457,7 +479,7 @@ describe('ModelParser', () => {
                         `{Sensor: {type: u8, value: f, time: u64 }}`
                     );
                     const expected = JSON.stringify(
-                        [{type: 'u8', value: 'f', time: 'u64'},{type: 'u8', value: 'f', time: 'u64'}]
+                        [{type: 'u8', value: 'f', time: 'u64'}, {type: 'u8', value: 'f', time: 'u64'}]
                     );
                     expect(model).toEqual(expected);
                 });
@@ -468,7 +490,7 @@ describe('ModelParser', () => {
                         `{Sensor: {type: u8, value: f, time: u64 }}`
                     );
                     const expected = JSON.stringify(
-                        {sensors: [{type: 'u8', value: 'f', time: 'u64'},{type: 'u8', value: 'f', time: 'u64'}]}
+                        {sensors: [{type: 'u8', value: 'f', time: 'u64'}, {type: 'u8', value: 'f', time: 'u64'}]}
                     );
                     expect(model).toEqual(expected);
                 });

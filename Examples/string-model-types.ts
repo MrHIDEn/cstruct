@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE } from "../src/index";
+import { hexToBuffer, CStructBE } from "../src";
 
 {
     // Buffer to read from
@@ -134,14 +134,14 @@ import { hexToBuffer, CStructBE } from "../src/index";
             timestamp: 1677277903685n,
         }
     };
-    const { buffer: senderFrame } = sender.make(senderData);
+    const {buffer: senderFrame} = sender.make(senderData);
 
     // Transmitting frame
     console.log(senderFrame.toString('hex'));
 
     // IOT Receiver
     const receiver = new CStructBE(iotModel, types);
-    const { struct: receiverData } = receiver.read(senderFrame);
+    const {struct: receiverData} = receiver.read(senderFrame);
     console.log(receiverData);
     // {
     //   iotName: 'IOT-1',
@@ -180,14 +180,14 @@ import { hexToBuffer, CStructBE } from "../src/index";
             timestamp: 1677277903685n,
         }
     };
-    const { buffer: senderFrame } = sender.make(senderData);
+    const {buffer: senderFrame} = sender.make(senderData);
 
     // Transmitting frame
     console.log(senderFrame.toString('hex'));
 
     // IOT Receiver
     const receiver = new CStructBE(iotModel, types);
-    const { struct: receiverData } = receiver.read(senderFrame);
+    const {struct: receiverData} = receiver.read(senderFrame);
     console.log(receiverData);
     // {
     //   iotName: 'IOT-1',
@@ -207,7 +207,7 @@ import { hexToBuffer, CStructBE } from "../src/index";
         }
     }`;
     const cStruct = new CStructBE('U8a', types);
-    const data = { a: 0x67 };
+    const data = {a: 0x67};
 
     const {buffer} = cStruct.make(data);
 
@@ -248,4 +248,23 @@ import { hexToBuffer, CStructBE } from "../src/index";
 
     console.log(buffer.toString('hex'));
     // 010203f1f2f3
+}
+
+{
+    // C-kind fields {Xyz x,y,z;} into JSON
+    const model = `{Xyz m,n;}`;
+    const types = `{Xyz: i16}`; // This helps to change the type of the fields called Xyz at once
+    const cStruct = new CStructBE(model, types);
+
+    const makeStruct = {m: 0x0102, n: 0x0103};
+    // { m: 258, n: 259 }
+    const {buffer: structBuffer} = cStruct.make(
+        makeStruct
+    );
+    console.log(structBuffer.toString('hex'));
+    // 01020103
+
+    const {struct: readStruct} = cStruct.read(structBuffer);
+    console.log(readStruct);
+    // { m: 258, n: 259 }
 }

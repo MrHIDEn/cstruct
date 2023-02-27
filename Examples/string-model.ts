@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
+import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
 {
     // Buffer to read from
@@ -155,4 +155,21 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src/index";
     // 22
     console.log(toAtoms());
     // [ 'u16:0044', 's20:78797a0000000000000000000000000000000000' ]
+}
+
+{
+    // C-kind fields {u8 a,b;i32 x,y,z;} into JSON
+    const model = `{u8 a,b;}`;
+    const cStruct = new CStructBE(model);
+
+    const makeStruct = { a: 1, b: 2 };
+    const { buffer: structBuffer } = cStruct.make(
+        makeStruct
+    );
+    console.log(structBuffer.toString('hex'));
+    // 0102
+
+    const { struct: readStruct } = cStruct.read(structBuffer);
+    console.log(readStruct);
+    // { a: 1, b: 2 }
 }
