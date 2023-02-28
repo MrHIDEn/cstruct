@@ -1,19 +1,19 @@
 import { ReadBufferBE } from "./read-buffer-be";
 import { ReadBufferLE } from "./read-buffer-le";
 import { StructEntry, Type } from "./types";
+import { ReadWriteBase } from "./read-write-base";
 
 
-export class Read<T> {
+export class Read<T> extends ReadWriteBase {
     protected _struct: T;
     protected _reader: ReadBufferLE | ReadBufferBE;
-    private _dynamicLengthRegex = /^(?<itemKey>\w+)\.(?<itemLengthType>\w+)$/;
 
     _recursion(struct: T) {
         const entries: StructEntry[] = Object.entries(struct);
 
         for (const [key, type] of entries) {
             // Catch dynamic item
-            const dynamicLengthMatch = key.match(this._dynamicLengthRegex);
+            const dynamicLengthMatch = this._dynamicLengthMatch(key);
 
             // Dynamic item
             if (dynamicLengthMatch) {
@@ -28,7 +28,7 @@ export class Read<T> {
     }
 
     private _readDynamicItem(key: string, itemsType: Type, struct: T, itemKey: string, itemLengthType: string) {
-        const itemTypeIsString = itemsType === 's';
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
 
         // Read length
         const length = this._reader.read(itemLengthType);
@@ -38,14 +38,10 @@ export class Read<T> {
         delete struct[key];
 
         // Read string
-        if (itemTypeIsString) {
-            struct[itemKey] = this._reader.read(`s${length}`);
+        if (itemTypeIsStringOrBuffer) {
+            struct[itemKey] = this._reader.read(`${itemsType}${length}`);
         }
-            // Read array of itemsType
-            // // Read array items
-            // const itemsType = struct[key];
-            // struct[key] = Array(arrayLength).fill(itemsType);
-        // this._recursion(struct[key]);
+        // Read array of itemsType
         else {
             switch (typeof itemsType) {
                 case 'object': {

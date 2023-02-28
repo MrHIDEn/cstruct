@@ -127,3 +127,38 @@ import { CStructBE } from "../src";
     console.log(extractedData);
     // { txt: [ { t: 'ABCDE' }, { t: 'AB' }, { t: 'A' } ] }
 }
+
+{
+    // Dynamic and static (length) buffer
+    const model = `{
+        dynBuffer:    buf[i8],
+        staticBuffer: buf[2]
+    }`;
+
+    const cStruct = new CStructBE(model);
+
+    console.log(cStruct.modelClone);
+    // { 'dynBuffer.i8': 'buf', staticBuffer: 'buf2' }
+
+    const data = {
+        dynBuffer: Buffer.from("ABCDEF"),
+        staticBuffer: Buffer.from("abcdef"),
+        // Because 'staticBuffer' is only 2 bytes long,
+        // the buffer will be truncated to 'ab'
+    };
+    const {buffer} = cStruct.make(data);
+
+    console.log(buffer.toString('hex'));
+    // 064142434445466162
+    // 06_414243444546_6162
+    // ^  ^            ^ab
+    // ^  ^ABCDEF
+    // ^dynamic buffer size, ABCDEF.length = 6
+
+    const {struct: extractedData} = cStruct.read(buffer);
+    console.log(extractedData);
+    // { staticBuffer: <Buffer 61 62>,
+    //   dynBuffer: <Buffer 41 42 43 44 45 46> }
+    // { staticBuffer: <Buffer "ab">,
+    //   dynBuffer: <Buffer "ABCDEF"> }
+}

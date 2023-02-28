@@ -30,7 +30,8 @@ c_struct - *'C like structures'* - TypeScript library
 | i64  | signed long long   | 8        | int64 int64_t            LINT        |
 | f    | float              | 4        | float  float32 float32_t REAL single |
 | d    | double             | 4        | double float64 float64_t LREAL       |
-| sN   | string             | N        |                                      |
+| sN   | string             | N        | string                               |
+| bufN | buffer             | N        | buffer                               |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
