@@ -1,4 +1,5 @@
 import { hexToBuffer, CStructBE } from "../src";
+import { ModelParser } from "../src/model-parser";
 
 {
     // Buffer to read from
@@ -287,4 +288,24 @@ import { hexToBuffer, CStructBE } from "../src";
     // 24
     console.log(size);
     // 24
+}
+
+{
+    // Mixed model and types
+    // Make buffer from struct based on model and types
+    const cStruct = new CStructBE(
+        {e: 'Error'},
+        {Error: '{msg: s30, code: i16}'}
+    );
+
+    const {buffer: structBuffer} = cStruct.make({
+        e: {msg: 'Temperature is to high', code: 12}
+    });
+
+    console.log(structBuffer.toString('hex'));
+    // 54656d706572617475726520697320746f20686967680000000000000000000c
+
+    const {struct: readStruct} = cStruct.read(structBuffer);
+    console.log(readStruct);
+    // { e: { msg: 'Temperature is to high', code: 12 } }
 }

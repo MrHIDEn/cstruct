@@ -57,7 +57,7 @@ export class ModelParser {
         json = json.trim();
         json = json.replace(/['"]/g, ``); // remove all `'"`
         json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
-        json = json.replace(/\s{2,}/g, ` `); // reduce ' 'x to one ' '
+        json = json.replace(/\s{2,}/g, ` `); // reduce spaces '\s'x to one ' '
 
         return json;
     }
@@ -127,25 +127,28 @@ export class ModelParser {
 
     private static cKindStructs(json: string): string {
         /* C STRUCTS
-        typedef struct {
-            uint8_t x;
-            uint8_t y;
-            uint8_t z;
-        } Xyz;*/
-        // `{typedef struct{uint8_t x;uint8_t y;uint8_t z;}Xyz;}` => `{Xyz:{x:uint8_t,y:uint8_t,z:uint8_t}}`
+        1)                      2)
+        typedef struct {        struct Ab {
+            uint8_t x;              int8 x;
+            uint8_t y;              int8 y;
+            uint8_t z;          };
+        } Xyz;                                  */
+        // Warning: before this function all `u8 a,b;` become `a:u8,b:u8,`
+        // 1) `{typedef struct{uint8_t x;uint8_t y;uint8_t z;}Xyz;}` => `{Xyz:{x:uint8_t,y:uint8_t,z:uint8_t}}`
+        // 2) `{struct Ab{int8 x;int8 y;};}` => `{Ab:{x:int8,y:int8,z:int8}}`
         const matches =
-            json.match(/typedef\sstruct\{[\w\s,:]+}\w+;/g) ?? // match `typedef struct {u8 x,y,z;}Xyz;`
+            json.match(/(typedef struct{[\w\s,:]+}\w+;|struct \w+{[\w\s,:]+};)/g) ??
             [];
-        // {typedef struct{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz1;typedef struct{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz2;}
         for(const match of matches){
-            const matchArray = match.match(/typedef\sstruct\{(?<fields>[\w\s,:]+)}(?<structType>\w+);/);
+            const matchArray =
+                match.match(/typedef struct{(?<fields>[\w\s,:]+)}(?<structType>\w+);/) ??
+                match.match(/struct (?<structType>\w+){(?<fields>[\w\s,:]+)};/);
             if(matchArray?.length === 3){
                 const {fields, structType} = matchArray.groups;
-                const replacer = `${structType}:{${fields}}`;
+                const replacer = `${structType}:{${fields}},`;
                 json = json.split(match).join(replacer);
             }
         }
-        // {Xyz1:{x:uint8_t,y:uint8_t,z:uint8_t,}Xyz2:{x:uint8_t,y:uint8_t,z:uint8_t,}}
         return json;
     }
 
@@ -159,15 +162,23 @@ export class ModelParser {
 
     private static replaceModelTypesWithUserTypes(json: string, types?: Types): string {
         if (types) {
+            // Parse user types
             const parsedTypesJson = this.parseTypes(types);
             const parsedTypes = JSON.parse(parsedTypesJson);
-            const typeEntries: [string, string][] = Object.entries(parsedTypes);
+
+            // Prepare replacers
+            const typeEntries: [string, string][] = Object
+                .entries(parsedTypes)
+                .map(([type, replacer]) => [`"${type}"`, JSON.stringify(replacer)]);
+
             // Replace model with user types, stage 1
-            typeEntries.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
+            typeEntries.forEach(([type, replacer]) => json = json.split(type).join(replacer));
+
             // Reverse user types to replace nested user types
             typeEntries.reverse();
+
             // Replace model with reverse user types, stage 2
-            typeEntries.forEach(([k, v]) => json = json.split(`"${k}"`).join(JSON.stringify(v)));
+            typeEntries.forEach(([type, replacer]) => json = json.split(type).join(replacer));
         }
         return json;
     }

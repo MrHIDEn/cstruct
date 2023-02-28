@@ -465,15 +465,29 @@ describe('ModelParser', () => {
                 it('should translate c-kind fields {typedef struct{uint8_t x;uint8_t y;uint8_t z;}Xyz;}', () => {
                     const model = ModelParser.parseModel(
                         `{
-                        typedef struct {
-                            uint8_t x;
-                            uint8_t y;
-                            uint8_t z;
+                            typedef struct {
+                                uint8_t x;
+                                uint8_t y;
+                                uint8_t z;
                             } Xyz;
                         }`
                     );
                     const expected = JSON.stringify(
                         {Xyz: {x: "uint8_t", y: "uint8_t", z: "uint8_t"}}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should translate c-kind fields struct Ab{i8 x,y;};', () => {
+                    const model = ModelParser.parseModel(
+                        `{
+                            struct Ab {
+                                i8 x,y;
+                            };
+                        }`
+                    );
+                    const expected = JSON.stringify(
+                        {Ab: {x: "i8", y: "i8"}}
                     );
                     expect(model).toEqual(expected);
                 });
@@ -484,6 +498,17 @@ describe('ModelParser', () => {
                     const model = ModelParser.parseModel(
                         `{e: Error}`,
                         {Error: {msg: 's20', code: 'i16'}}
+                    );
+                    const expected = JSON.stringify(
+                        {e: {msg: 's20', code: 'i16'}}
+                    );
+                    expect(model).toEqual(expected);
+                });
+
+                it('should replace Error, Mixed approach', () => {
+                    const model = ModelParser.parseModel(
+                        {e: 'Error'},
+                        {Error: '{msg: s20, code: i16}'}
                     );
                     const expected = JSON.stringify(
                         {e: {msg: 's20', code: 'i16'}}
