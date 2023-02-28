@@ -83,7 +83,7 @@ import { CStructBE } from "../src";
         
         // 2nd approach
         struct Ab {
-            i8 x,y;
+            i8 x,y;    // You can use comments
         };
         
         // As you noticed, comments are allowed

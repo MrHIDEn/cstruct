@@ -15,4 +15,5 @@
 | i64  | signed long long   | 8        | int64 int64_t            LINT        |
 | f    | float              | 4        | float  float32 float32_t REAL single |
 | d    | double             | 4        | double float64 float64_t LREAL       |
-| sN   | string             | N        |                                      |
+| sN   | string             | N        | string                               |
+| bufN | buffer             | N        | buffer                               |

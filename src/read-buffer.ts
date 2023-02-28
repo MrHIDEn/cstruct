@@ -34,6 +34,17 @@ export class ReadBuffer extends BaseBuffer {
         return val;
     }
 
+    private _buf(size: number) {
+        if (!size || size < 0) {
+            throw new Error(`Invalid buffer size ${size ?? typeof size}`);
+        }
+
+        const val = this._buffer
+            .slice(this._offset, this._offset + size);
+        this.addAtom(`s${size}`, size);
+        return val;
+    }
+
     constructor(buffer: Buffer, offset = 0) {
         super();
         this._buffer = buffer;
@@ -45,17 +56,16 @@ export class ReadBuffer extends BaseBuffer {
             ['u8', () => this._u8()],
             ['i8', () => this._i8()],
             ['s', (size: number) => this._s(size)],
+            ['buf', (size: number) => this._buf(size)],
         ])
     }
 
     read(type: string): ReaderValue {
         let size: number;
-        if (type[0] === 's') {
-            const match = type.match(/^s(\d+)$/);
-            if (match) {
-                type = 's';
-                size = +match[1];
-            }
+        const match = type.match(/^(?<type>s|buf)(?<size>\d+)$/);
+        if (match) {
+            type = match.groups.type;
+            size = +match.groups.size;
         }
         if (this._atomFunctions.has(type)) {
             const reader = this._atomFunctions.get(type);

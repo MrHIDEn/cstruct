@@ -1,13 +1,13 @@
 import { Alias, ReaderFunctions, WriterFunctions } from "./types";
 
 export class BaseBuffer {
-    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s`.split(',');
-    private _stringAtom = /^s[0-9]+/;
+    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s,buf`.split(',');
+    private _stringOrBufferAtom = /^(s|buf)[0-9]+/;
 
     protected isProtectedType(type: string): boolean {
         return (
             this._atomTypes.includes(type) ||
-            this._stringAtom.test(type)
+            this._stringOrBufferAtom.test(type)
         );
     }
 

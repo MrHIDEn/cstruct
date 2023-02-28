@@ -7,6 +7,19 @@ export class ModelParser {
         return ["string", "s"].includes(type);
     }
 
+    private static _sizeType(type: string): string | undefined {
+        switch (type) {
+            case 's':
+            case 'string':
+                return 's';
+            case 'buf':
+            case 'buffer':
+                return 'buf';
+            default:
+                return;
+        }
+    }
+
     private static _checkWhetherSizeIsNumber(size: string): boolean {
         return !Number.isNaN(+size);
     }
@@ -18,7 +31,7 @@ export class ModelParser {
     private static _translateStaticAndDynamic(json: string, match: string, matchArray: RegExpMatchArray) {
         if (matchArray?.length === 4) {
             const {key, size, type} = matchArray.groups;
-            const typeIsString = this._checkWhetherTypeIsString(type);
+            const sizeType = this._sizeType(type);
             const isStatic = this._checkWhetherSizeIsNumber(size);
 
             let replacer: string;
@@ -27,8 +40,8 @@ export class ModelParser {
                 if (+size < 0) {
                     throw Error(`Size must be >= 0.`)
                 }
-                if (typeIsString) {
-                    replacer = `${key}:s${size}`;
+                if (sizeType) {
+                    replacer = `${key}:${sizeType}${size}`;
                 } else {
                     replacer = `${key}:[${Array(+size).fill(type)}]`;
                 }
@@ -38,8 +51,8 @@ export class ModelParser {
                 if (!this._checkWhetherLengthTypeIsAllowed(size)) {
                     throw Error(`Unsupported dynamic length type.`);
                 }
-                if (typeIsString) {
-                    replacer = `${key}.${size}:s`;
+                if (sizeType) {
+                    replacer = `${key}.${size}:${sizeType}`;
                 } else {
                     replacer = `${key}.${size}:${type}`;
                 }
@@ -95,9 +108,18 @@ export class ModelParser {
     }
 
     private static staticOrDynamic(json: string): string {
+        // Static
+        // `{some:s[2]}`      => `{some: s2}`
+        // `{some:string[2]}` => `{some: s2}`
+        // `{some:Abc[i8]}`    => `{some: [Abc,Abc]}`
+        // `{some:buf[2]}`    => `{some: buf2}`
+        // `{some:buffer[2]}` => `{some: buf2}`
+        // Dynamic
         // `{some:s[i8]}`      => `{some.i8: s}`
         // `{some:string[i8]}` => `{some.i8: s}`
         // `{some:Abc[i8]}`    => `{some.i8: Abc}`
+        // `{some:buf[i8]}`    => `{some.i8: buf}`
+        // `{some:buffer[i8]}` => `{some.i8: buf}`
         const matches =
             json.match(/\w+:\w+\[\w+]/g) ??
             [];
@@ -139,11 +161,11 @@ export class ModelParser {
         const matches =
             json.match(/(typedef struct{[\w\s,:]+}\w+;|struct \w+{[\w\s,:]+};)/g) ??
             [];
-        for(const match of matches){
+        for (const match of matches) {
             const matchArray =
                 match.match(/typedef struct{(?<fields>[\w\s,:]+)}(?<structType>\w+);/) ??
                 match.match(/struct (?<structType>\w+){(?<fields>[\w\s,:]+)};/);
-            if(matchArray?.length === 3){
+            if (matchArray?.length === 3) {
                 const {fields, structType} = matchArray.groups;
                 const replacer = `${structType}:{${fields}},`;
                 json = json.split(match).join(replacer);

@@ -39,6 +39,23 @@ export class WriteBuffer extends BaseBuffer {
         this.addAtom(`s${size}`, buffer);
     }
 
+    private _buf(val = Buffer.from(""), size?: number) {
+        if (!(val instanceof Buffer)) {
+            throw new Error(`Invalid buffer value ${val}`);
+        }
+
+        let buffer;
+        if (size === undefined) {
+            buffer = val;
+            size = buffer.length;
+        } else {
+            buffer = Buffer.alloc(size);
+            val.copy(buffer, 0, 0, size);
+        }
+
+        this.addAtom(`buf${size}`, buffer);
+    }
+
     constructor() {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
@@ -46,17 +63,16 @@ export class WriteBuffer extends BaseBuffer {
             ['u8', (val: number) => this._u8(val)],
             ['i8', (val: number) => this._i8(val)],
             ['s', (val: string, size?: number) => this._s(val, size)],
+            ['buf', (val: Buffer, size?: number) => this._buf(val, size)],
         ]);
     }
 
     write(type: string, val: WriterValue) {
         let size: number;
-        if (type[0] === 's') {
-            const match = type.match(/^s(\d+)$/);
-            if (match) {
-                type = 's';
-                size = +match[1];
-            }
+        const match = type.match(/^(?<type>s|buf)(?<size>\d+)$/);
+        if (match) {
+            type = match.groups.type;
+            size = +match.groups.size;
         }
         if (this._atomFunctions.has(type)) {
             const writer = this._atomFunctions.get(type);

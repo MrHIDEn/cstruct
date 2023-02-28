@@ -1,17 +1,17 @@
 import { Model, StructEntry, Type } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
+import { ReadWriteBase } from "./read-write-base";
 
-export class Make<T> {
+export class Make<T> extends ReadWriteBase {
     protected _writer: WriteBufferLE | WriteBufferBE;
-    private _dynamicLengthRegex = /^(?<itemKey>\w+)\.(?<itemLengthType>\w+)$/;
 
     _recursion(model: Model, struct: T) {
         const entries: StructEntry[] = Object.entries(model);
 
         for (const [key, type] of entries) {
             // Catch dynamic item
-            const dynamicLengthMatch = key.match(this._dynamicLengthRegex);
+            const dynamicLengthMatch = this._dynamicLengthMatch(key);
 
             // Dynamic item
             if (dynamicLengthMatch) {
@@ -26,7 +26,7 @@ export class Make<T> {
     }
 
     private _writeDynamicItem(key: string, itemsType: Type, struct: T, itemKey: string, itemLengthType: string) {
-        const itemTypeIsString = itemsType === 's';
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
         const value = struct[itemKey];
         const length = value.length;
         // (some.i32: u8)
@@ -36,8 +36,8 @@ export class Make<T> {
         this._writer.write(itemLengthType, length);
 
         // Write string
-        if (itemTypeIsString) {
-            this._writer.write('s', value);
+        if (itemTypeIsStringOrBuffer) {
+            this._writer.write(itemsType as string, value);
         }
         // Write array of itemsType
         else {
