@@ -1,5 +1,4 @@
 import { hexToBuffer, CStructBE } from "../src";
-import { ModelParser } from "../src/model-parser";
 
 {
     // Buffer to read from

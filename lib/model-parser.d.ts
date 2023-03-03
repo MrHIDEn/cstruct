@@ -2,6 +2,7 @@ import { Model, Types } from "./types";
 export declare class ModelParser {
     private static _allowedLengthTypes;
     private static _checkWhetherTypeIsString;
+    private static _sizeType;
     private static _checkWhetherSizeIsNumber;
     private static _checkWhetherLengthTypeIsAllowed;
     private static _translateStaticAndDynamic;
@@ -9,6 +10,7 @@ export declare class ModelParser {
     private static staticArray;
     private static staticOrDynamic;
     private static cKindFields;
+    private static cKindStructs;
     private static clearJson;
     private static replaceModelTypesWithUserTypes;
     private static fixJson;
