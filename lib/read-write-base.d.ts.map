@@ -1,1 +1,0 @@
-{"version":3,"file":"read-write-base.d.ts","sourceRoot":"","sources":["../src/read-write-base.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,SAAS,CAAC;AAG/B,qBAAa,aAAa;IACtB,SAAS,CAAC,mBAAmB,SAA+C;IAE5E,SAAS,CAAC,mBAAmB,CAAC,GAAG,EAAE,MAAM;IAIzC,SAAS,CAAC,yBAAyB,CAAC,SAAS,EAAE,IAAI;CAGtD"}

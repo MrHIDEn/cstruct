@@ -2,3 +2,4 @@
 /.vscode/
 /.idea/
 sbox-*.ts
+/lib/
