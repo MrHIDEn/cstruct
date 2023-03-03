@@ -137,10 +137,10 @@ export class ModelParser {
             json.match(/\w+\s[\w,]+;/g) ?? // match `u8 a,b;`
             [];
         for (const match of matches) {
-            const matchArray = match.match(/(?<type>\w+)\s(?<keys>[\w,]+);/);
+            const matchArray = match.match(/(?<type>\w+)\s(?<fields>[\w,]+);/);
             if (matchArray?.length === 3) {
-                const {type, keys} = matchArray.groups;
-                const replacer = keys.split(',').map(key => `${key}:${type}`).join(',') + ',';
+                const {type, fields} = matchArray.groups;
+                const replacer = fields.split(',').map(field => `${field}:${type}`).join(',') + ',';
                 json = json.split(match).join(replacer);
             }
         }
@@ -163,11 +163,11 @@ export class ModelParser {
             [];
         for (const match of matches) {
             const matchArray =
-                match.match(/typedef struct{(?<fields>[\w\s,:]+)}(?<structType>\w+);/) ??
-                match.match(/struct (?<structType>\w+){(?<fields>[\w\s,:]+)};/);
+                match.match(/typedef struct{(?<fields>[\w\s,:]+)}(?<type>\w+);/) ??
+                match.match(/struct (?<type>\w+){(?<fields>[\w\s,:]+)};/);
             if (matchArray?.length === 3) {
-                const {fields, structType} = matchArray.groups;
-                const replacer = `${structType}:{${fields}},`;
+                const {fields, type} = matchArray.groups;
+                const replacer = `${type}:{${fields}},`;
                 json = json.split(match).join(replacer);
             }
         }
