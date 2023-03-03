@@ -9,6 +9,7 @@ export declare class WriteBuffer extends BaseBuffer {
     private _u8;
     private _i8;
     private _s;
+    private _buf;
     constructor();
     write(type: string, val: WriterValue): void;
     get buffer(): Buffer;
