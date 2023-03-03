@@ -46,7 +46,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MrHIDEn/c_struct.git"
+    "url": "git+https://github.com/MrHIDEn/cstruct.git"
   },
   "keywords": [
     "c",

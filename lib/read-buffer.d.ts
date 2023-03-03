@@ -11,6 +11,7 @@ export declare class ReadBuffer extends BaseBuffer {
     private _u8;
     private _i8;
     private _s;
+    private _buf;
     constructor(buffer: Buffer, offset?: number);
     read(type: string): ReaderValue;
     get size(): number;

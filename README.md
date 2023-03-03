@@ -1,4 +1,4 @@
-c_struct - *'C like structures'* - TypeScript library
+@mrhiden/cstruct - *'C like structures'* - TypeScript library
 =
 
 ### Features
@@ -11,7 +11,7 @@ c_struct - *'C like structures'* - TypeScript library
 * Big endian - BE
 
 ### Install
-`npm i c_struct`
+`npm i @mrhiden/cstruct`
 
 ### Data types, Atom types and aliases
 | Atom | Type               | Size [B] | Aliases                              |
@@ -38,7 +38,7 @@ The main concept is to first create a model of your data structure and then util
 1) To achieve this, you can precompile the model and optional types when creating a CStructBE or CStructLE object. 
 2) After this step, you can use the object to efficiently access the buffer and perform read/write operations on your data.
 
-### [Many examples are in this folder '/examples'](https://github.com/MrHIDEn/c_struct/tree/main/examples)
+### [Many examples are in this folder '/examples'](https://github.com/MrHIDEn/cstruct/tree/main/examples)
 
 ### Basic examples
 ```typescript
@@ -326,4 +326,4 @@ The main concept is to first create a model of your data structure and then util
 
 ```
 
-### [TODO](https://github.com/MrHIDEn/c_struct/blob/main/doc/TODO.md)
+### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
