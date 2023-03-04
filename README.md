@@ -326,7 +326,6 @@ The main concept is to first create a model of your data structure and then util
 
 ```
 ```typescript
-{
     // Value, static array, dynamic array
     const model = `[
         i8,         // 1 byte
@@ -355,7 +354,6 @@ The main concept is to first create a model of your data structure and then util
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
-}
 ```
 
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
