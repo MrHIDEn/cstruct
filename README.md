@@ -325,5 +325,37 @@ The main concept is to first create a model of your data structure and then util
     // { ab: { x: -2, y: -1 }, xyz: { x: 0, y: 1, z: 2 } }
 
 ```
+```typescript
+{
+    // Value, static array, dynamic array
+    const model = `[
+        i8,         // 1 byte
+        i8[2],      // 2 bytes static array
+        i8[i16]     // i16 bytes dynamic array
+    ]`;
+
+    const cStruct = new CStructBE(model);
+
+    console.log(cStruct.jsonModel);
+    // ["i8","i8.2","i8.i16"]
+    console.log(cStruct.modelClone);
+    // [ 'i8', 'i8.2', 'i8.i16' ]
+
+    const data = [
+        0x01,
+        [0x02, 0x03],
+        [0x04, 0x05, 0x06, 0x07],
+    ];
+    const {buffer} = cStruct.make(data);
+
+    console.log(buffer.toString('hex'));
+    // 010203000404050607
+    // 01 02_03 0004_04_05_06_07
+
+    const {struct: extractedData} = cStruct.read(buffer);
+    console.log(extractedData);
+    // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
+}
+```
 
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)

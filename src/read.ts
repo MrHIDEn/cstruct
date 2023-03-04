@@ -12,55 +12,110 @@ export class Read<T> extends ReadWriteBase {
         const entries: StructEntry[] = Object.entries(struct);
 
         for (const [key, type] of entries) {
-            // Catch dynamic item
-            const dynamicLengthMatch = this._dynamicLengthMatch(key);
+            // Catch dynamic key
+            const keyDynamicGroups = this._dynamicGroupsMatch(key);
 
-            // Dynamic item
-            if (dynamicLengthMatch) {
-                const {itemKey, itemLengthType} = dynamicLengthMatch.groups;
-                this._readDynamicItem(key, type, struct, itemKey, itemLengthType);
+            // Dynamic key
+            if (keyDynamicGroups) {
+                const {dynamicKey, dynamicLength} = keyDynamicGroups;
+                this._readDynamicKey(key, type, struct, dynamicKey, dynamicLength);
+                continue;
             }
+
+            // Dynamic type
+            if (typeof type === 'string') {
+                // Catch dynamic type
+                const typeDynamicGroups = this._dynamicGroupsMatch(type);
+
+                if (typeDynamicGroups) {
+                    const {dynamicKey: dynamicType, dynamicLength} = typeDynamicGroups;
+                    this._readDynamicType(key, type, struct, dynamicType, dynamicLength);
+                    continue;
+                }
+            }
+
             // Static item
-            else {
-                this._read(struct, key, type);
-            }
+            this._read(struct, key, type);
         }
     }
 
-    private _readDynamicItem(key: string, itemsType: Type, struct: T, itemKey: string, itemLengthType: string) {
-        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
-
-        // Read length
-        const length = this._reader.read(itemLengthType);
+    private _readDynamicKey(key: string, itemsType: Type, struct: T, dynamicKey: string, dynamicLength: string) {
         // (some.i32: u8)
-        // key: some.i32, itemsType: u8, itemKey: some, itemLengthType: i32
+        // key: some.i32, itemsType: u8, dynamicKey: some, dynamicLength: i32
         // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
         delete struct[key];
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
+        const {isNumber, staticSize} = this._getSize(dynamicLength);
 
-        // Read string
-        if (itemTypeIsStringOrBuffer) {
-            struct[itemKey] = this._reader.read(`${itemsType}${length}`);
+        // Static size
+        if (isNumber) {
+            // (some.2: u8)
+            // key: some.2, itemsType: u8, dynamicKey: some, dynamicLength: 2
+
+            // Read string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                struct[dynamicKey] = this._reader.read(`${itemsType}${staticSize}`);
+            }
+            // Read array of itemsType
+            else {
+                this._readArray(itemsType, struct, dynamicKey, staticSize);
+            }
         }
-        // Read array of itemsType
+        // Dynamic size
         else {
-            switch (typeof itemsType) {
-                case 'object': {
-                    const json = JSON.stringify(itemsType);
-                    struct[itemKey] = Array(length).fill(0).map(() => JSON.parse(json));
-                    this._recursion(struct[itemKey]);
-                    break;
-                }
-                case 'string':
-                    struct[itemKey] = Array(length).fill(itemsType);
-                    this._recursion(struct[itemKey]);
-                    break;
-                default:
-                    throw TypeError(`Unknown type "${itemsType}"`);
+            // Read size
+            const size = this._reader.read(dynamicLength) as number;
+
+            // Read string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                struct[dynamicKey] = this._reader.read(`${itemsType}${size}`);
+            }
+            // Read array of itemsType
+            else {
+                this._readArray(itemsType, struct, dynamicKey, size);
             }
         }
     }
 
-    _read(struct: T, key: string, type: Type) {
+    private _readDynamicType(key: string, itemsType: Type, struct: T, dynamicType: string, dynamicLength: string) {
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
+        const {isNumber, staticSize} = this._getSize(dynamicLength);
+
+        // Static size
+        if (isNumber) {
+            // (u8.3)
+            // key: "0", itemsType: i8.3, dynamicKey: i8, dynamicLength: 3
+
+            // Read string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                struct[key] = this._reader.read(`${dynamicType}${staticSize}`);
+            }
+            // Read array of itemsType
+            else {
+                this._readArray(dynamicType, struct, key, staticSize);
+            }
+        }
+        // Dynamic size
+        else {
+            // (i8.i16)
+            // key: "0", itemsType: i8.i16, dynamicKey: i8, dynamicLength: i16
+            // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
+
+            // Read size
+            const size = this._reader.read(dynamicLength) as number;
+
+            // Read string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                struct[key] = this._reader.read(`${dynamicType}${size}`);
+            }
+            // Read array of itemsType
+            else {
+                this._readArray(dynamicType, struct, key, size);
+            }
+        }
+    }
+
+    private _read(struct: T, key: string, type: Type) {
         switch (typeof type) {
             case 'object':
                 this._recursion(struct[key]);
@@ -70,6 +125,23 @@ export class Read<T> extends ReadWriteBase {
                 break;
             default:
                 throw TypeError(`Unknown type "${type}"`);
+        }
+    }
+
+    private _readArray(itemsType: Type, struct: T, dynamicKey: string, size: number) {
+        switch (typeof itemsType) {
+            case 'object': {
+                const json = JSON.stringify(itemsType);
+                struct[dynamicKey] = Array(size).fill(0).map(() => JSON.parse(json));
+                this._recursion(struct[dynamicKey]);
+                break;
+            }
+            case 'string':
+                struct[dynamicKey] = Array(size).fill(itemsType);
+                this._recursion(struct[dynamicKey]);
+                break;
+            default:
+                throw TypeError(`Unknown type "${itemsType}"`);
         }
     }
 

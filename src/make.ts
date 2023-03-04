@@ -1,4 +1,4 @@
-import { Model, StructEntry, Type } from "./types";
+import { Model, StructEntry, Type, WriterValue } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 import { ReadWriteBase } from "./read-write-base";
@@ -10,55 +10,120 @@ export class Make<T> extends ReadWriteBase {
         const entries: StructEntry[] = Object.entries(model);
 
         for (const [key, type] of entries) {
-            // Catch dynamic item
-            const dynamicLengthMatch = this._dynamicLengthMatch(key);
+            // Catch dynamic key
+            const keyDynamicGroups = this._dynamicGroupsMatch(key);
 
-            // Dynamic item
-            if (dynamicLengthMatch) {
-                const {itemKey, itemLengthType} = dynamicLengthMatch.groups;
-                this._writeDynamicItem(key, type, struct, itemKey, itemLengthType);
+            // Dynamic key
+            if (keyDynamicGroups) {
+                const {dynamicKey, dynamicLength} = keyDynamicGroups;
+                this._writeDynamicKey(key, type, struct, dynamicKey, dynamicLength);
+                continue;
             }
+
+            // Dynamic type
+            if (typeof type === 'string') {
+                // Catch dynamic type
+                const typeDynamicGroups = this._dynamicGroupsMatch(type);
+
+                if (typeDynamicGroups) {
+                    const {dynamicKey: dynamicType, dynamicLength} = typeDynamicGroups;
+                    this._writeDynamicType(key, type, struct, dynamicType, dynamicLength);
+                    continue;
+                }
+            }
+
             // Static item
-            else {
-                this._write(model, struct, key, type);
-            }
+            this._write(model, struct, key, type);
         }
     }
 
-    private _writeDynamicItem(key: string, itemsType: Type, struct: T, itemKey: string, itemLengthType: string) {
+    private _writeDynamicKey(key: string, itemsType: Type, struct: T, dynamicKey: string, dynamicLength: string) {
+        // (some.i16: u8)
+        // key: some.i16, itemsType: u8, dynamicKey: some, dynamicLength: i16
         const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
-        const value = struct[itemKey];
-        const length = value.length;
-        // (some.i32: u8)
-        // key: some.i32, itemsType: u8, itemKey: some, itemLengthType: i32
+        const structValues = struct[dynamicKey];
+        const {isNumber, staticSize} = this._getSize(dynamicLength);
 
-        // Write length
-        this._writer.write(itemLengthType, length);
+        // Static size
+        if (isNumber) {
+            // (some.2: u8)
+            // key: some.2, itemsType: u8, dynamicKey: some, dynamicLength: 2
 
-        // Write string
-        if (itemTypeIsStringOrBuffer) {
-            this._writer.write(itemsType as string, value);
+            // Write string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                this._writer.write(`${itemsType}${staticSize}`, structValues);
+            }
+            // Write array of itemsType
+            else {
+                if (structValues.length !== staticSize) {
+                    throw new Error(`Expected ${staticSize} items, got ${structValues.length}`);
+                }
+                this._writeArray(itemsType, structValues);
+            }
         }
-        // Write array of itemsType
+        // Dynamic size
         else {
-            switch (typeof itemsType) {
-                case 'object':
-                    for (const structItem of value) {
-                        this._recursion(itemsType, structItem);
-                    }
-                    break;
-                case 'string':
-                    for (const itemValue of value) {
-                        this._writer.write(itemsType, itemValue);
-                    }
-                    break;
-                default:
-                    throw TypeError(`Unknown type "${itemsType}"`);
+            // (some.i16: u8)
+            // key: some.i16, itemsType: u8, dynamicKey: some, dynamicLength: i16
+            const size = structValues.length;
+
+            // Write size
+            this._writer.write(dynamicLength, size);
+
+            // Write string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                this._writer.write(itemsType as string, structValues);
+            }
+            // Write array of itemsType
+            else {
+                this._writeArray(itemsType, structValues);
             }
         }
     }
 
-    _write(model: Model, struct: T, key: string, type: Type) {
+    private _writeDynamicType(key: string, itemsType: Type, struct: T, dynamicType: string, dynamicLength: string) {
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
+        const structValues = struct[key];
+        const {isNumber, staticSize} = this._getSize(dynamicLength);
+
+        // Static size
+        if (isNumber) {
+            // (i8.3)
+            // key: "0", itemsType: i8.3, dynamicKey: i8, dynamicLength: 3
+
+            // Write string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                this._writer.write(dynamicType, structValues);
+            }
+            // Write array of itemsType
+            else {
+                if (structValues.length !== staticSize) {
+                    throw new Error(`Expected ${staticSize} items, got ${structValues.length}`);
+                }
+                this._writeArray(dynamicType, structValues);
+            }
+        }
+        // Dynamic size
+        else {
+            // (i8.i16)
+            // key: "0", itemsType: i8.i16, dynamicKey: i8, dynamicLength: i16
+            const size = structValues.length;
+
+            // Write size
+            this._writer.write(dynamicLength, size);
+
+            // Write string or buffer
+            if (itemTypeIsStringOrBuffer) {
+                this._writer.write(dynamicType as string, structValues);
+            }
+            // Write array of itemsType
+            else {
+                this._writeArray(dynamicType, structValues);
+            }
+        }
+    }
+
+    private _write(model: Model, struct: T, key: string, type: Type) {
         switch (typeof type) {
             case 'object':
                 this._recursion(model[key], struct[key]);
@@ -68,6 +133,23 @@ export class Make<T> extends ReadWriteBase {
                 break;
             default:
                 throw TypeError(`Unknown type "${type}"`);
+        }
+    }
+
+    private _writeArray(itemsType: Type, structValues: T[]) {
+        switch (typeof itemsType) {
+            case 'object':
+                for (const structItem of structValues) {
+                    this._recursion(itemsType, structItem);
+                }
+                break;
+            case 'string':
+                for (const itemValue of structValues) {
+                    this._writer.write(itemsType, itemValue as WriterValue);
+                }
+                break;
+            default:
+                throw TypeError(`Unknown type "${itemsType}"`);
         }
     }
 

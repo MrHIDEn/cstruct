@@ -11,7 +11,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // where the struct and data types are defined in a model
     const cStruct = new CStructBE(`{a:u8, b:u16, c:u32}`);
 
-    const { struct } = cStruct.read(buffer);
+    const {struct} = cStruct.read(buffer);
 
     console.log(struct);
     // { a: 1, b: 2, c: 3 }
@@ -27,7 +27,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
     const cStruct = new CStructLE(`{a: u8, b: u16, c: u32}`);
-    const { struct } = cStruct.read(buffer);
+    const {struct} = cStruct.read(buffer);
 
     console.log(struct);
     // { a: 1, b: 2, c: 3 }
@@ -45,7 +45,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
         {a: b8, b: b16, c: b32, d: b64}
     ]`);
 
-    const { struct } = cStruct.read(buffer);
+    const {struct} = cStruct.read(buffer);
 
     console.log(struct);
     // [
@@ -62,7 +62,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = new CStructBE(`[u16, u16, u16]`);
 
-    const { struct } = cStruct.read(buffer);
+    const {struct} = cStruct.read(buffer);
 
     console.log(struct);
     // [ 1, 2, 3 ]
@@ -76,7 +76,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = new CStructLE(`[u16, u16, u16]`);
 
-    const { struct } = cStruct.read(buffer);
+    const {struct} = cStruct.read(buffer);
 
     console.log(struct);
     // [ 1, 2, 3 ]
@@ -90,7 +90,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
 
-    const { struct, offset, size, toAtoms } = cStruct.read(buffer);
+    const {struct, offset, size, toAtoms} = cStruct.read(buffer);
 
     console.log(struct);
     // { error: { code: 15, message: 'abc' } }
@@ -111,7 +111,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     const cStruct = new CStructLE(`[u16, u16, u16]`);
 
     // Read with offset 3
-    const { struct } = cStruct.read(buffer, 3);
+    const {struct} = cStruct.read(buffer, 3);
 
     console.log(struct);
     // [ 1, 2, 3 ]
@@ -121,7 +121,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // Make buffer from struct based on model
     const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
 
-    const { buffer, offset, size, toAtoms } = cStruct.make({ error: { code: 10, message: 'xyz' } });
+    const {buffer, offset, size, toAtoms} = cStruct.make({error: {code: 10, message: 'xyz'}});
 
     console.log(buffer.toString('hex'));
     // 000a78797a0000000000000000000000000000000000
@@ -140,9 +140,9 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = new CStructBE(`{ error: {code: u16, message: s20} }`);
 
-    const { buffer: b, offset, size, toAtoms } = cStruct.write(
+    const {buffer: b, offset, size, toAtoms} = cStruct.write(
         buffer,
-        { error: { code: 0x44, message: 'xyz' } },
+        {error: {code: 0x44, message: 'xyz'}},
         3
     );
 
@@ -162,14 +162,14 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     const model = `{u8 a,b;}`;
     const cStruct = new CStructBE(model);
 
-    const makeStruct = { a: 1, b: 2 };
-    const { buffer: structBuffer } = cStruct.make(
+    const makeStruct = {a: 1, b: 2};
+    const {buffer: structBuffer} = cStruct.make(
         makeStruct
     );
     console.log(structBuffer.toString('hex'));
     // 0102
 
-    const { struct: readStruct } = cStruct.read(structBuffer);
+    const {struct: readStruct} = cStruct.read(structBuffer);
     console.log(readStruct);
     // { a: 1, b: 2 }
 }

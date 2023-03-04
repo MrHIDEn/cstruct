@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE, CStructLE } from "../src/tests";
+import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
 
 describe('dynamic array', () => {
@@ -173,6 +173,22 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should make [i8, i8[2], i8[i16]]`, () => {
+                const model = `[i8, i8[2], i8[i16]]`;
+                const cStruct = new CStructBE(model);
+                const struct = [
+                    0x01,
+                    [0x02, 0x03],
+                    [0x04, 0x05, 0x06, 0x07],
+                ];
+                const expected = hexToBuffer('01 02_03 0004_04_05_06_07');
+
+                const result = cStruct.make(struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(9);
+                expect(result.size).toBe(9);
             });
         });
 
@@ -476,6 +492,22 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should make [i8, i8[2], i8[i16]]`, () => {
+                const model = `[i8, i8[2], i8[i16]]`;
+                const cStruct = new CStructLE(model);
+                const struct = [
+                    0x01,
+                    [0x02, 0x03],
+                    [0x04, 0x05, 0x06, 0x07],
+                ];
+                const expected = hexToBuffer('01 02_03 0400_04_05_06_07');
+
+                const result = cStruct.make(struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(9);
+                expect(result.size).toBe(9);
             });
         });
 

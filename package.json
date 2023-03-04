@@ -1,6 +1,6 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
   "--comments": [
     "Developed from 31.01.2019"
