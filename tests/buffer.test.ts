@@ -23,7 +23,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = {r: hexToBuffer('12_34_56')};
 
                 const result = cStruct.read(buffer);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -62,7 +62,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = {r: hexToBuffer('12_34_56')};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(5);
                 expect(result.size).toBe(3);
@@ -103,7 +103,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('12_34_56');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -120,6 +120,36 @@ describe('buf - buffer - Buffer', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
+            });
+
+            it(`should make and truncate static buffer`, () => {
+                const model = {staticBuffer: 'buf[2]'};
+                const cStruct = new CStructBE(model);
+                const struct = {
+                    staticBuffer: Buffer.from("abcdef")
+                };
+                const expected = hexToBuffer('6162');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'staticBuffer.2': 'buf'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(2);
+                expect(result.size).toBe(2);
+            });
+
+            it(`should make and truncate static string`, () => {
+                const model = {staticString: 'string[2]'};
+                const cStruct = new CStructBE(model);
+                const struct = {
+                    staticString: "abcdef"
+                };
+                const expected = hexToBuffer('6162');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'staticString.2': 's'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(2);
+                expect(result.size).toBe(2);
             });
         });
 
@@ -146,7 +176,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('12_34_56');
 
                 const result = cStruct.write(buffer, struct);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -188,7 +218,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('7777 12_34_56');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(5);
                 expect(result.size).toBe(3);
@@ -232,7 +262,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = {r: hexToBuffer('12_34_56')};
 
                 const result = cStruct.read(buffer);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -271,7 +301,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = {r: hexToBuffer('12_34_56')};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(5);
                 expect(result.size).toBe(3);
@@ -312,7 +342,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('12_34_56');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -329,6 +359,36 @@ describe('buf - buffer - Buffer', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
+            });
+
+            it(`should make and truncate static buffer`, () => {
+                const model = {staticBuffer: 'buf[2]'};
+                const cStruct = new CStructLE(model);
+                const struct = {
+                    staticBuffer: Buffer.from("abcdef")
+                };
+                const expected = hexToBuffer('6162');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'staticBuffer.2': 'buf'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(2);
+                expect(result.size).toBe(2);
+            });
+
+            it(`should make and truncate static string`, () => {
+                const model = {staticString: 'string[2]'};
+                const cStruct = new CStructLE(model);
+                const struct = {
+                    staticString: "abcdef"
+                };
+                const expected = hexToBuffer('6162');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'staticString.2': 's'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(2);
+                expect(result.size).toBe(2);
             });
         });
 
@@ -355,7 +415,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('12_34_56');
 
                 const result = cStruct.write(buffer, struct);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(3);
                 expect(result.size).toBe(3);
@@ -397,7 +457,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('7777 12_34_56');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({r: 'buf3'});
+                expect(cStruct.modelClone).toEqual({'r.3': 'buf'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(5);
                 expect(result.size).toBe(3);

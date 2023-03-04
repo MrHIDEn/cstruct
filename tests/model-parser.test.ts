@@ -78,7 +78,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a simple type 8', () => {
-                const types = ModelParser.parseTypes(`{Octave:{b:[3/f],v:[3/f]}}`);
+                const types = ModelParser.parseTypes(`{Octave:{b:[f/3],v:[f/3]}}`);
                 const expected = JSON.stringify({Octave: {b: ['f', 'f', 'f'], v: ['f', 'f', 'f']}});
                 expect(types).toEqual(expected);
             });
@@ -136,7 +136,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a simple type 9', () => {
-                const model = ModelParser.parseModel({a: '[2/u8]'});
+                const model = ModelParser.parseModel({a: '[u8/2]'});
                 const expected = JSON.stringify({a: ['u8', 'u8']});
                 expect(model).toEqual(expected);
             });
@@ -172,7 +172,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a user type 15', () => {
-                const model = ModelParser.parseModel('Some', {Some: '[2/u16]'});
+                const model = ModelParser.parseModel('Some', {Some: '[u16/2]'});
                 const expected = JSON.stringify(['u16', 'u16']);
                 expect(model).toEqual(expected);
             });
@@ -249,7 +249,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a simple type 9', () => {
-                const model = ModelParser.parseModel(`{ a: [2/u8] }`);
+                const model = ModelParser.parseModel(`{ a: [u8/2] }`);
                 const expected = JSON.stringify({a: ['u8', 'u8']});
                 expect(model).toEqual(expected);
             });
@@ -285,7 +285,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse a user type 15', () => {
-                const model = ModelParser.parseModel('Some', `{Some:[2/u16]}`);
+                const model = ModelParser.parseModel('Some', `{Some:[u16/2]}`);
                 const expected = JSON.stringify(['u16', 'u16']);
                 expect(model).toEqual(expected);
             });
@@ -321,7 +321,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse model type 23', () => {
-                const model = ModelParser.parseModel(`[2/Some]`, `{Some: {a:u16,b:u8}}`);
+                const model = ModelParser.parseModel(`[Some/2]`, `{Some: {a:u16,b:u8}}`);
                 const expected = JSON.stringify([{a: 'u16', b: 'u8'}, {a: 'u16', b: 'u8'}]);
                 expect(model).toEqual(expected);
             });
@@ -398,7 +398,7 @@ describe('ModelParser', () => {
             describe('staticArray', () => {
                 it('should make static array', () => {
                     const model = ModelParser.parseModel(`{
-                        a:[3/u16]                   
+                        a:[u16/3]                   
                     }`);
                     const expected = JSON.stringify({
                         a: ['u16', 'u16', 'u16']
@@ -518,7 +518,7 @@ describe('ModelParser', () => {
 
                 it('should replace Sensor 1', () => {
                     const model = ModelParser.parseModel(
-                        `[2/Sensor]`,
+                        `[Sensor/2]`,
                         `{Sensor: {type: u8, value: f, time: u64 }}`
                     );
                     const expected = JSON.stringify(
@@ -529,7 +529,7 @@ describe('ModelParser', () => {
 
                 it('should replace Sensor 2', () => {
                     const model = ModelParser.parseModel(
-                        `{sensors: [2/Sensor]}`,
+                        `{sensors: [Sensor/2]}`,
                         `{Sensor: {type: u8, value: f, time: u64 }}`
                     );
                     const expected = JSON.stringify(
@@ -548,7 +548,7 @@ describe('ModelParser', () => {
             });
 
             it('should parse model 2', () => {
-                const model = ModelParser.parseModel(`{a:[3/u8]}`);
+                const model = ModelParser.parseModel(`{a:[u8/3]}`);
                 const expected = JSON.stringify({a: ['u8', 'u8', 'u8']});
                 expect(model).toEqual(expected);
             });
