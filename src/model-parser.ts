@@ -21,8 +21,21 @@ export class ModelParser {
         };
     }
 
+    private static _removeComments(json) {
+        return json
+            .split('\n')
+            .map(line => {
+                const commentIndex = line.indexOf('//');
+                if (commentIndex === -1) {
+                    return line;
+                }
+                return line.slice(0, commentIndex);
+            })
+            .join('\n');
+    }
+
     private static prepareJson(json: string): string {
-        json = json.replace(/\/\/.*$/gm, ``); // remove comments
+        json = this._removeComments(json); // remove comments
         json = json.replace(/^\s+$/m, ``); // remove empty lines
         json = json.replace(/\n/g, ``); // remove line breaks
         json = json.trim();
