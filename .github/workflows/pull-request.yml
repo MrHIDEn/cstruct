@@ -3,7 +3,18 @@ name: Pull Request
 on: [pull_request]
 
 jobs:
-  build:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    needs: eslint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -12,3 +23,14 @@ jobs:
           node-version: 16
       - run: npm ci
       - run: npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm run build

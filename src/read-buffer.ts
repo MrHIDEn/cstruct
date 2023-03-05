@@ -29,7 +29,7 @@ export class ReadBuffer extends BaseBuffer {
         // Consider using "utf16le" encoding as well as "utf8" encoding
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
-            .replace(/\0+$/,"");
+            .split('\0', 1).pop(); // remove all trailing null bytes
         this.addAtom(`s${size}`, size);
         return val;
     }
