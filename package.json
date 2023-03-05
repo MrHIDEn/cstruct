@@ -1,10 +1,7 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
-  "--comments": [
-    "Developed from 31.01.2019"
-  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -23,7 +20,14 @@
     "testMatch": [
       "<rootDir>/tests/*.test.ts"
     ],
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   },
   "scripts": {
     "sandbox": "ts-node-dev --transpile-only ./examples/sandbox.ts",
@@ -31,7 +35,9 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "make:link": "npm link",
+    "remove:unlink": "npm r @mrhiden/cstruct -g"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
@@ -41,8 +47,8 @@
     "eslint": "^8.34.0",
     "jest": "^29.4.3",
     "ts-jest": "^29.0.5",
-    "typescript": "^4.9.5",
-    "ts-node-dev": "^1.1.8"
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.9.5"
   },
   "repository": {
     "type": "git",
@@ -61,7 +67,13 @@
     "typescript",
     "json"
   ],
-  "author": "Marek Krzyżowski",
+  "author": {
+    "name": "Marek Krzyżowski",
+    "email": "mrhiden@outlook.com",
+    "--comments": [
+      "Developed from 31.01.2019"
+    ]
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/MrHIDEn/cstruct/issues"

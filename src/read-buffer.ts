@@ -62,10 +62,10 @@ export class ReadBuffer extends BaseBuffer {
 
     read(type: string): ReaderValue {
         let size: number;
-        const match = type.match(/^(?<type>s|buf)(?<size>\d+)$/);
-        if (match) {
-            type = match.groups.type;
-            size = +match.groups.size;
+        const groups = type.match(/^(?<type>s|buf)(?<size>\d+)$/)?.groups;
+        if (groups) {
+            type = groups.type;
+            size = +groups.size;
         }
         if (this._atomFunctions.has(type)) {
             const reader = this._atomFunctions.get(type);

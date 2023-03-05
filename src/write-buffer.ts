@@ -69,10 +69,10 @@ export class WriteBuffer extends BaseBuffer {
 
     write(type: string, val: WriterValue) {
         let size: number;
-        const match = type.match(/^(?<type>s|buf)(?<size>\d+)$/);
-        if (match) {
-            type = match.groups.type;
-            size = +match.groups.size;
+        const groups = type.match(/^(?<type>s|buf)(?<size>\d+)$/)?.groups;
+        if (groups) {
+            type = groups.type;
+            size = +groups.size;
         }
         if (this._atomFunctions.has(type)) {
             const writer = this._atomFunctions.get(type);
