@@ -42,318 +42,329 @@ The main concept is to first create a model of your data structure and then util
 
 ### Basic examples
 ```typescript
-    // Make BE buffer from struct based on model
-    const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
+import { CStructBE } from '@mrhiden/cstruct';
+// Make BE buffer from struct based on model
+const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
-    const { buffer, offset, size } = cStruct.make({ error: { code: 10, message: 'xyz' } });
+const { buffer, offset, size } = cStruct.make({ error: { code: 10, message: 'xyz' } });
 
-    console.log(buffer.toString('hex'));
-    // 000a78797a0000000000000000000000000000000000
-    console.log(offset);
-    // 22
-    console.log(size);
-    // 22
+console.log(buffer.toString('hex'));
+// 000a78797a0000000000000000000000000000000000
+console.log(offset);
+// 22
+console.log(size);
+// 22
 ````
 
 ```typescript
-    // Read BE buffer to struct based on model
-    const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
-    console.log(buffer.toString('hex'));
-    // 000f616263000000000000000000000000
-    
-    const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
-    
-    const { struct, offset, size } = cStruct.read(buffer);
-    
-    console.log(struct);
-    // { error: { code: 15, message: 'abc' } }
-    console.log(offset);
-    // 17
-    console.log(size);
-    // 17
+import { CStructBE } from '@mrhiden/cstruct';
+// Read BE buffer to struct based on model
+const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
+console.log(buffer.toString('hex'));
+// 000f616263000000000000000000000000
+
+const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
+
+const { struct, offset, size } = cStruct.read(buffer);
+
+console.log(struct);
+// { error: { code: 15, message: 'abc' } }
+console.log(offset);
+// 17
+console.log(size);
+// 17
 ````
 
 ### Examples with types
 ```typescript
-    // Model and Types for Sender & Receiver
-    const types = {
-      Sensor: {
-        id: 'u32',
-        type: 'u8',
-        value: 'd',
-        timestamp: 'u64',
-      }
-    };
-    const iotModel = {
-      iotName: 's20',
-      sensor: 'Sensor',
-    };
-    
-    // IOT Sender
-    const sender = new CStructBE(iotModel, types);
-    const senderData = {
-      iotName: 'IOT-1',
-      sensor: {
-        id: 123456789,
-        type: 0x01,
-        value: 123.456,
-        timestamp: 1677277903685n,
-      }
-    };
-    const { buffer: senderFrame } = sender.make(senderData);
-    
-    // Transmitting frame
-    console.log(senderFrame.toString('hex'));
-    
-    // IOT Receiver
-    const receiver = new CStructBE(iotModel, types);
-    const { struct: receiverData } = receiver.read(senderFrame);
-    console.log(receiverData);
-    // {
-    //   iotName: 'IOT-1',
-    //   sensor: {
-    //      id: 123456789,
-    //      type: 1,
-    //      value: 123.456,
-    //      timestamp: 1677277903685
-    //    }
-    //  }
+import { CStructBE } from '@mrhiden/cstruct';
+// Model and Types for Sender & Receiver
+const types = {
+  Sensor: {
+    id: 'u32',
+    type: 'u8',
+    value: 'd',
+    timestamp: 'u64',
+  }
+};
+const iotModel = {
+  iotName: 's20',
+  sensor: 'Sensor',
+};
+
+// IOT Sender
+const sender = new CStructBE(iotModel, types);
+const senderData = {
+  iotName: 'IOT-1',
+  sensor: {
+    id: 123456789,
+    type: 0x01,
+    value: 123.456,
+    timestamp: 1677277903685n,
+  }
+};
+const { buffer: senderFrame } = sender.make(senderData);
+
+// Transmitting frame
+console.log(senderFrame.toString('hex'));
+
+// IOT Receiver
+const receiver = new CStructBE(iotModel, types);
+const { struct: receiverData } = receiver.read(senderFrame);
+console.log(receiverData);
+// {
+//   iotName: 'IOT-1',
+//   sensor: {
+//      id: 123456789,
+//      type: 1,
+//      value: 123.456,
+//      timestamp: 1677277903685
+//    }
+//  }
 ````
 
 ### String based examples. Model and Types are strings but you can mix approach
 ```typescript
-    // Make buffer from struct based on model and types
-    const cStruct = new CStructBE(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
+import { CStructBE } from '@mrhiden/cstruct';
+// Make buffer from struct based on model and types
+const cStruct = new CStructBE(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
 
-    const {buffer, offset, size} = cStruct.make({
-        errors: [
-            {code: 0x12, message: 'message1'},
-            {code: 0x34, message: 'message2'},
-        ]
-    });
+const {buffer, offset, size} = cStruct.make({
+    errors: [
+        {code: 0x12, message: 'message1'},
+        {code: 0x34, message: 'message2'},
+    ]
+});
 
-    console.log(buffer.toString('hex'));
-    // 00126d65737361676531000000346d657373616765320000
-    console.log(offset);
-    // 24
-    console.log(size);
-    // 24
+console.log(buffer.toString('hex'));
+// 00126d65737361676531000000346d657373616765320000
+console.log(offset);
+// 24
+console.log(size);
+// 24
 ```
 ```typescript
-    // Mixed approach for model and types
-    const cStruct = new CStructBE({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
+import { CStructBE } from '@mrhiden/cstruct';
+// Mixed approach for model and types
+const cStruct = new CStructBE({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
 
-    const {buffer, offset, size} = cStruct.make({
-        errors: [
-            {code: 0x12, message: 'message1'},
-            {code: 0x34, message: 'message2'},
-        ]
-    });
+const {buffer, offset, size} = cStruct.make({
+    errors: [
+        {code: 0x12, message: 'message1'},
+        {code: 0x34, message: 'message2'},
+    ]
+});
 
-    console.log(buffer.toString('hex'));
-    // 00126d65737361676531000000346d657373616765320000
-    console.log(offset);
-    // 24
-    console.log(size);
-    // 24
+console.log(buffer.toString('hex'));
+// 00126d65737361676531000000346d657373616765320000
+console.log(offset);
+// 24
+console.log(size);
+// 24
 ```
 
 ### C-kind data fields
 ```typescript
-    // C-kind fields {u8 a,b;} into {a:u8,b:u8}
-    const model = `{u8 a,b;}`;
-    const cStruct = new CStructBE(model);
+import { CStructBE } from '@mrhiden/cstruct';
+// C-kind fields {u8 a,b;} into {a:u8,b:u8}
+const model = `{u8 a,b;}`;
+const cStruct = new CStructBE(model);
 
-    const makeStruct = { a: 1, b: 2 };
-    const { buffer: structBuffer } = cStruct.make(
-        makeStruct
-    );
-    console.log(structBuffer.toString('hex'));
-    // 0102
+const makeStruct = { a: 1, b: 2 };
+const { buffer: structBuffer } = cStruct.make(
+    makeStruct
+);
+console.log(structBuffer.toString('hex'));
+// 0102
 
-    const { struct: readStruct } = cStruct.read(structBuffer);
-    console.log(readStruct);
-    // { a: 1, b: 2 }
+const { struct: readStruct } = cStruct.read(structBuffer);
+console.log(readStruct);
+// { a: 1, b: 2 }
 ```
 
 ### Dynamic length
 ```typescript
-    // Dynamic (length) array with types
-    const model = {
-        ab: "Ab[i16]",
-    };
+import { CStructBE } from '@mrhiden/cstruct';
+// Dynamic (length) array with types
+const model = {
+    ab: "Ab[i16]",
+};
 
-    const types = {
-        Ab: {a: 'i8', b: 'i8'}
-    };
+const types = {
+    Ab: {a: 'i8', b: 'i8'}
+};
 
-    const cStruct = new CStructBE(model, types);
+const cStruct = new CStructBE(model, types);
 
-    console.log(cStruct.modelClone);
-    // { 'ab.i16': { a: 'i8', b: 'i8' } }
+console.log(cStruct.modelClone);
+// { 'ab.i16': { a: 'i8', b: 'i8' } }
 
-    const data = {
-        ab: [
-            {a: '-1', b: '+1'},
-            {a: '-2', b: '+2'},
-        ]
-    };
-    const {buffer} = cStruct.make(data);
+const data = {
+    ab: [
+        {a: '-1', b: '+1'},
+        {a: '-2', b: '+2'},
+    ]
+};
+const {buffer} = cStruct.make(data);
 
-    console.log(buffer.toString('hex'));
-    // 0002ff01fe02
+console.log(buffer.toString('hex'));
+// 0002ff01fe02
 
-    const {struct: extractedData} = cStruct.read(buffer);
-    console.log(extractedData);
-    // { ab: [ { a: -1, b: 1 }, { a: -2, b: 2 } ] }
+const {struct: extractedData} = cStruct.read(buffer);
+console.log(extractedData);
+// { ab: [ { a: -1, b: 1 }, { a: -2, b: 2 } ] }
 ```
 ```typescript
-    // Dynamic (length) string
-    const model = {
-        txt1: "s[i16]",
-        txt2: "string[i16]",
-    };
+import { CStructBE } from '@mrhiden/cstruct';
+// Dynamic (length) string
+const model = {
+    txt1: "s[i16]",
+    txt2: "string[i16]",
+};
 
-    const cStruct = new CStructBE(model);
+const cStruct = new CStructBE(model);
 
-    console.log(cStruct.modelClone);
-    // { 'txt1.i16': 's', 'txt2.i16': 's' }
+console.log(cStruct.modelClone);
+// { 'txt1.i16': 's', 'txt2.i16': 's' }
 
-    const data = {
-        txt1: "ABCDE",
-        txt2: "AB"
-    };
-    const {buffer} = cStruct.make(data);
+const data = {
+    txt1: "ABCDE",
+    txt2: "AB"
+};
+const {buffer} = cStruct.make(data);
 
-    console.log(buffer.toString('hex'));
-    // 0005414243444500024142
-    // 0005_4142434445 0002_4142
+console.log(buffer.toString('hex'));
+// 0005414243444500024142
+// 0005_4142434445 0002_4142
 
-    const {struct: extractedData} = cStruct.read(buffer);
-    console.log(extractedData);
-    // { txt1: 'ABCDE', txt2: 'AB' }
+const {struct: extractedData} = cStruct.read(buffer);
+console.log(extractedData);
+// { txt1: 'ABCDE', txt2: 'AB' }
 ```
 
 ### PLC example
 ```typescript
-    const model = {b: 'BYTE', w: 'WORD', f: 'BOOL'};
+import { CStructBE } from '@mrhiden/cstruct';
+const model = {b: 'BYTE', w: 'WORD', f: 'BOOL'};
 
-    const cStruct = new CStructBE(model);
+const cStruct = new CStructBE(model);
 
-    console.log(cStruct.modelClone);
-    // { b: 'BYTE', w: 'WORD', f: 'BOOL' }
+console.log(cStruct.modelClone);
+// { b: 'BYTE', w: 'WORD', f: 'BOOL' }
 
-    const struct = {b: 0x12, w: 0x3456, f: true};
-    const {buffer} = cStruct.make(struct);
+const struct = {b: 0x12, w: 0x3456, f: true};
+const {buffer} = cStruct.make(struct);
 
-    console.log(buffer.toString('hex'));
-    // 12345601
-    // 12 3456 01
+console.log(buffer.toString('hex'));
+// 12345601
+// 12 3456 01
 
-    const {struct: extractedData} = cStruct.read(buffer);
-    console.log(extractedData);
-    // { b: 18, w: 13398, f: true }
-    // { b: 0x12, w: 0x3456, f: true }
+const {struct: extractedData} = cStruct.read(buffer);
+console.log(extractedData);
+// { b: 18, w: 13398, f: true }
+// { b: 0x12, w: 0x3456, f: true }
 ```
 
 ### C-kind struct
 ```typescript
-    // C struct types
-    const model = {
-        xyzs: "Xyx[2]",
-    };
-    const types = `{
-        typedef struct {
-            uint8_t x;
-            uint8_t y;
-            uint8_t z;
-        } Xyx;
-    }`;
+import { CStructBE } from '@mrhiden/cstruct';
+// C struct types
+const model = {
+    xyzs: "Xyx[2]",
+};
+const types = `{
+    typedef struct {
+        uint8_t x;
+        uint8_t y;
+        uint8_t z;
+    } Xyx;
+}`;
 
-    const cStruct = new CStructBE(model, types);
+const cStruct = new CStructBE(model, types);
 
-    const data = {
-        xyzs: [
-            {x: 1, y: 2, z: 3},
-            {x: 4, y: 5, z: 6},
-        ]
-    };
-    const {buffer: makeBuffer} = cStruct.make(data);
+const data = {
+    xyzs: [
+        {x: 1, y: 2, z: 3},
+        {x: 4, y: 5, z: 6},
+    ]
+};
+const {buffer: makeBuffer} = cStruct.make(data);
 
-    console.log(makeBuffer.toString('hex'));
-    // 010203040506
+console.log(makeBuffer.toString('hex'));
+// 010203040506
 
-    const {struct: readStruct} = cStruct.read(makeBuffer);
-    console.log(readStruct);
-    // { xyzs: [ { x: 1, y: 2, z: 3 }, { x: 4, y: 5, z: 6 } ] }
+const {struct: readStruct} = cStruct.read(makeBuffer);
+console.log(readStruct);
+// { xyzs: [ { x: 1, y: 2, z: 3 }, { x: 4, y: 5, z: 6 } ] }
 ```
 ```typescript
-    // C struct types
-    const types = `{
-        // 1st approach
-        typedef struct {
-            u8 x,y,z;
-        } Xyz;
-        
-        // 2nd approach
-        struct Ab {
-            i8 x,y;
-        };
-        
-        // As you noticed, comments are allowed
-    }`;
-    const model = `{
-        ab: Ab,
-        xyz: Xyz,
-        
-        // As you noticed, comments are allowed
-    }`;
-
-    const cStruct = new CStructBE(model, types);
-
-    const data = {
-        ab: { x: -2, y: -1 },
-        xyz: { x: 0, y: 1, z: 2 }
+import { CStructBE } from '@mrhiden/cstruct';
+// C struct types
+const types = `{
+    // 1st approach
+    typedef struct {
+        u8 x,y,z;
+    } Xyz;
+    
+    // 2nd approach
+    struct Ab {
+        i8 x,y;
     };
-    const {buffer: makeBuffer} = cStruct.make(data);
+    
+    // As you noticed, comments are allowed
+}`;
+const model = `{
+    ab: Ab,
+    xyz: Xyz,
+    
+    // As you noticed, comments are allowed
+}`;
 
-    console.log(makeBuffer.toString('hex'));
-    // feff000102
+const cStruct = new CStructBE(model, types);
 
-    const {struct: readStruct} = cStruct.read(makeBuffer);
-    console.log(readStruct);
-    // { ab: { x: -2, y: -1 }, xyz: { x: 0, y: 1, z: 2 } }
+const data = {
+    ab: { x: -2, y: -1 },
+    xyz: { x: 0, y: 1, z: 2 }
+};
+const {buffer: makeBuffer} = cStruct.make(data);
 
+console.log(makeBuffer.toString('hex'));
+// feff000102
+
+const {struct: readStruct} = cStruct.read(makeBuffer);
+console.log(readStruct);
+// { ab: { x: -2, y: -1 }, xyz: { x: 0, y: 1, z: 2 } }
 ```
 ```typescript
-    // Value, static array, dynamic array
-    const model = `[
-        i8,         // 1 byte
-        i8[2],      // 2 bytes static array
-        i8[i16]     // i16 bytes dynamic array
-    ]`;
+import { CStructBE } from '@mrhiden/cstruct';
+// Value, static array, dynamic array
+const model = `[
+    i8,         // 1 byte
+    i8[2],      // 2 bytes static array
+    i8[i16]     // i16 bytes dynamic array
+]`;
 
-    const cStruct = new CStructBE(model);
+const cStruct = new CStructBE(model);
 
-    console.log(cStruct.jsonModel);
-    // ["i8","i8.2","i8.i16"]
-    console.log(cStruct.modelClone);
-    // [ 'i8', 'i8.2', 'i8.i16' ]
+console.log(cStruct.jsonModel);
+// ["i8","i8.2","i8.i16"]
+console.log(cStruct.modelClone);
+// [ 'i8', 'i8.2', 'i8.i16' ]
 
-    const data = [
-        0x01,
-        [0x02, 0x03],
-        [0x04, 0x05, 0x06, 0x07],
-    ];
-    const {buffer} = cStruct.make(data);
+const data = [
+    0x01,
+    [0x02, 0x03],
+    [0x04, 0x05, 0x06, 0x07],
+];
+const {buffer} = cStruct.make(data);
 
-    console.log(buffer.toString('hex'));
-    // 010203000404050607
-    // 01 02_03 0004_04_05_06_07
+console.log(buffer.toString('hex'));
+// 010203000404050607
+// 01 02_03 0004_04_05_06_07
 
-    const {struct: extractedData} = cStruct.read(buffer);
-    console.log(extractedData);
-    // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
+const {struct: extractedData} = cStruct.read(buffer);
+console.log(extractedData);
+// [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
 ```
 
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
