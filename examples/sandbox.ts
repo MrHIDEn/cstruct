@@ -1,6 +1,4 @@
 // import { CStructBE } from '@mrhiden/cstruct';
-
-
 import { CStructBE } from "../src";
 
 type Types = {} | string;
