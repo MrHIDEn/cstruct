@@ -40,7 +40,8 @@ export class ModelParser {
         json = json.replace(/\n/g, ``); // remove line breaks
         json = json.trim();
         json = json.replace(/['"]/g, ``); // remove all `'"`
-        json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
+        json = json.replace(/\s+([,:;{}[\]])/g, `$1`); // remove spaces before `,:;{}[]`
+        json = json.replace(/([,:;{}[\]])\s+/g, `$1`); // remove spaces after `,:;{}[]`
         json = json.replace(/\s{2,}/g, ` `); // reduce spaces '\s'x to one ' '
         json = json.replace(/string(\d+|\/|\[\w+])/g, `s$1`); // replace 'string' with 's'
         json = json.replace(/buffer(\d+|\/|\[\w+])/g, `buf$1`); // reduce 'buffer' with 'buf'
