@@ -31,7 +31,7 @@ import { CStructBE, CStructLE, CStructReadResult, CStructWriteResult, Model } fr
         types?: Types;
     }
 
-    class CStructClassAbstract {
+    class CStructMethodsAbstract {
         read(buffer: Buffer, offset?: number): CStructReadResult<{} | []> {
             throw new Error('Not implemented');
         }
@@ -53,46 +53,117 @@ import { CStructBE, CStructLE, CStructReadResult, CStructWriteResult, Model } fr
         make(): CStructWriteResult;
     }
 
-// can be some class be decorator for other class?
-// can static class methods be used as decorators?
-// can dynamic class methods be used as decorators?
-    function CStructBEClass(options: CStructClassOptions = {}) {
-        const symbol = Symbol('cStruct');
+    // can be some class be decorator for other class?
+    // can static class methods be used as decorators?
+    // can dynamic class methods be used as decorators?
+
+    // function CStructBEClass(options: CStructClassOptions = {}) {
+    //     const symbol = Symbol('cStruct');
+    //     let cStruct = null;
+    //
+    //     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
+    //         function compile(target: any) {
+    //             cStruct = new CStructBE(target.model, options?.types);
+    //         }
+    //
+    //         function make(): CStructWriteResult {
+    //             return cStruct.make(this);
+    //         }
+    //
+    //         function read(buffer: Buffer, offset?: number): CStructReadResult<T> {
+    //             return cStruct.read(buffer, offset);
+    //         }
+    //
+    //         function write(buffer: Buffer, offset?: number): CStructWriteResult {
+    //             return cStruct.write(buffer, this, offset);
+    //         }
+    //
+    //         return class extends constructor {
+    //             [symbol] = compile(this);
+    //
+    //             make = make;
+    //             read = read;
+    //             write = write;
+    //         };
+    //     }
+    // }
+    //
+    // function CStructModelProperty({type}: { type: string }) {
+    //     return function (target: any, propertyKey: string) {
+    //         // target;//?
+    //         // propertyKey;//?
+    //         // type;//?
+    //
+    //         if (!type) {
+    //             throw Error(`Provide type.`);
+    //         }
+    //         if (!target.model) {
+    //             target.model = {};
+    //         }
+    //         target.model[propertyKey] = type;
+    //     };
+    // }
+
+    function CStructTypesBE(types?: Types) {
+        types;//?
+        const symbol = Symbol();
         let cStruct = null;
 
+        function compile(target: any) {
+            cStruct = new CStructBE(target.model, types);
+            cStruct;//?
+            cStruct._jsonModel;//?
+            cStruct._jsonTypes;//?
+        }
+
         return function <T extends { new(...args: any[]): {} }>(constructor: T) {
-            function compile(target: any) {
-                cStruct = new CStructBE(target.model, options?.types);
-            }
-
-            function make(): CStructWriteResult {
-                return cStruct.make(this);
-            }
-
-            function read(buffer: Buffer, offset?: number): CStructReadResult<T> {
-                return cStruct.read(buffer, offset);
-            }
-
-            function write(buffer: Buffer, offset?: number): CStructWriteResult {
-                return cStruct.write(buffer, this, offset);
-            }
-
             return class extends constructor {
                 [symbol] = compile(this);
 
-                make = make;
-                read = read;
-                write = write;
+                read(buffer: Buffer, offset?: number): CStructReadResult<T> {
+                    return cStruct.read(buffer, offset);
+                }
+
+                write(buffer: Buffer, offset?: number): CStructWriteResult {
+                    return cStruct.write(buffer, this, offset);
+                }
+
+                make(): CStructWriteResult {
+                    return cStruct.make(this);
+                }
             };
         }
     }
 
-    function CStructModelProperty({type}: { type: string }) {
-        return function (target: any, propertyKey: string) {
-            // target;//?
-            // propertyKey;//?
-            // type;//?
+    function CStructTypesLE(types?: Types) {
+        const symbol = Symbol();
+        let cStruct = null;
 
+        function compile(target: any) {
+            cStruct = new CStructLE(target.model, types);
+        }
+
+        return function <T extends { new(...args: any[]): {} }>(constructor: T) {
+            return class extends constructor {
+                [symbol] = compile(this);
+
+                read(buffer: Buffer, offset?: number): CStructReadResult<T> {
+                    return cStruct.read(buffer, offset);
+                }
+
+                write(buffer: Buffer, offset?: number): CStructWriteResult {
+                    return cStruct.write(buffer, this, offset);
+                }
+
+                make(): CStructWriteResult {
+                    return cStruct.make(this);
+                }
+            };
+        }
+    }
+
+    function CStructModelProperty(type: string) {
+        return function (target: any, propertyKey: string) {
             if (!type) {
                 throw Error(`Provide type.`);
             }
@@ -101,78 +172,6 @@ import { CStructBE, CStructLE, CStructReadResult, CStructWriteResult, Model } fr
             }
             target.model[propertyKey] = type;
         };
-    }
-
-    class CStructDecorators {
-        static BEClass(types?: Types) {
-            types;//?
-            const symbol = Symbol();
-            let cStruct = null;
-
-            function compile(target: any) {
-                cStruct = new CStructBE(target.model, types);
-                cStruct;//?
-                cStruct._jsonModel;//?
-                cStruct._jsonTypes;//?
-            }
-
-            return function <T extends { new(...args: any[]): {} }>(constructor: T) {
-                return class extends constructor {
-                    [symbol] = compile(this);
-
-                    read(buffer: Buffer, offset?: number): CStructReadResult<T> {
-                        return cStruct.read(buffer, offset);
-                    }
-
-                    write(buffer: Buffer, offset?: number): CStructWriteResult {
-                        return cStruct.write(buffer, this, offset);
-                    }
-
-                    make(): CStructWriteResult {
-                        return cStruct.make(this);
-                    }
-                };
-            }
-        }
-
-        static LEClass(types?: Types) {
-            const symbol = Symbol();
-            let cStruct = null;
-
-            function compile(target: any) {
-                cStruct = new CStructLE(target.model, types);
-            }
-
-            return function <T extends { new(...args: any[]): {} }>(constructor: T) {
-                return class extends constructor {
-                    [symbol] = compile(this);
-
-                    read(buffer: Buffer, offset?: number): CStructReadResult<T> {
-                        return cStruct.read(buffer, offset);
-                    }
-
-                    write(buffer: Buffer, offset?: number): CStructWriteResult {
-                        return cStruct.write(buffer, this, offset);
-                    }
-
-                    make(): CStructWriteResult {
-                        return cStruct.make(this);
-                    }
-                };
-            }
-        }
-
-        static ModelProperty(type: string) {
-            return function (target: any, propertyKey: string) {
-                if (!type) {
-                    throw Error(`Provide type.`);
-                }
-                if (!target.model) {
-                    target.model = {};
-                }
-                target.model[propertyKey] = type;
-            };
-        }
     }
 
 // @CStructBEClass({types: {Abc: '{a: i8, b: i8, c: i8}'}})
@@ -192,8 +191,8 @@ import { CStructBE, CStructLE, CStructReadResult, CStructWriteResult, Model } fr
         b: number;
     }
 
-    @CStructDecorators.BEClass('{Ab: {a: i8, b: i8}}')
-    class SomeExchangeBinary extends CStructClassAbstract {
+    @CStructTypesBE('{Ab: {a: i8, b: i8}}')
+    class SomeExchangeBinary extends CStructMethodsAbstract {
         // @CStructDecorators.ModelProperty('u8')
         // public protocol: number = 0x11;
         //
@@ -203,7 +202,7 @@ import { CStructBE, CStructLE, CStructReadResult, CStructWriteResult, Model } fr
         // @CStructDecorators.ModelProperty('s[i8]')
         // public name: string = 'abc';
 
-        @CStructDecorators.ModelProperty('Ab[i8]')
+        @CStructModelProperty('Ab[i8]')
         public data: Ab[] = [{a: -1, b: -2}, {a: -3, b: -4}];
     }
 
