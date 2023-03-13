@@ -53,7 +53,7 @@ export class CStructBE<T> extends CStruct<T> {
         }
     }
 
-    static make<T>(struct: T): CStructWriteResult {
+    private static getCStruct<T>(struct: T): CStructBE<T> {
         const decoratedStruct = struct as CStructDecoratorProperties<T>;
         if (!decoratedStruct.__cStruct) {
             if (!decoratedStruct.__cStructModel) {
@@ -61,29 +61,19 @@ export class CStructBE<T> extends CStruct<T> {
             }
             decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
         }
-        return decoratedStruct.__cStruct.make(struct);
+        return decoratedStruct.__cStruct;
+    }
+
+    static make<T>(struct: T): CStructWriteResult {
+        return this.getCStruct(struct).make(struct);
     }
 
     static write<T>(struct: T, buffer: Buffer, offset?: number) {
-        const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct.__cStruct) {
-            if (!decoratedStruct.__cStructModel) {
-                throw Error(`Provided struct is not decorated.`);
-            }
-            decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
-        }
-        return decoratedStruct.__cStruct.write(buffer, struct, offset);
+        return this.getCStruct(struct).write(buffer, struct, offset);
     }
 
     static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
-        const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct.__cStruct) {
-            if (!decoratedStruct.__cStructModel) {
-                throw Error(`Provided struct is not decorated.`);
-            }
-            decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
-        }
-        const result = decoratedStruct.__cStruct.read(buffer, offset);
+        const result = this.getCStruct(struct).read(buffer, offset);
         Object.assign(struct, result.struct);
         return result;
     }

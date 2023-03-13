@@ -70,11 +70,14 @@ import {
 
     const make = CStructBE.make(someExchangeBinary);
     make;//?
-    someExchangeBinary.__cStruct;//?
+    make.buffer;//?
+    make.size;//?
+    make.offset;//?
+    Object.keys(someExchangeBinary);//?
+    someExchangeBinary;//?
     someExchangeBinary.__cStructModel;//?
     someExchangeBinary.__cStructTypes;//?
-    Object.keys(someExchangeBinary);//?
-    make.__cStruct;//?
+    someExchangeBinary.__cStruct;//?
     Object.keys(make);//?
 
     const read = CStructBE.read(someExchangeBinary, make.buffer);
@@ -82,13 +85,13 @@ import {
     read.struct;//?
     read.size;//?
     read.offset;//?
-    read.struct.__cStruct;//?
-    read.struct.__cStructModel;//?
-    read.struct.__cStructTypes;//?
-    someExchangeBinary;//?
     read.struct.protocol;//?
     read.struct.data;//?
     read.struct.name;//?
+    someExchangeBinary;//?
+    someExchangeBinary.__cStructModel;//?
+    someExchangeBinary.__cStructTypes;//?
+    someExchangeBinary.__cStruct;//?
 
 }
 
