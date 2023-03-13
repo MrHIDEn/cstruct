@@ -1,6 +1,6 @@
 import { CStruct } from "./cstruct";
 import { ReadLE } from "./read-le";
-import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructClass, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { WriteLE } from "./write-le";
 import { MakeLE } from "./make-le";
 
@@ -51,5 +51,17 @@ export class CStructLE<T> extends CStruct<T> {
                 return writer.toAtoms();
             },
         }
+    }
+
+    static make<CStructLEClass>(struct: CStructLEClass): CStructWriteResult {
+        return (struct as CStructClass<CStructLEClass>).make();
+    }
+
+    static write<CStructLEClass>(struct: CStructLEClass, buffer: Buffer, offset?: number) {
+        return (struct as CStructClass<CStructLEClass>).write(buffer, offset);
+    }
+
+    static read<CStructLEClass>(struct: CStructLEClass, buffer: Buffer, offset?: number): CStructReadResult<CStructLEClass> {
+        return (struct as CStructClass<CStructLEClass>).read(buffer, offset);
     }
 }

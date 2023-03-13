@@ -1,5 +1,5 @@
 import { CStruct } from "./cstruct";
-import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructClass, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { ReadBE } from "./read-be";
 import { WriteBE } from "./write-be";
 import { MakeBE } from "./make-be";
@@ -51,5 +51,17 @@ export class CStructBE<T> extends CStruct<T> {
                 return writer.toAtoms();
             },
         }
+    }
+
+    static make<CStructBEClass>(struct: CStructBEClass): CStructWriteResult {
+        return (struct as CStructClass<CStructBEClass>).make();
+    }
+
+    static write<CStructBEClass>(struct: CStructBEClass, buffer: Buffer, offset?: number) {
+        return (struct as CStructClass<CStructBEClass>).write(buffer, offset);
+    }
+
+    static read<CStructBEClass>(struct: CStructBEClass, buffer: Buffer, offset?: number): CStructReadResult<CStructBEClass> {
+        return (struct as CStructClass<CStructBEClass>).read(buffer, offset);
     }
 }

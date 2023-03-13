@@ -23,3 +23,19 @@ export interface CStructWriteResult {
     size: number;
     toAtoms: () => string[];
 }
+
+export interface CStructClassOptions {
+    types?: Types;
+}
+
+export class CStructClass<T> {
+    make(): CStructWriteResult {
+        throw Error(`Not implemented.`);
+    }
+    write(buffer: Buffer, offset?: number): CStructWriteResult {
+        throw Error(`Not implemented.`);
+    }
+    read(buffer: Buffer, offset?: number): CStructReadResult<T> {
+        throw Error(`Not implemented.`);
+    }
+}
