@@ -6,23 +6,37 @@ export function CStructModelProperty({type}: { type: string }) {
         if (!type) {
             throw Error(`Provide type.`);
         }
-        if (!target._cStructModel) {
-            target._cStructModel = {};
+        if (!target.__cStructModel) {
+            Object.defineProperty(target, '__cStructModel', {
+                writable: true,
+                value: {},
+                // enumerable: false,
+                // configurable: true
+            });
+            // target.__cStructModel = {};
         }
-        target._cStructModel[propertyKey] = type;
+        target.__cStructModel[propertyKey] = type;
     };
 }
 
 export function CStructClass(options: { types?: Types, model?: Model }): <T extends { new(...args: any[]): {} }>(constructor: T) => any {
     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
         function prepareModel(target: any) {
-            target._cStructModel = options.model ?? target._cStructModel;
-            target._cStructTypes = options.types ?? target._cStructTypes;
-            return null; // NOTE null because we don't know yet endianness
+            const model = options.model ?? target.__cStructModel;
+            const types = options.types ?? target.__cStructTypes;
+            if (model && !target.__cStructModel) {
+                Object.defineProperty(target, '__cStructModel', {writable: true, value: model,});
+            }
+            if (types && !target.__cStructTypes) {
+                Object.defineProperty(target, '__cStructTypes', {writable: true, value: types,});
+            }
+            // NOTE null because we don't know yet endianness
+            Object.defineProperty(target, '__cStruct', {writable: true, value: null,});
+            return null;
         }
 
         return class extends constructor {
-            _cStruct = prepareModel(this);
+            __cStruct = prepareModel(this);
         }
     }
 }

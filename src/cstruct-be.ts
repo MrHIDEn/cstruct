@@ -1,5 +1,5 @@
 import { CStruct } from "./cstruct";
-import { CStructReadResult, CStructWriteResult, Model, Types, CStructDecoratorProperties } from "./types";
+import { CStructDecoratorProperties, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { ReadBE } from "./read-be";
 import { WriteBE } from "./write-be";
 import { MakeBE } from "./make-be";
@@ -55,37 +55,35 @@ export class CStructBE<T> extends CStruct<T> {
 
     static make<T>(struct: T): CStructWriteResult {
         const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct._cStruct) {
-            if (!decoratedStruct._cStructModel) {
+        if (!decoratedStruct.__cStruct) {
+            if (!decoratedStruct.__cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            decoratedStruct._cStruct = new CStructBE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+            decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
         }
-        // return decoratedStruct._cStruct.make(struct);
-        const result = decoratedStruct._cStruct.make(struct);
-        return result;
+        return decoratedStruct.__cStruct.make(struct);
     }
 
     static write<T>(struct: T, buffer: Buffer, offset?: number) {
         const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct._cStruct) {
-            if (!decoratedStruct._cStructModel) {
+        if (!decoratedStruct.__cStruct) {
+            if (!decoratedStruct.__cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            decoratedStruct._cStruct = new CStructBE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+            decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
         }
-        return decoratedStruct._cStruct.write(buffer, struct, offset);
+        return decoratedStruct.__cStruct.write(buffer, struct, offset);
     }
 
     static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct._cStruct) {
-            if (!decoratedStruct._cStructModel) {
+        if (!decoratedStruct.__cStruct) {
+            if (!decoratedStruct.__cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            decoratedStruct._cStruct = new CStructBE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+            decoratedStruct.__cStruct = new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
         }
-        const result = decoratedStruct._cStruct.read(buffer, offset);
+        const result = decoratedStruct.__cStruct.read(buffer, offset);
         Object.assign(struct, result.struct);
         return result;
     }
