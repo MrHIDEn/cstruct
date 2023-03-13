@@ -1,5 +1,5 @@
 import { CStruct } from "./cstruct";
-import { CStructClass, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructReadResult, CStructWriteResult, Model, Types, CStructDecoratorProperties } from "./types";
 import { ReadBE } from "./read-be";
 import { WriteBE } from "./write-be";
 import { MakeBE } from "./make-be";
@@ -54,7 +54,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     static make<T>(struct: T): CStructWriteResult {
-        const decoratedStruct = struct as CStructClass<T>;
+        const decoratedStruct = struct as CStructDecoratorProperties<T>;
         if (!decoratedStruct._cStruct) {
             if (!decoratedStruct._cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
@@ -67,7 +67,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     static write<T>(struct: T, buffer: Buffer, offset?: number) {
-        const decoratedStruct = struct as CStructClass<T>;
+        const decoratedStruct = struct as CStructDecoratorProperties<T>;
         if (!decoratedStruct._cStruct) {
             if (!decoratedStruct._cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
@@ -78,7 +78,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
-        const decoratedStruct = struct as CStructClass<T>;
+        const decoratedStruct = struct as CStructDecoratorProperties<T>;
         if (!decoratedStruct._cStruct) {
             if (!decoratedStruct._cStructModel) {
                 throw Error(`Provided struct is not decorated.`);

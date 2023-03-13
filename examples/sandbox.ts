@@ -3,24 +3,24 @@ import {
     CStructBE,
     CStructModelProperty,
     CStructWriteResult,
-    // CStructClass,
+    CStructClass,
     Model, Types,
     // CStructReadResult,
 } from "../src";
 
-function CStructClass(options: { types?: Types, model?: Model }): <T extends { new(...args: any[]): {} }>(constructor: T) => any {
-    return function <T extends { new(...args: any[]): {} }>(constructor: T) {
-        function prepareModel(target: any) {
-            target._cStructModel = options.model ?? target._cStructModel;
-            target._cStructTypes = options.types ?? target._cStructTypes;
-            return null; // NOTE null because we don't know yet endianness
-        }
-
-        return class extends constructor {
-            _cStruct = prepareModel(this);
-        }
-    }
-}
+// function CStructClass(options: { types?: Types, model?: Model }): <T extends { new(...args: any[]): {} }>(constructor: T) => any {
+//     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
+//         function prepareModel(target: any) {
+//             target._cStructModel = options.model ?? target._cStructModel;
+//             target._cStructTypes = options.types ?? target._cStructTypes;
+//             return null; // NOTE null because we don't know yet endianness
+//         }
+//
+//         return class extends constructor {
+//             _cStruct = prepareModel(this);
+//         }
+//     }
+// }
 
 {
 

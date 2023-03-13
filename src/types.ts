@@ -31,7 +31,7 @@ export interface CStructClassOptions {
     types?: Types;
 }
 
-export class CStructClass<T> {
+export class CStructDecoratorProperties<T> {
     _cStructModel?: Model;
     _cStructTypes?: Types;
     _cStruct?: CStructBE<T> | CStructLE<T>;
