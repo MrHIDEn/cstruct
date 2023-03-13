@@ -53,15 +53,38 @@ export class CStructLE<T> extends CStruct<T> {
         }
     }
 
-    static make<CStructLEClass>(struct: CStructLEClass): CStructWriteResult {
-        return (struct as CStructClass<CStructLEClass>).make();
+    static make<T>(struct: T): CStructWriteResult {
+        const decoratedStruct = struct as CStructClass<T>;
+        if (!decoratedStruct._cStruct) {
+            if (!decoratedStruct._cStructModel) {
+                throw Error(`Provided struct is not decorated.`);
+            }
+            decoratedStruct._cStruct = new CStructLE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+        }
+        return decoratedStruct._cStruct.make(struct);
     }
 
-    static write<CStructLEClass>(struct: CStructLEClass, buffer: Buffer, offset?: number) {
-        return (struct as CStructClass<CStructLEClass>).write(buffer, offset);
+    static write<T>(struct: T, buffer: Buffer, offset?: number) {
+        const decoratedStruct = struct as CStructClass<T>;
+        if (!decoratedStruct._cStruct) {
+            if (!decoratedStruct._cStructModel) {
+                throw Error(`Provided struct is not decorated.`);
+            }
+            decoratedStruct._cStruct = new CStructLE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+        }
+        return decoratedStruct._cStruct.write(buffer, struct, offset);
     }
 
-    static read<CStructLEClass>(struct: CStructLEClass, buffer: Buffer, offset?: number): CStructReadResult<CStructLEClass> {
-        return (struct as CStructClass<CStructLEClass>).read(buffer, offset);
+    static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+        const decoratedStruct = struct as CStructClass<T>;
+        if (!decoratedStruct._cStruct) {
+            if (!decoratedStruct._cStructModel) {
+                throw Error(`Provided struct is not decorated.`);
+            }
+            decoratedStruct._cStruct = new CStructLE(decoratedStruct._cStructModel, decoratedStruct._cStructTypes);
+        }
+        const result = decoratedStruct._cStruct.read(buffer, offset);
+        Object.assign(struct, result.struct);
+        return result;
     }
 }

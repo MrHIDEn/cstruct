@@ -52,7 +52,7 @@ export class WriteBufferBE extends WriteBuffer {
     constructor() {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
-            ...this._atomFunctions,
+            ...[...this._atomFunctions],
             ['b16', (val: boolean) => this._i16(+Boolean(val))],
             ['b32', (val: boolean) => this._i32(+Boolean(val))],
             ['b64', (val: boolean) => this._i64(BigInt(val))],

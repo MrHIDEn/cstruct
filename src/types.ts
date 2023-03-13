@@ -1,3 +1,6 @@
+import { CStructBE } from "./cstruct-be";
+import { CStructLE } from "./cstruct-le";
+
 export type WriterValue = number | string | bigint | boolean | Buffer;
 export type ReaderValue = number | string | bigint | boolean | Buffer;
 export type ModelValue = number | string | bigint | boolean | Buffer;
@@ -29,13 +32,7 @@ export interface CStructClassOptions {
 }
 
 export class CStructClass<T> {
-    make(): CStructWriteResult {
-        throw Error(`Not implemented.`);
-    }
-    write(buffer: Buffer, offset?: number): CStructWriteResult {
-        throw Error(`Not implemented.`);
-    }
-    read(buffer: Buffer, offset?: number): CStructReadResult<T> {
-        throw Error(`Not implemented.`);
-    }
+    _cStructModel?: Model;
+    _cStructTypes?: Types;
+    _cStruct?: CStructBE<T> | CStructLE<T>;
 }
