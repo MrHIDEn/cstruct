@@ -44,6 +44,20 @@ The main concept is to first create a model of your data structure and then util
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 // Make BE buffer from struct based on model
+const model = { a: 'u16', b: 'i16' };
+const cStruct = new CStructBE(model);
+
+const data = { a: 10, b: -10 };
+const buffer = cStruct.make(data).buffer;
+
+console.log(buffer.toString('hex'));
+// 000afff6
+// 000a fff6
+````
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+// Make BE buffer from struct based on model
 const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
 const { buffer, offset, size } = cStruct.make({ error: { code: 10, message: 'xyz' } });
