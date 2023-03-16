@@ -17,10 +17,10 @@ export function CStructModelProperty(type: string) {
     };
 }
 
-/* eslint-disable */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
 export function CStructClass(options: { types?: Types, model?: Model }): <T extends { new(...args: any[]): {} }>(constructor: T) => any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
-/* eslint-enable */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function prepareModel(target: any) {
             const model = options.model ?? target.__cStructModel;
