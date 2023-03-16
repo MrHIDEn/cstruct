@@ -1,7 +1,7 @@
 import { Model, Types } from "./types";
 
 
-export function CStructModelProperty({type}: { type: string }) {
+export function CStructModelProperty(type: string) {
     return function (target: any, propertyKey: string) {
         if (!type) {
             throw Error(`Provide type.`);
@@ -10,10 +10,7 @@ export function CStructModelProperty({type}: { type: string }) {
             Object.defineProperty(target, '__cStructModel', {
                 writable: true,
                 value: {},
-                // enumerable: false,
-                // configurable: true
             });
-            // target.__cStructModel = {};
         }
         target.__cStructModel[propertyKey] = type;
     };
