@@ -5,11 +5,12 @@ import {
 } from "../src";
 
 /**
- * MUST: enable
+ * MUST enable in `tsconfig.json` or `jsconfig.json`
+ * {
  *      "compilerOptions": {
  *          "experimentalDecorators": true
  *      }
- * in tsconfig.json or jsconfig.json
+ * }
  */
 
 {
@@ -51,7 +52,6 @@ import {
     myData.myClass = new MyClass();
     myData.myClass.a = 10;
     myData.myClass.b = -10;
-    myData;//?
 
     const buffer = CStructBE.make(myData).buffer;
     console.log(buffer.toString('hex'));
@@ -104,7 +104,6 @@ import {
     console.log(bufferMake.toString('hex'));
     // 000afff6
     // 000a fff6
-    bufferMake.length;//?
 
     // READ
     const myDataRead = new MyData();

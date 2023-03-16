@@ -59,7 +59,10 @@ export class CStructLE<T> extends CStruct<T> {
             if (!decoratedStruct.__cStructModel) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            decoratedStruct.__cStruct = new CStructLE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes);
+            Object.defineProperty(decoratedStruct, '__cStruct', {
+                writable: true,
+                value: new CStructLE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes),
+            });
         }
         return decoratedStruct.__cStruct;
     }
