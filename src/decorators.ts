@@ -2,6 +2,7 @@ import { Model, Types } from "./types";
 
 
 export function CStructModelProperty(type: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function (target: any, propertyKey: string) {
         if (!type) {
             throw Error(`Provide type.`);
@@ -16,8 +17,11 @@ export function CStructModelProperty(type: string) {
     };
 }
 
+/* eslint-disable */
 export function CStructClass(options: { types?: Types, model?: Model }): <T extends { new(...args: any[]): {} }>(constructor: T) => any {
     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
+/* eslint-enable */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function prepareModel(target: any) {
             const model = options.model ?? target.__cStructModel;
             const types = options.types ?? target.__cStructTypes;
