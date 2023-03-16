@@ -11,54 +11,54 @@ export class Read<T> extends ReadWriteBase {
     _recursion(struct: T) {
         const entries: StructEntry[] = Object.entries(struct);
 
-        for (const [key, type] of entries) {
+        for (const [modelKey, modelType] of entries) {
             // Catch dynamic key
-            const keyDynamicGroups = this._dynamicGroupsMatch(key);
+            const keyDynamicGroups = this._dynamicGroupsMatch(modelKey);
 
             // Dynamic key
             if (keyDynamicGroups) {
                 const {dynamicKey, dynamicLength} = keyDynamicGroups;
-                this._readDynamicKey(key, type, struct, dynamicKey, dynamicLength);
+                this._readDynamicKey(struct, modelKey, modelType, dynamicKey, dynamicLength);
                 continue;
             }
 
             // Dynamic type
-            if (typeof type === 'string') {
+            if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this._dynamicGroupsMatch(type);
+                const typeDynamicGroups = this._dynamicGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
                     const {dynamicKey: dynamicType, dynamicLength} = typeDynamicGroups;
-                    this._readDynamicType(key, type, struct, dynamicType, dynamicLength);
+                    this._readDynamicType(struct, modelKey, modelType, dynamicType, dynamicLength);
                     continue;
                 }
             }
 
             // Static item
-            this._read(struct, key, type);
+            this._read(struct, modelKey, modelType);
         }
     }
 
-    private _readDynamicKey(key: string, itemsType: Type, struct: T, dynamicKey: string, dynamicLength: string) {
+    private _readDynamicKey(struct: T, modelKey: string, modelType: Type, dynamicKey: string, dynamicLength: string) {
         // (some.i32: u8)
-        // key: some.i32, itemsType: u8, dynamicKey: some, dynamicLength: i32
+        // modelKey: some.i32, modelType: u8, dynamicKey: some, dynamicLength: i32
         // => delete some.i32, use (some: [u8, ...*i32] or some: s<*i32>)
-        delete struct[key];
-        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
+        delete struct[modelKey];
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(modelType);
         const {isNumber, staticSize} = this._getSize(dynamicLength);
 
         // Static size
         if (isNumber) {
             // (some.2: u8)
-            // key: some.2, itemsType: u8, dynamicKey: some, dynamicLength: 2
+            // modelKey: some.2, modelType: u8, dynamicKey: some, dynamicLength: 2
 
             // Read string or buffer
             if (itemTypeIsStringOrBuffer) {
-                struct[dynamicKey] = this._reader.read(`${itemsType}${staticSize}`);
+                struct[dynamicKey] = this._reader.read(`${modelType}${staticSize}`);
             }
-            // Read array of itemsType
+            // Read array of modelType
             else {
-                this._readArray(itemsType, struct, dynamicKey, staticSize);
+                this._readArray(modelType, struct, dynamicKey, staticSize);
             }
         }
         // Dynamic size
@@ -68,31 +68,31 @@ export class Read<T> extends ReadWriteBase {
 
             // Read string or buffer
             if (itemTypeIsStringOrBuffer) {
-                struct[dynamicKey] = this._reader.read(`${itemsType}${size}`);
+                struct[dynamicKey] = this._reader.read(`${modelType}${size}`);
             }
-            // Read array of itemsType
+            // Read array of modelType
             else {
-                this._readArray(itemsType, struct, dynamicKey, size);
+                this._readArray(modelType, struct, dynamicKey, size);
             }
         }
     }
 
-    private _readDynamicType(key: string, itemsType: Type, struct: T, dynamicType: string, dynamicLength: string) {
-        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(itemsType);
+    private _readDynamicType(struct: T, modelKey: string, modelType: Type, dynamicType: string, dynamicLength: string) {
+        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(modelType);
         const {isNumber, staticSize} = this._getSize(dynamicLength);
 
         // Static size
         if (isNumber) {
             // (u8.3)
-            // key: "0", itemsType: i8.3, dynamicKey: i8, dynamicLength: 3
+            // modelKey: "0", modelType: i8.3, dynamicKey: i8, dynamicLength: 3
 
             // Read string or buffer
             if (itemTypeIsStringOrBuffer) {
-                struct[key] = this._reader.read(`${dynamicType}${staticSize}`);
+                struct[modelKey] = this._reader.read(`${dynamicType}${staticSize}`);
             }
-            // Read array of itemsType
+            // Read array of dynamicType
             else {
-                this._readArray(dynamicType, struct, key, staticSize);
+                this._readArray(dynamicType, struct, modelKey, staticSize);
             }
         }
         // Dynamic size
@@ -106,11 +106,11 @@ export class Read<T> extends ReadWriteBase {
 
             // Read string or buffer
             if (itemTypeIsStringOrBuffer) {
-                struct[key] = this._reader.read(`${dynamicType}${size}`);
+                struct[modelKey] = this._reader.read(`${dynamicType}${size}`);
             }
             // Read array of itemsType
             else {
-                this._readArray(dynamicType, struct, key, size);
+                this._readArray(dynamicType, struct, modelKey, size);
             }
         }
     }

@@ -1,5 +1,5 @@
 import { CStruct } from "./cstruct";
-import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructDecoratorProperties, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { ReadBE } from "./read-be";
 import { WriteBE } from "./write-be";
 import { MakeBE } from "./make-be";
@@ -51,5 +51,33 @@ export class CStructBE<T> extends CStruct<T> {
                 return writer.toAtoms();
             },
         }
+    }
+
+    private static getCStruct<T>(struct: T): CStructBE<T> {
+        const decoratedStruct = struct as CStructDecoratorProperties<T>;
+        if (!decoratedStruct.__cStruct) {
+            if (!decoratedStruct.__cStructModel) {
+                throw Error(`Provided struct is not decorated.`);
+            }
+            Object.defineProperty(decoratedStruct, '__cStruct', {
+                writable: true,
+                value: new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes),
+            });
+        }
+        return decoratedStruct.__cStruct;
+    }
+
+    static make<T>(struct: T): CStructWriteResult {
+        return this.getCStruct(struct).make(struct);
+    }
+
+    static write<T>(struct: T, buffer: Buffer, offset?: number) {
+        return this.getCStruct(struct).write(buffer, struct, offset);
+    }
+
+    static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+        const result = this.getCStruct(struct).read(buffer, offset);
+        Object.assign(struct, result.struct);
+        return result;
     }
 }

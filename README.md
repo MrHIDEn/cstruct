@@ -9,6 +9,7 @@
 * Can return whole buffer from your data Object/Array (make)
 * Little endian - LE
 * Big endian - BE
+* **NEW** - TypeScript decorators for classes and properties
 
 ### Install
 `npm i @mrhiden/cstruct`
@@ -41,6 +42,20 @@ The main concept is to first create a model of your data structure and then util
 ### [Many examples are in this folder '/examples'](https://github.com/MrHIDEn/cstruct/tree/main/examples)
 
 ### Basic examples
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+// Make BE buffer from struct based on model
+const model = { a: 'u16', b: 'i16' };
+const cStruct = new CStructBE(model);
+
+const data = { a: 10, b: -10 };
+const buffer = cStruct.make(data).buffer;
+
+console.log(buffer.toString('hex'));
+// 000afff6
+// 000a fff6
+````
+
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 // Make BE buffer from struct based on model
@@ -365,6 +380,64 @@ console.log(buffer.toString('hex'));
 const {struct: extractedData} = cStruct.read(buffer);
 console.log(extractedData);
 // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
+```
+
+### Decorators
+TypeScript's decorators to serialize/deserialize class object to/from binary
+
+**NOTE** Take a look on ['/examples/decorators.ts'](https://github.com/MrHIDEn/cstruct/tree/main/examples/decorators.ts)
+
+**MUST enable**
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
+}
+```
+in `tsconfig.json` or `jsconfig.json`
+
+```typescript
+import { CStructBE, CStructClass, CStructModelProperty } from '@mrhiden/cstruct';
+
+// Decorators - Serialize any class with CStructClass and CStructModelProperty decorator, model and type
+class MyClass {
+    public a: number;
+    public b: number;
+}
+
+@CStructClass({
+    types: {MyClass: {a: 'u16', b: 'i16'}}
+})
+class MyData {
+    @CStructModelProperty('MyClass')
+    public myClass: MyClass;
+}
+
+const myData = new MyData();
+myData.myClass = new MyClass();
+myData.myClass.a = 10;
+myData.myClass.b = -10;
+
+// MAKE
+const bufferMake = CStructBE.make(myData).buffer;
+console.log(bufferMake.toString('hex'));
+// 000afff6
+// 000a fff6
+
+// READ
+const myDataRead = new MyData();
+myDataRead.myClass = new MyClass();
+CStructBE.read(myDataRead, bufferMake);
+console.log(myDataRead);
+// MyData { myClass: MyClass { a: 10, b: -10 } }
+
+// WRITE
+const bufferWrite = Buffer.alloc(4);
+CStructBE.write(myData, bufferWrite);
+console.log(bufferWrite.toString('hex'));
+// 000afff6
+// 000a fff6
 ```
 
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)

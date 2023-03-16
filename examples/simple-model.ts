@@ -1,6 +1,19 @@
 import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
 {
+    // Make BE buffer from struct based on model
+    const model = {a: 'u16', b: 'i16'};
+    const cStruct = new CStructBE(model);
+
+    const data = {a: 10, b: -10};
+    const buffer = cStruct.make(data).buffer;
+
+    console.log(buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+
+{
     // Buffer to read from
     const buffer = hexToBuffer('01 0002 00000003');
     console.log(buffer.toString('hex'));

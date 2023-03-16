@@ -2,13 +2,14 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "outDir": "lib",
+    "outDir": "./lib",
     "lib": [
       "ES5",
       "ES2020",
     ],
     "declaration": true,
     "strict": false,
+    "experimentalDecorators": true,
   },
   "include": [
     "src/**/*.ts"
@@ -21,7 +22,7 @@
     "compilerOptions": {
       "target": "ES2020",
       "module": "commonjs",
-      "outDir": "out",
+      "outDir": "./out",
       "sourceMap": true
     }
   }

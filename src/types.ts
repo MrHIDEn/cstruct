@@ -1,3 +1,6 @@
+import { CStructBE } from "./cstruct-be";
+import { CStructLE } from "./cstruct-le";
+
 export type WriterValue = number | string | bigint | boolean | Buffer;
 export type ReaderValue = number | string | bigint | boolean | Buffer;
 export type ModelValue = number | string | bigint | boolean | Buffer;
@@ -22,4 +25,14 @@ export interface CStructWriteResult {
     offset: number;
     size: number;
     toAtoms: () => string[];
+}
+
+export interface CStructClassOptions {
+    types?: Types;
+}
+
+export class CStructDecoratorProperties<T> {
+    __cStructModel?: Model;
+    __cStructTypes?: Types;
+    __cStruct?: CStructBE<T> | CStructLE<T>;
 }

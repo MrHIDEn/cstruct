@@ -53,7 +53,7 @@ export class ReadBufferLE extends ReadBuffer {
     constructor(buffer: Buffer, offset = 0) {
         super(buffer, offset);
         this._atomFunctions = new Map<string, ReaderFunctions>([
-            ...this._atomFunctions,
+            ...[...this._atomFunctions],
             ['b16', () => Boolean(this._i16())],
             ['b32', () => Boolean(this._i32())],
             ['b64', () => Boolean(this._i64())],
