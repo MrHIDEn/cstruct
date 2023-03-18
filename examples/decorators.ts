@@ -226,7 +226,7 @@ import {
     })
     class GeoAltitudesFile {
         @CStructProperty({type: 'string30'})
-        public fileName: string = 'GeoAltitudesFile v1.0';
+        public fileName = 'GeoAltitudesFile v1.0';
 
         @CStructProperty({type: 'GeoAltitude[i32]'})
         public geoAltitudes: GeoAltitude[] = [];
@@ -236,9 +236,9 @@ import {
         // Make random data
         const geoAltitudesFile = new GeoAltitudesFile();
         for (let i = 0; i < 1e6; i++) {
-            let randomLat = Math.random() * (90 - -90) + -90;
-            let randomLong = Math.random() * (180 - -180) + -180;
-            let randomAlt = 6.4e6 * Math.random() * (8e3 - -4e3) + -4e3;
+            const randomLat = Math.random() * (90 - -90) + -90;
+            const randomLong = Math.random() * (180 - -180) + -180;
+            const randomAlt = 6.4e6 * Math.random() * (8e3 - -4e3) + -4e3;
             const geo = {lat: randomLat, long: randomLong, alt: randomAlt};
             geoAltitudesFile.geoAltitudes.push(geo);
         }

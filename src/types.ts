@@ -1,6 +1,3 @@
-import { CStructBE } from "./cstruct-be";
-import { CStructLE } from "./cstruct-le";
-
 export type WriterValue = number | string | bigint | boolean | Buffer;
 export type ReaderValue = number | string | bigint | boolean | Buffer;
 export type ModelValue = number | string | bigint | boolean | Buffer;
