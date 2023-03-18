@@ -214,6 +214,7 @@ import {
 
 {
     import * as fs from "fs";
+
     interface GeoAltitude {
         lat: number;
         long: number;
@@ -233,30 +234,32 @@ import {
 
     (async () => {
         // Make random data
-        console.time('make');
         const geoAltitudesFile = new GeoAltitudesFile();
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 1e6; i++) {
             let randomLat = Math.random() * (90 - -90) + -90;
             let randomLong = Math.random() * (180 - -180) + -180;
             let randomAlt = 6.4e6 * Math.random() * (8e3 - -4e3) + -4e3;
             const geo = {lat: randomLat, long: randomLong, alt: randomAlt};
             geoAltitudesFile.geoAltitudes.push(geo);
         }
-        console.timeEnd('make');
         console.log('Write data length,', geoAltitudesFile.geoAltitudes.length);
 
+        // Make buffer
+        console.time('make');
+        const writeFile = CStructBE.make(geoAltitudesFile).buffer;
+        console.timeEnd('make');
+        console.log('Write file length,', writeFile.length);
+
         // Write to file
-        const geoFileStruct = CStructBE.from(GeoAltitudesFile);
-        const writeFile = geoFileStruct.make(geoAltitudesFile).buffer;
-        fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
+        await fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
 
         // Read from file
         const readFile = await fs.promises.readFile('geoAltitudesFile.bin');
+        console.log('Read file length,', readFile.length);
 
         // Read data
         console.time('read');
-        const geoFileStruct2 = CStructBE.from<GeoAltitudesFile>(GeoAltitudesFile);
-        const readGeoAltitudesFile = geoFileStruct2.read(readFile).struct;
+        const readGeoAltitudesFile = CStructBE.read(GeoAltitudesFile, readFile).struct;
         console.timeEnd('read');
 
         console.log('Read fileName,', readGeoAltitudesFile.fileName);
