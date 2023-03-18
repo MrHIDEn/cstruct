@@ -230,14 +230,13 @@ describe('Decorators', () => {
                     public a: number;
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('000A FFF6');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructBE.read(myClass, buffer);
+                const result = CStructBE.read(MyClass, buffer);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -254,15 +253,13 @@ describe('Decorators', () => {
                 class MyData {
                     public myClass: MyClass;
                 }
-                const myData = new MyData();
-                myData.myClass = new MyClass();
                 const buffer = hexToBuffer('000A FFF6');
                 const expected = {myClass: {a: 10, b: -10}};
 
-                const result = CStructBE.read(myData, buffer);
+                const result = CStructBE.read(MyData, buffer);
 
-                expect(myData).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyData).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -275,14 +272,13 @@ describe('Decorators', () => {
                     @CStructProperty({type: 'i16'})
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('000A FFF6');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructBE.read(myClass, buffer);
+                const result = CStructBE.read(MyClass, buffer);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -297,14 +293,13 @@ describe('Decorators', () => {
                     public a: number;
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('7777 000A FFF6');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructBE.read(myClass, buffer, 2);
+                const result = CStructBE.read(MyClass, buffer, 2);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });
@@ -321,15 +316,13 @@ describe('Decorators', () => {
                 class MyData {
                     public myClass: MyClass;
                 }
-                const myData = new MyData();
-                myData.myClass = new MyClass();
                 const buffer = hexToBuffer('7777 000A FFF6');
                 const expected = {myClass: {a: 10, b: -10}};
 
-                const result = CStructBE.read(myData, buffer, 2);
+                const result = CStructBE.read(MyData, buffer, 2);
 
-                expect(myData).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyData).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });
@@ -342,14 +335,13 @@ describe('Decorators', () => {
                     @CStructProperty({type: 'i16'})
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('7777 000A FFF6');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructBE.read(myClass, buffer, 2);
+                const result = CStructBE.read(MyClass, buffer, 2);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });
@@ -585,14 +577,13 @@ describe('Decorators', () => {
                     public a: number;
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('0A00 F6FF');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructLE.read(myClass, buffer);
+                const result = CStructLE.read(MyClass, buffer);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -609,15 +600,13 @@ describe('Decorators', () => {
                 class MyData {
                     public myClass: MyClass;
                 }
-                const myData = new MyData();
-                myData.myClass = new MyClass();
                 const buffer = hexToBuffer('0A00 F6FF');
                 const expected = {myClass: {a: 10, b: -10}};
 
-                const result = CStructLE.read(myData, buffer);
+                const result = CStructLE.read(MyData, buffer);
 
-                expect(myData).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyData).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -630,14 +619,13 @@ describe('Decorators', () => {
                     @CStructProperty({type: 'i16'})
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('0A00 F6FF');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructLE.read(myClass, buffer);
+                const result = CStructLE.read(MyClass, buffer);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(4);
                 expect(result.size).toBe(4);
             });
@@ -652,14 +640,13 @@ describe('Decorators', () => {
                     public a: number;
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('7777 0A00 F6FF');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructLE.read(myClass, buffer, 2);
+                const result = CStructLE.read(MyClass, buffer, 2);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });
@@ -676,15 +663,13 @@ describe('Decorators', () => {
                 class MyData {
                     public myClass: MyClass;
                 }
-                const myData = new MyData();
-                myData.myClass = new MyClass();
                 const buffer = hexToBuffer('7777 0A00 F6FF');
                 const expected = {myClass: {a: 10, b: -10}};
 
-                const result = CStructLE.read(myData, buffer, 2);
+                const result = CStructLE.read(MyData, buffer, 2);
 
-                expect(myData).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyData).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });
@@ -697,14 +682,13 @@ describe('Decorators', () => {
                     @CStructProperty({type: 'i16'})
                     public b: number;
                 }
-                const myClass = new MyClass();
                 const buffer = hexToBuffer('7777 0A00 F6FF');
                 const expected = {a: 10, b: -10};
 
-                const result = CStructLE.read(myClass, buffer, 2);
+                const result = CStructLE.read(MyClass, buffer, 2);
 
-                expect(myClass).toEqual(expected);
                 expect(result.struct).toEqual(expected);
+                expect(result.struct instanceof MyClass).toBeTruthy();
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
             });

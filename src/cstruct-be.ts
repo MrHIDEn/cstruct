@@ -64,8 +64,8 @@ export class CStructBE<T> extends CStruct<T> {
         return cStruct.write(buffer, struct, offset);
     }
 
-    static read<T>(newableClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
-        const instance = new newableClass();
+    static read<T>(TClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+        const instance = new TClass();
         const cStruct = CStructMetadata.getCStructBE(instance);
         const result = cStruct.read<T>(buffer, offset);
         result.struct = Object.assign(instance, result.struct);
