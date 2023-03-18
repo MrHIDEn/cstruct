@@ -104,7 +104,7 @@ console.log(bufferMake.toString('hex'));
 ````
 **Read example**<br>
 ```typescript
-import { CStructBE, CStructProperty } from "../src";
+import { CStructBE, CStructProperty } from '@mrhiden/cstruct';
 
 class MyClass {
     @CStructProperty({type: 'u8'})
