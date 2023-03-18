@@ -1,7 +1,7 @@
 import {
     CStructBE,
     CStructClass,
-    CStructModelProperty
+    CStructProperty
 } from "../src";
 
 /**
@@ -62,10 +62,10 @@ import {
 {
     // Decorators - Serialize any class with CStructModelProperty decorator
     class MyClass {
-        @CStructModelProperty('u16')
+        @CStructProperty('u16')
         public a: number;
 
-        @CStructModelProperty( 'i16')
+        @CStructProperty( 'i16')
         public b: number;
     }
 
@@ -90,7 +90,7 @@ import {
         types: {MyClass: {a: 'u16', b: 'i16'}}
     })
     class MyData {
-        @CStructModelProperty('MyClass')
+        @CStructProperty('MyClass')
         public myClass: MyClass;
     }
 
