@@ -1,7 +1,7 @@
 import { Model, Types } from "./types";
 import { CStructBE } from "./cstruct-be";
 import { CStructLE } from "./cstruct-le";
-import { Constructor, CStructCOptions, CStructPOptions, Dictionary } from "./decorators-types";
+import { Constructor, CStructClassOptions, CStructPropertyOptions, Dictionary } from "./decorators-types";
 
 
 export class CStructMetadata {
@@ -25,16 +25,20 @@ export class CStructMetadata {
         let metadata = constructorMetadata ?? prototypeMetadata ?? targetMetadata;
         if (!metadata) {
             metadata = target[this.CStructSymbol] = new CStructMetadata();
+            if ('model' in target) {
+                metadata.model = target.model;
+                metadata.types = target.types;
+            }
         }
         return metadata;
     }
 
-    static addProperty<T>(target: T & Dictionary, propertyName: string, options: CStructPOptions) {
+    static addProperty<T>(target: T & Dictionary, propertyName: string, options: CStructPropertyOptions) {
         const metadata = CStructMetadata.getMetadata(target);
         metadata.model[propertyName] = options.type;
     }
 
-    static addClass<T>(target: T & Dictionary, options: CStructCOptions) {
+    static addClass<T>(target: T & Dictionary, options: CStructClassOptions) {
         const metadata = CStructMetadata.getMetadata(target);
         metadata.types = options.types;
         metadata.model = options.model ?? metadata.model;
@@ -48,7 +52,7 @@ export class CStructMetadata {
             if (!metadata.model) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            metadata.cStruct = new CStructBE(metadata.model, metadata.types);
+            metadata.cStruct = CStructBE.fromModelTypes(metadata.model, metadata.types);
         }
         return metadata.cStruct as CStructBE<T>;
     }
@@ -59,7 +63,7 @@ export class CStructMetadata {
             if (!metadata.model) {
                 throw Error(`Provided struct is not decorated.`);
             }
-            metadata.cStruct = new CStructLE(metadata.model, metadata.types);
+            metadata.cStruct = CStructLE.fromModelTypes(metadata.model, metadata.types);
         }
         return metadata.cStruct as CStructLE<T>;
     }

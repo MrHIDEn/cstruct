@@ -3,7 +3,7 @@ import { CStructBE } from "../src";
 {
     const model = {b: 'BYTE', w: 'WORD', f: 'BOOL'};
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.modelClone);
     // { b: 'BYTE', w: 'WORD', f: 'BOOL' }

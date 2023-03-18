@@ -4,6 +4,7 @@ import { MakeBE } from "./make-be";
 import { WriteBE } from "./write-be";
 import { ReadBE } from "./read-be";
 import { CStructMetadata } from "./decorators-metadata";
+import { Class, CStructClassOptions } from "./decorators-types";
 
 /**
  * C_Struct BE - Big Endian
@@ -14,7 +15,7 @@ import { CStructMetadata } from "./decorators-metadata";
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStructBE<T> extends CStruct<T> {
-    constructor(model: Model, types?: Types) {
+    private constructor(model: Model, types?: Types) {
         super(model, types);
     }
 
@@ -64,11 +65,19 @@ export class CStructBE<T> extends CStruct<T> {
         return cStruct.write(buffer, struct, offset);
     }
 
-    static read<T = any>(TClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+    static read<T = any>(TClass: Class<T>, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const instance = new TClass();
         const cStruct = CStructMetadata.getCStructBE(instance);
         const result = cStruct.read<T>(buffer, offset);
         result.struct = Object.assign(instance, result.struct);
         return result;
+    }
+
+    static from<T = any>(from: Class | CStructClassOptions): CStructBE<T> {
+        return CStructMetadata.getCStructBE(from);
+    }
+
+    static fromModelTypes<T = any>(model: Model, types?: Types): CStructBE<T> {
+        return new CStructBE<T>(model, types);
     }
 }

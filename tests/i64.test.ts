@@ -7,7 +7,7 @@ describe('i64 - signed int64', () => {
             it(`should read -81985529216486896n`, () => {
                 const buffer = hexToBuffer("FEDCBA9876543210");
                 const model = {r: 'i64'};
-                const cStruct = new CStructBE<{ r: bigint }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-81985529216486896n);
@@ -18,7 +18,7 @@ describe('i64 - signed int64', () => {
             it(`should read -81985529216486896n with offset 2`, () => {
                 const buffer = hexToBuffer("0000 FEDCBA9876543210");
                 const model = {r: 'i64'};
-                const cStruct = new CStructBE<{ r: bigint }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-81985529216486896n);
@@ -30,7 +30,7 @@ describe('i64 - signed int64', () => {
         describe(`make`, () => {
             it(`should make -81985529216486896n`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructBE<{ r: bigint }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const expected = hexToBuffer("FEDCBA9876543210");
 
                 const result = cStruct.make({r: -81985529216486896n});
@@ -43,7 +43,7 @@ describe('i64 - signed int64', () => {
         describe(`write`, () => {
             it(`should write -81985529216486896n`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructBE<{ r: bigint }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000000000000000");
                 const expected = hexToBuffer("FEDCBA9876543210");
 
@@ -56,7 +56,7 @@ describe('i64 - signed int64', () => {
 
             it(`should write -81985529216486896n with offset 2`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructBE<{ r: bigint }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 0000000000000000");
                 const expected = hexToBuffer("0000 FEDCBA9876543210");
 
@@ -74,7 +74,7 @@ describe('i64 - signed int64', () => {
             it(`should read -81985529216486896n`, () => {
                 const buffer = hexToBuffer("1032547698BADCFE");
                 const model = {r: 'i64'};
-                const cStruct = new CStructLE<{ r: bigint }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-81985529216486896n);
@@ -85,7 +85,7 @@ describe('i64 - signed int64', () => {
             it(`should read -81985529216486896n with offset 2`, () => {
                 const buffer = hexToBuffer("0000 1032547698BADCFE");
                 const model = {r: 'i64'};
-                const cStruct = new CStructLE<{ r: bigint }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-81985529216486896n);
@@ -97,7 +97,7 @@ describe('i64 - signed int64', () => {
         describe(`make`, () => {
             it(`should make -81985529216486896n`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructLE<{ r: bigint }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const expected = hexToBuffer("1032547698BADCFE");
 
                 const result = cStruct.make({r: -81985529216486896n});
@@ -110,7 +110,7 @@ describe('i64 - signed int64', () => {
         describe(`write`, () => {
             it(`should write -81985529216486896n`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructLE<{ r: bigint }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000000000000000");
                 const expected = hexToBuffer("1032547698BADCFE");
 
@@ -123,7 +123,7 @@ describe('i64 - signed int64', () => {
 
             it(`should write -81985529216486896n with offset 2`, () => {
                 const model = {r: 'i64'};
-                const cStruct = new CStructLE<{ r: bigint }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 0000000000000000");
                 const expected = hexToBuffer("0000 1032547698BADCFE");
 

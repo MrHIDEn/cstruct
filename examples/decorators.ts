@@ -65,7 +65,7 @@ import {
         @CStructProperty({type: 'u16'})
         public a: number;
 
-        @CStructProperty( 'i16')
+        @CStructProperty('i16')
         public b: number;
     }
 
@@ -132,4 +132,82 @@ import {
 
     console.log(myDataRead instanceof MyData);
     // true
+}
+{
+    class MyClass {
+        @CStructProperty({type: 'u16'})
+        public propertyA: number;
+        @CStructProperty({type: 'i16'})
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from(MyClass);
+    const make = cStruct.make(myClass);
+    make;//?
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+{
+    @CStructClass({
+        model: `{propertyA: U16, propertyB: I16}`,
+        types: '{U16: uint16, I16: int16}',
+    })
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from(MyClass);
+    const make = cStruct.make(myClass);
+    make;//?
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+{
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from({
+        model: `{propertyA: U16, propertyB: I16}`,
+        types: '{U16: uint16, I16: int16}',
+    });
+    const make = cStruct.make(myClass);
+    make;//?
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+{
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const model = { propertyA: 'u16', propertyB: 'i16' };
+    const cStruct = CStructBE.fromModelTypes(model);
+    const make = cStruct.make(myClass);
+    make;//?
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
 }

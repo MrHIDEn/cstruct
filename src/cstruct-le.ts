@@ -4,6 +4,7 @@ import { MakeLE } from "./make-le";
 import { WriteLE } from "./write-le";
 import { ReadLE } from "./read-le";
 import { CStructMetadata } from "./decorators-metadata";
+import { Class, CStructClassOptions } from "./decorators-types";
 
 /**
  * C_Struct LE - Little Endian
@@ -64,11 +65,19 @@ export class CStructLE<T> extends CStruct<T> {
         return cStruct.write(buffer, struct, offset);
     }
 
-    static read<T = any>(TClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+    static read<T = any>(TClass: Class<T>, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const instance = new TClass();
         const cStruct = CStructMetadata.getCStructLE(instance);
         const result = cStruct.read<T>(buffer, offset);
         result.struct = Object.assign(instance, result.struct);
         return result;
+    }
+
+    static from<T = any>(from: Class | CStructClassOptions): CStructLE<T> {
+        return CStructMetadata.getCStructBE(from);
+    }
+
+    static fromModelTypes<T = any>(model: Model, types?: Types): CStructLE<T> {
+        return new CStructLE<T>(model, types);
     }
 }

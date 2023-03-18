@@ -8,7 +8,7 @@ import { CStructBE } from "../src";
         i8[i16]     // i16 bytes dynamic array
     ]`;
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.jsonModel);
     // ["i8","i8.2","i8.i16"]
@@ -38,7 +38,7 @@ import { CStructBE } from "../src";
         xyz: "i8[i8]",
     };
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.jsonModel);
     // {"abc.i16":"i8","xyz.i8":"i8"}
@@ -69,7 +69,7 @@ import { CStructBE } from "../src";
         Ab: {a: 'i8', b: 'i8'}
     };
 
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
 
     console.log(cStruct.modelClone);
     // { 'ab.i16': { a: 'i8', b: 'i8' } }
@@ -97,7 +97,7 @@ import { CStructBE } from "../src";
         txt2: "string[i16]",
     };
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.modelClone);
     // { 'txt1.i16': 's', 'txt2.i16': 's' }
@@ -127,7 +127,7 @@ import { CStructBE } from "../src";
         S: {t: 's[i8]'}
     };
 
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
 
     console.log(cStruct.jsonModel);
     // {"txt.i8":{"t.i8":"s"}}
@@ -166,7 +166,7 @@ import { CStructBE } from "../src";
         staticBuffer: buf[2]
     }`;
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.modelClone);
     // { 'dynBuffer.i8': 'buf', staticBuffer: 'buf2' }

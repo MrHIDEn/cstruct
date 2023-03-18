@@ -26,13 +26,3 @@ export interface CStructWriteResult {
     size: number;
     toAtoms: () => string[];
 }
-
-export interface CStructClassOptions {
-    types?: Types;
-}
-
-export class CStructDecoratorProperties<T> {
-    __cStructModel?: Model;
-    __cStructTypes?: Types;
-    __cStruct?: CStructBE<T> | CStructLE<T>;
-}
