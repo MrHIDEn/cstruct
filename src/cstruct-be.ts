@@ -3,7 +3,7 @@ import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeBE } from "./make-be";
 import { WriteBE } from "./write-be";
 import { ReadBE } from "./read-be";
-import { CStructMetadata, Dictionary } from "./decorators";
+import { CStructMetadata } from "./decorators-metadata";
 
 /**
  * C_Struct BE - Big Endian

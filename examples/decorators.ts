@@ -1,7 +1,8 @@
 import {
     CStructBE,
     CStructClass,
-    CStructProperty
+    CStructProperty,
+    hexToBuffer,
 } from "../src";
 
 /**
@@ -12,7 +13,6 @@ import {
  *      }
  * }
  */
-
 {
     // Decorators - Serialize any class with CStructClass decorator, model
     @CStructClass({
@@ -104,18 +104,32 @@ import {
     console.log(bufferMake.toString('hex'));
     // 000afff6
     // 000a fff6
+}
+
+{
+    // Decorators - Serialize any class with CStructClass and CStructModelProperty decorator, model and type
+    class MyClass {
+        public a: number;
+        public b: number;
+    }
+
+    @CStructClass({
+        types: {MyClass: {a: 'u16', b: 'i16'}}
+    })
+    class MyData {
+        @CStructProperty('MyClass')
+        public myClass: MyClass;
+    }
+
+    const bufferRead = hexToBuffer('000afff6');
+    // 000afff6
+    // 000a fff6
 
     // READ
-    const myDataRead = new MyData();
-    myDataRead.myClass = new MyClass();
-    CStructBE.read(myDataRead, bufferMake);
+    const myDataRead = CStructBE.read(MyData, bufferRead).struct;
     console.log(myDataRead);
     // MyData { myClass: MyClass { a: 10, b: -10 } }
 
-    // WRITE
-    const bufferWrite = Buffer.alloc(4);
-    CStructBE.write(myData, bufferWrite);
-    console.log(bufferWrite.toString('hex'));
-    // 000afff6
-    // 000a fff6
+    console.log(myDataRead instanceof MyData);
+    // true
 }

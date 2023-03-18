@@ -80,6 +80,21 @@ console.log(buffer.toString('hex'));
 
 const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
 
+const struct = cStruct.read(buffer).struct;
+
+console.log(struct);
+// { error: { code: 15, message: 'abc' } }
+````
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+// Read BE buffer to struct based on model
+const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
+console.log(buffer.toString('hex'));
+// 000f616263000000000000000000000000
+
+const cStruct = new CStructBE({ error: {code: 'u16', message: 's20'} });
+
 const { struct, offset, size } = cStruct.read(buffer);
 
 console.log(struct);

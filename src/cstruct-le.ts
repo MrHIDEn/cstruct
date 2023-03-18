@@ -1,9 +1,9 @@
 import { CStruct } from "./cstruct";
 import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeLE } from "./make-le";
-import { ReadLE } from "./read-le";
 import { WriteLE } from "./write-le";
-import { CStructMetadata } from "./decorators";
+import { ReadLE } from "./read-le";
+import { CStructMetadata } from "./decorators-metadata";
 
 /**
  * C_Struct LE - Little Endian
