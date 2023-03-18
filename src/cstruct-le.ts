@@ -18,7 +18,7 @@ export class CStructLE<T> extends CStruct<T> {
         super(model, types);
     }
 
-    make(struct: T): CStructWriteResult {
+    make<T = any>(struct: T): CStructWriteResult {
         const writer = new MakeLE<T>(this.modelClone, struct);
         return {
             buffer: writer.toBuffer(),
@@ -30,7 +30,7 @@ export class CStructLE<T> extends CStruct<T> {
         }
     }
 
-    write(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
+    write<T = any>(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
         const writer = new WriteLE<T>(this.modelClone, struct, buffer, offset);
         return {
             buffer: writer.toBuffer(),
@@ -42,7 +42,7 @@ export class CStructLE<T> extends CStruct<T> {
         }
     }
 
-    read<T>(buffer: Buffer, offset = 0): CStructReadResult<T> {
+    read<T = any>(buffer: Buffer, offset = 0): CStructReadResult<T> {
         const reader = new ReadLE<T>(this.modelClone, buffer, offset);
         return {
             struct: reader.toStruct() as T,
@@ -54,17 +54,17 @@ export class CStructLE<T> extends CStruct<T> {
         };
     }
 
-    static make<T>(struct: T): CStructWriteResult {
+    static make<T = any>(struct: T): CStructWriteResult {
         const cStruct = CStructMetadata.getCStructLE(struct);
         return cStruct.make(struct);
     }
 
-    static write<T>(struct: T, buffer: Buffer, offset?: number) {
+    static write<T = any>(struct: T, buffer: Buffer, offset?: number) {
         const cStruct = CStructMetadata.getCStructLE(struct);
         return cStruct.write(buffer, struct, offset);
     }
 
-    static read<T>(TClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
+    static read<T = any>(TClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const instance = new TClass();
         const cStruct = CStructMetadata.getCStructLE(instance);
         const result = cStruct.read<T>(buffer, offset);

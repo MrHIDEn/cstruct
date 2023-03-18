@@ -7,7 +7,7 @@ describe('u8 - unsigned char', () => {
             it(`should read 0x12`, () => {
                 const buffer = Buffer.from([0x12]);
                 const model = {r: 'u8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = new CStructBE(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(0x12);
