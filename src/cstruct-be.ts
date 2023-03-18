@@ -3,7 +3,7 @@ import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeBE } from "./make-be";
 import { WriteBE } from "./write-be";
 import { ReadBE } from "./read-be";
-import { CStructMetadata } from "./decorators";
+import { CStructMetadata, Dictionary } from "./decorators";
 
 /**
  * C_Struct BE - Big Endian
@@ -42,7 +42,7 @@ export class CStructBE<T> extends CStruct<T> {
         }
     }
 
-    read(buffer: Buffer, offset = 0): CStructReadResult<T> {
+    read<T>(buffer: Buffer, offset = 0): CStructReadResult<T> {
         const reader = new ReadBE<T>(this.modelClone, buffer, offset);
         return {
             struct: reader.toStruct(),
@@ -67,7 +67,7 @@ export class CStructBE<T> extends CStruct<T> {
     static read<T>(newableClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const instance = new newableClass();
         const cStruct = CStructMetadata.getCStructBE(instance);
-        const result = cStruct.read(buffer, offset);
+        const result = cStruct.read<T>(buffer, offset);
         result.struct = Object.assign(instance, result.struct);
         return result;
     }

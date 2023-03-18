@@ -189,15 +189,14 @@ import {
 // read1;//?
 // read1.struct;//?
 
-@CStructClass({
-    model: {
-        myProperty1: 'U8',
-        myProperty2: 'I8',
-    },
-    types: {I8: 'i8', U8: 'u8'}
-})
+// @CStructClass({
+//     model: {
+//         myProperty1: 'U8',
+//         myProperty2: 'I8',
+//     },
+//     types: {I8: 'i8', U8: 'u8'}
+// })
 class MyClass {
-    // @CStructModelProperty('uint8')
     @CStructProperty({type: 'uint8'})
     public myProperty1: number;
 
@@ -205,23 +204,30 @@ class MyClass {
     public myProperty2: number;
 }
 
+
 const myClass = new MyClass();
 myClass.myProperty1 = 10;
 myClass.myProperty2 = -10;
-console.log(myClass);
-
+myClass;//?
 const make1 = CStructBE.make(myClass);
 make1;//?
 make1.buffer.toString('hex');//?
 
+
+
 const buf1 = Buffer.from([0x0B, 0xF5]);
+buf1.toString('hex');//?
 const read1 = CStructBE.read(MyClass,buf1);
 read1;//?
 read1.struct;//?
+read1.struct.myProperty1;//?
+read1.struct.myProperty2;//?
 read1.struct instanceof MyClass;//?
 
 
-const buf2 = Buffer.from([0x00, 0x00,0x00, 0x00]);
-const write1 = CStructBE.write(myClass,buf2, 2);
+myClass.myProperty1 = 12;
+myClass.myProperty2 = -12;
+const buf2 = Buffer.from([0x00, 0x00, 0x00, 0x00]);
+const write1 = CStructBE.write(myClass, buf2, 2);
 write1;//?
 write1.buffer.toString('hex');//?

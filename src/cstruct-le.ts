@@ -42,7 +42,7 @@ export class CStructLE<T> extends CStruct<T> {
         }
     }
 
-    read(buffer: Buffer, offset = 0): CStructReadResult<T> {
+    read<T>(buffer: Buffer, offset = 0): CStructReadResult<T> {
         const reader = new ReadLE<T>(this.modelClone, buffer, offset);
         return {
             struct: reader.toStruct() as T,
@@ -67,7 +67,7 @@ export class CStructLE<T> extends CStruct<T> {
     static read<T>(newableClass: new() => T, buffer: Buffer, offset?: number): CStructReadResult<T> {
         const instance = new newableClass();
         const cStruct = CStructMetadata.getCStructLE(instance);
-        const result = cStruct.read(buffer, offset);
+        const result = cStruct.read<T>(buffer, offset);
         result.struct = Object.assign(instance, result.struct);
         return result;
     }

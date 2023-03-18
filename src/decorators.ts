@@ -27,7 +27,10 @@ export class CStructMetadata {
     }
 
     static getMetadata(target: any) {
-        let metadata = target.prototype?.[this.CStructSymbol] ?? target[this.CStructSymbol];
+        const constructorMetadata = target.constructor?.[this.CStructSymbol];
+        const prototypeMetadata = target.prototype?.[this.CStructSymbol];
+        const targetMetadata = target[this.CStructSymbol];
+        let metadata = constructorMetadata ?? prototypeMetadata ?? targetMetadata;
         if (!metadata) {
             metadata = target[this.CStructSymbol] = new CStructMetadata();
         }
@@ -67,6 +70,16 @@ export class CStructMetadata {
             metadata.cStruct = new CStructLE(metadata.model, metadata.types);
         }
         return metadata.cStruct as CStructLE<T>;
+    }
+
+    static getModel<T>(struct: T): Model {
+        const metadata = CStructMetadata.getMetadata(struct);
+        return metadata.model;
+    }
+
+    static getTypes<T>(struct: T): Types {
+        const metadata = CStructMetadata.getMetadata(struct);
+        return metadata.types;
     }
 }
 
