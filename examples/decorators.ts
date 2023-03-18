@@ -62,7 +62,7 @@ import {
 {
     // Decorators - Serialize any class with CStructModelProperty decorator
     class MyClass {
-        @CStructProperty('u16')
+        @CStructProperty({type: 'u16'})
         public a: number;
 
         @CStructProperty( 'i16')
@@ -90,7 +90,7 @@ import {
         types: {MyClass: {a: 'u16', b: 'i16'}}
     })
     class MyData {
-        @CStructProperty('MyClass')
+        @CStructProperty({type: 'MyClass'})
         public myClass: MyClass;
     }
 
@@ -117,7 +117,7 @@ import {
         types: {MyClass: {a: 'u16', b: 'i16'}}
     })
     class MyData {
-        @CStructProperty('MyClass')
+        @CStructProperty({type: 'MyClass'})
         public myClass: MyClass;
     }
 

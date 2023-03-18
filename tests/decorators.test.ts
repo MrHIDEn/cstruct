@@ -53,10 +53,10 @@ describe('Decorators', () => {
 
             it(`should make buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -126,10 +126,10 @@ describe('Decorators', () => {
 
             it(`should write buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -200,10 +200,10 @@ describe('Decorators', () => {
 
             it(`should write buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -269,10 +269,10 @@ describe('Decorators', () => {
 
             it(`should read buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
                 const myClass = new MyClass();
@@ -336,10 +336,10 @@ describe('Decorators', () => {
 
             it(`should read buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
                 const myClass = new MyClass();
@@ -408,10 +408,10 @@ describe('Decorators', () => {
 
             it(`should make buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -481,10 +481,10 @@ describe('Decorators', () => {
 
             it(`should write buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -555,10 +555,10 @@ describe('Decorators', () => {
 
             it(`should write buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
 
@@ -624,10 +624,10 @@ describe('Decorators', () => {
 
             it(`should read buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
                 const myClass = new MyClass();
@@ -691,10 +691,10 @@ describe('Decorators', () => {
 
             it(`should read buffer with CStructModelProperty decorator`, () => {
                 class MyClass {
-                    @CStructProperty('u16')
+                    @CStructProperty({type: 'u16'})
                     public a: number;
 
-                    @CStructProperty('i16')
+                    @CStructProperty({type: 'i16'})
                     public b: number;
                 }
                 const myClass = new MyClass();
