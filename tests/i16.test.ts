@@ -7,7 +7,7 @@ describe('i16 - signed int16', () => {
             it(`should read -292`, () => {
                 const buffer = hexToBuffer("FEDC");
                 const model = {r: 'i16'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-292);
@@ -18,7 +18,7 @@ describe('i16 - signed int16', () => {
             it(`should read -292 with offset 2`, () => {
                 const buffer = hexToBuffer("0000 FEDC");
                 const model = {r: 'i16'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-292);
@@ -30,7 +30,7 @@ describe('i16 - signed int16', () => {
         describe(`make`, () => {
             it(`should make 0xFEDC`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const expected = hexToBuffer("FEDC");
 
                 const result = cStruct.make({r: -292});
@@ -43,7 +43,7 @@ describe('i16 - signed int16', () => {
         describe(`write`, () => {
             it(`should write 0xFEDC`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000");
                 const expected = hexToBuffer("FEDC");
 
@@ -56,7 +56,7 @@ describe('i16 - signed int16', () => {
 
             it(`should write 0xFEDC with offset 2`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 0000");
                 const expected = hexToBuffer("0000 FEDC");
 
@@ -74,7 +74,7 @@ describe('i16 - signed int16', () => {
             it(`should read -292`, () => {
                 const buffer = hexToBuffer("DCFE");
                 const model = {r: 'i16'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-292);
@@ -85,7 +85,7 @@ describe('i16 - signed int16', () => {
             it(`should read -292 with offset 2`, () => {
                 const buffer = hexToBuffer("0000 DCFE");
                 const model = {r: 'i16'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-292);
@@ -97,7 +97,7 @@ describe('i16 - signed int16', () => {
         describe(`make`, () => {
             it(`should make 0xDCFE`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const expected = hexToBuffer("DCFE");
 
                 const result = cStruct.make({r: -292});
@@ -110,7 +110,7 @@ describe('i16 - signed int16', () => {
         describe(`write`, () => {
             it(`should write 0xDCFE`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000");
                 const expected = hexToBuffer("DCFE");
 
@@ -123,7 +123,7 @@ describe('i16 - signed int16', () => {
 
             it(`should write 0xDCFE with offset 2`, () => {
                 const model = {r: 'i16'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 0000");
                 const expected = hexToBuffer("0000 DCFE");
 

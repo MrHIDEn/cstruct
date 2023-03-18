@@ -7,7 +7,7 @@ import { CStructBE } from "../src";
         buf: buf10,
     }`;
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.modelClone);
     // { cnt: 'i16', buf: 'buf10' }

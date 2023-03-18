@@ -14,3 +14,4 @@ export * from './write-le';
 export * from './write-buffer-be';
 export * from './write-buffer-le';
 export * from './decorators';
+export * from './decorators-types';

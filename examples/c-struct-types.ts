@@ -13,7 +13,7 @@ import { CStructBE } from "../src";
         } Xyz;
     }`;
 
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
 
     console.log(cStruct.jsonModel);
     // {"xyzs":[{"x":"uint8_t","y":"uint8_t","z":"uint8_t"},{"x":"uint8_t","y":"uint8_t","z":"uint8_t"}]}
@@ -52,7 +52,7 @@ import { CStructBE } from "../src";
         } xyzs;
     }`;
 
-    const cStruct = new CStructBE(model);
+    const cStruct = CStructBE.fromModelTypes(model);
 
     console.log(cStruct.jsonModel);
     // {"xyzs":{"x":"uint8_t","y":"uint8_t","z":"uint8_t"}}
@@ -95,7 +95,7 @@ import { CStructBE } from "../src";
         // As you noticed, comments are allowed
     }`;
 
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
 
     console.log(cStruct.jsonTypes);
     // {"Ab":{"x":"i8","y":"i8"},"Xyz":{"x":"u8","y":"u8","z":"u8"}}

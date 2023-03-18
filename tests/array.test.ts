@@ -6,7 +6,7 @@ describe('Array', () => {
             it(`should read {r: number[]}`, () => {
                 const buffer = hexToBuffer('1234 5678');
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructBE<{ r: number[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toStrictEqual([0x1234, 0x5678]);
@@ -17,7 +17,7 @@ describe('Array', () => {
             it(`should read {r: number[]} with offset 2`, () => {
                 const buffer = hexToBuffer('0000 1234 5678');
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructBE<{ r: number[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toStrictEqual([0x1234, 0x5678]);
@@ -28,7 +28,7 @@ describe('Array', () => {
             it(`should read number[]`, () => {
                 const buffer = hexToBuffer('1234 5678');
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructBE<number[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct).toStrictEqual([0x1234, 0x5678]);
@@ -39,7 +39,7 @@ describe('Array', () => {
             it(`should read number[] with offset 2`, () => {
                 const buffer = hexToBuffer('0000 1234 5678');
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructBE<number[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct).toStrictEqual([0x1234, 0x5678]);
@@ -50,7 +50,7 @@ describe('Array', () => {
             it(`should read string[] with offset 2`, () => {
                 const buffer = hexToBuffer('0000 61620000 63640000');
                 const model = ['s4', 's4'];
-                const cStruct = new CStructBE<string[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct).toStrictEqual(['ab', 'cd']);
@@ -62,7 +62,7 @@ describe('Array', () => {
         describe(`make`, () => {
             it(`should make {r: number[]}`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructBE<{ r: number[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.make({r: [0x1234, 0x5678]});
                 expect(result.buffer).toEqual(hexToBuffer('1234 5678'));
@@ -72,7 +72,7 @@ describe('Array', () => {
 
             it(`should make number[]`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructBE<number[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.make([0x1234, 0x5678]);
                 expect(result.buffer).toEqual(hexToBuffer('1234 5678'));
@@ -82,7 +82,7 @@ describe('Array', () => {
 
             it(`should make string[]`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructBE<string[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.make(['ab', 'cd']);
                 expect(result.buffer).toEqual(hexToBuffer('61620000 63640000'));
@@ -94,7 +94,7 @@ describe('Array', () => {
         describe(`write`, () => {
             it(`should write {r: number[]}`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructBE<{ r: number[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('1234 5678');
 
@@ -107,7 +107,7 @@ describe('Array', () => {
 
             it(`should write {r: number[]} with offset 2`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructBE<{ r: number[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0000 1234 5678');
 
@@ -120,7 +120,7 @@ describe('Array', () => {
 
             it(`should write number[]`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructBE<number[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('1234 5678');
 
@@ -133,7 +133,7 @@ describe('Array', () => {
 
             it(`should write number[] with offset 2`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructBE<number[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0000 1234 5678');
 
@@ -146,7 +146,7 @@ describe('Array', () => {
 
             it(`should write string[]`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructBE<string[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('00000000 00000000');
                 const expected = hexToBuffer('61620000 63640000');
 
@@ -159,7 +159,7 @@ describe('Array', () => {
 
             it(`should write string[] with offset 2`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructBE<string[]>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 00000000 00000000');
                 const expected = hexToBuffer('0000 61620000 63640000');
 
@@ -177,7 +177,7 @@ describe('Array', () => {
             it(`should read {r: number[]}`, () => {
                 const buffer = hexToBuffer('3412 7856');
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructLE<{ r: number[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toStrictEqual([0x1234, 0x5678]);
@@ -188,7 +188,7 @@ describe('Array', () => {
             it(`should read {r: number[]} with offset 2`, () => {
                 const buffer = hexToBuffer('0000 3412 7856');
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructLE<{ r: number[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toStrictEqual([0x1234, 0x5678]);
@@ -199,7 +199,7 @@ describe('Array', () => {
             it(`should read number[]`, () => {
                 const buffer = hexToBuffer('3412 7856');
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructLE<number[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct).toStrictEqual([0x1234, 0x5678]);
@@ -210,7 +210,7 @@ describe('Array', () => {
             it(`should read number[] with offset 2`, () => {
                 const buffer = hexToBuffer('0000 3412 7856');
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructLE<number[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct).toStrictEqual([0x1234, 0x5678]);
@@ -221,7 +221,7 @@ describe('Array', () => {
             it(`should read string[] with offset 2`, () => {
                 const buffer = hexToBuffer('0000 61620000 63640000');
                 const model = ['s4', 's4'];
-                const cStruct = new CStructLE<string[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct).toStrictEqual(['ab', 'cd']);
@@ -233,7 +233,7 @@ describe('Array', () => {
         describe(`make`, () => {
             it(`should make {r: number[]}`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructLE<{ r: number[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.make({r: [0x1234, 0x5678]});
                 expect(result.buffer).toEqual(hexToBuffer('3412 7856'));
@@ -243,7 +243,7 @@ describe('Array', () => {
 
             it(`should make number[]`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructLE<number[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.make([0x1234, 0x5678]);
                 expect(result.buffer).toEqual(hexToBuffer('3412 7856'));
@@ -253,7 +253,7 @@ describe('Array', () => {
 
             it(`should make string[]`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructLE<string[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.make(['ab', 'cd']);
                 expect(result.buffer).toEqual(hexToBuffer('61620000 63640000'));
@@ -265,7 +265,7 @@ describe('Array', () => {
         describe(`write`, () => {
             it(`should write {r: number[]}`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructLE<{ r: number[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('3412 7856');
 
@@ -278,7 +278,7 @@ describe('Array', () => {
 
             it(`should write {r: number[]} with offset 2`, () => {
                 const model = {r: ['u16', 'u16']};
-                const cStruct = new CStructLE<{ r: number[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0000 3412 7856');
 
@@ -291,7 +291,7 @@ describe('Array', () => {
 
             it(`should write number[]`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructLE<number[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('3412 7856');
 
@@ -304,7 +304,7 @@ describe('Array', () => {
 
             it(`should write number[] with offset 2`, () => {
                 const model = ['u16', 'u16'];
-                const cStruct = new CStructLE<number[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 0000');
                 const expected = hexToBuffer('0000 3412 7856');
 
@@ -317,7 +317,7 @@ describe('Array', () => {
 
             it(`should write string[]`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructLE<string[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('00000000 00000000');
                 const expected = hexToBuffer('61620000 63640000');
 
@@ -330,7 +330,7 @@ describe('Array', () => {
 
             it(`should write string[] with offset 2`, () => {
                 const model = ['s4', 's4'];
-                const cStruct = new CStructLE<string[]>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 00000000 00000000');
                 const expected = hexToBuffer('0000 61620000 63640000');
 

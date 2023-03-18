@@ -6,7 +6,7 @@ describe('dynamic string', () => {
         describe(`read`, () => {
             it(`should read {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructBE<{ r: string[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0003 616263');
 
                 const result = cStruct.read(buffer);
@@ -17,7 +17,7 @@ describe('dynamic string', () => {
 
             it(`should read {r: 'string[i16]'} with offset 2`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructBE<{ r: string[] }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0003 616263');
 
                 const result = cStruct.read(buffer, 2);
@@ -30,7 +30,7 @@ describe('dynamic string', () => {
         describe(`make`, () => {
             it(`should make {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructBE<{ r: string }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.make({r: 'abc'});
                 expect(result.buffer).toEqual(hexToBuffer('0003 616263'));
@@ -42,7 +42,7 @@ describe('dynamic string', () => {
         describe(`write`, () => {
             it(`should write {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructBE<{ r: string }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 000000');
                 const expected = hexToBuffer('0003 616263');
 
@@ -55,7 +55,7 @@ describe('dynamic string', () => {
 
             it(`should write {r: 'string[i16]'} with offset 2`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructBE<{ r: string }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 000000');
                 const expected = hexToBuffer('0000 0003 616263');
 
@@ -72,7 +72,7 @@ describe('dynamic string', () => {
         describe(`read`, () => {
             it(`should read {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructLE<{ r: string[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0300 616263');
 
                 const result = cStruct.read(buffer);
@@ -83,7 +83,7 @@ describe('dynamic string', () => {
 
             it(`should read {r: 'string[i16]'} with offset 2`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructLE<{ r: string[] }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0300 616263');
 
                 const result = cStruct.read(buffer, 2);
@@ -96,7 +96,7 @@ describe('dynamic string', () => {
         describe(`make`, () => {
             it(`should make {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructLE<{ r: string }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.make({r: 'abc'});
                 expect(result.buffer).toEqual(hexToBuffer('0300 616263'));
@@ -108,7 +108,7 @@ describe('dynamic string', () => {
         describe(`write`, () => {
             it(`should write {r: 'string[i16]'}`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructLE<{ r: string }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 000000');
                 const expected = hexToBuffer('0300 616263');
 
@@ -121,7 +121,7 @@ describe('dynamic string', () => {
 
             it(`should write {r: 'string[i16]'} with offset 2`, () => {
                 const model = {r: 'string[i16]'};
-                const cStruct = new CStructLE<{ r: string }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000 000000');
                 const expected = hexToBuffer('0000 0300 616263');
 

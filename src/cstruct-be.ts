@@ -1,8 +1,10 @@
 import { CStruct } from "./cstruct";
-import { CStructDecoratorProperties, CStructReadResult, CStructWriteResult, Model, Types } from "./types";
-import { ReadBE } from "./read-be";
-import { WriteBE } from "./write-be";
+import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeBE } from "./make-be";
+import { WriteBE } from "./write-be";
+import { ReadBE } from "./read-be";
+import { CStructMetadata } from "./decorators-metadata";
+import { Class, CStructClassOptions } from "./decorators-types";
 
 /**
  * C_Struct BE - Big Endian
@@ -13,35 +15,11 @@ import { MakeBE } from "./make-be";
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStructBE<T> extends CStruct<T> {
-    constructor(model: Model, types?: Types) {
+    private constructor(model: Model, types?: Types) {
         super(model, types);
     }
 
-    read(buffer: Buffer, offset = 0): CStructReadResult<T> {
-        const reader = new ReadBE<T>(this.modelClone, buffer, offset);
-        return {
-            struct: reader.toStruct(),
-            offset: reader.offset,
-            size: reader.size,
-            toAtoms(): string[] {
-                return reader.toAtoms();
-            },
-        };
-    }
-
-    write(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
-        const writer = new WriteBE<T>(this.modelClone, struct, buffer, offset);
-        return {
-            buffer: writer.toBuffer(),
-            offset: writer.offset,
-            size: writer.size,
-            toAtoms(): string[] {
-                return writer.toAtoms();
-            },
-        }
-    }
-
-    make(struct: T): CStructWriteResult {
+    make<T = any>(struct: T): CStructWriteResult {
         const writer = new MakeBE<T>(this.modelClone, struct);
         return {
             buffer: writer.toBuffer(),
@@ -53,31 +31,53 @@ export class CStructBE<T> extends CStruct<T> {
         }
     }
 
-    private static getCStruct<T>(struct: T): CStructBE<T> {
-        const decoratedStruct = struct as CStructDecoratorProperties<T>;
-        if (!decoratedStruct.__cStruct) {
-            if (!decoratedStruct.__cStructModel) {
-                throw Error(`Provided struct is not decorated.`);
-            }
-            Object.defineProperty(decoratedStruct, '__cStruct', {
-                writable: true,
-                value: new CStructBE(decoratedStruct.__cStructModel, decoratedStruct.__cStructTypes),
-            });
+    write<T = any>(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
+        const writer = new WriteBE<T>(this.modelClone, struct, buffer, offset);
+        return {
+            buffer: writer.toBuffer(),
+            offset: writer.offset,
+            size: writer.size,
+            toAtoms(): string[] {
+                return writer.toAtoms();
+            },
         }
-        return decoratedStruct.__cStruct;
     }
 
-    static make<T>(struct: T): CStructWriteResult {
-        return this.getCStruct(struct).make(struct);
+    read<T = any>(buffer: Buffer, offset = 0): CStructReadResult<T> {
+        const reader = new ReadBE<T>(this.modelClone, buffer, offset);
+        return {
+            struct: reader.toStruct(),
+            offset: reader.offset,
+            size: reader.size,
+            toAtoms(): string[] {
+                return reader.toAtoms();
+            },
+        };
     }
 
-    static write<T>(struct: T, buffer: Buffer, offset?: number) {
-        return this.getCStruct(struct).write(buffer, struct, offset);
+    static make<T = any>(struct: T): CStructWriteResult {
+        const cStruct = CStructMetadata.getCStructBE(struct);
+        return cStruct.make(struct);
     }
 
-    static read<T>(struct: T, buffer: Buffer, offset?: number): CStructReadResult<T> {
-        const result = this.getCStruct(struct).read(buffer, offset);
-        Object.assign(struct, result.struct);
+    static write<T = any>(struct: T, buffer: Buffer, offset?: number) {
+        const cStruct = CStructMetadata.getCStructBE(struct);
+        return cStruct.write(buffer, struct, offset);
+    }
+
+    static read<T = any>(TClass: Class<T>, buffer: Buffer, offset?: number): CStructReadResult<T> {
+        const instance = new TClass();
+        const cStruct = CStructMetadata.getCStructBE(instance);
+        const result = cStruct.read<T>(buffer, offset);
+        result.struct = Object.assign(instance, result.struct);
         return result;
+    }
+
+    static from<T = any>(from: Class | CStructClassOptions | T): CStructBE<T> {
+        return CStructMetadata.getCStructBE(from);
+    }
+
+    static fromModelTypes<T = any>(model: Model, types?: Types): CStructBE<T> {
+        return new CStructBE<T>(model, types);
     }
 }

@@ -1,7 +1,8 @@
 import {
     CStructBE,
     CStructClass,
-    CStructModelProperty
+    CStructProperty,
+    hexToBuffer,
 } from "../src";
 
 /**
@@ -12,7 +13,6 @@ import {
  *      }
  * }
  */
-
 {
     // Decorators - Serialize any class with CStructClass decorator, model
     @CStructClass({
@@ -62,10 +62,10 @@ import {
 {
     // Decorators - Serialize any class with CStructModelProperty decorator
     class MyClass {
-        @CStructModelProperty('u16')
+        @CStructProperty({type: 'u16'})
         public a: number;
 
-        @CStructModelProperty( 'i16')
+        @CStructProperty('i16')
         public b: number;
     }
 
@@ -90,7 +90,7 @@ import {
         types: {MyClass: {a: 'u16', b: 'i16'}}
     })
     class MyData {
-        @CStructModelProperty('MyClass')
+        @CStructProperty({type: 'MyClass'})
         public myClass: MyClass;
     }
 
@@ -104,18 +104,165 @@ import {
     console.log(bufferMake.toString('hex'));
     // 000afff6
     // 000a fff6
+}
+
+{
+    // Decorators - Serialize any class with CStructClass and CStructModelProperty decorator, model and type
+    class MyClass {
+        public a: number;
+        public b: number;
+    }
+
+    @CStructClass({
+        types: {MyClass: {a: 'u16', b: 'i16'}}
+    })
+    class MyData {
+        @CStructProperty({type: 'MyClass'})
+        public myClass: MyClass;
+    }
+
+    const bufferRead = hexToBuffer('000afff6');
+    // 000afff6
+    // 000a fff6
 
     // READ
-    const myDataRead = new MyData();
-    myDataRead.myClass = new MyClass();
-    CStructBE.read(myDataRead, bufferMake);
+    const myDataRead = CStructBE.read(MyData, bufferRead).struct;
     console.log(myDataRead);
     // MyData { myClass: MyClass { a: 10, b: -10 } }
 
-    // WRITE
-    const bufferWrite = Buffer.alloc(4);
-    CStructBE.write(myData, bufferWrite);
-    console.log(bufferWrite.toString('hex'));
+    console.log(myDataRead instanceof MyData);
+    // true
+}
+
+{
+    class MyClass {
+        @CStructProperty({type: 'u16'})
+        public propertyA: number;
+        @CStructProperty({type: 'i16'})
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from(MyClass);
+    const make = cStruct.make(myClass);
+    console.log(make.buffer.toString('hex'));
     // 000afff6
     // 000a fff6
+}
+
+{
+    @CStructClass({
+        model: `{propertyA: U16, propertyB: I16}`,
+        types: '{U16: uint16, I16: int16}',
+    })
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from(MyClass);
+    const make = cStruct.make(myClass);
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+
+{
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const cStruct = CStructBE.from({
+        model: `{propertyA: U16, propertyB: I16}`,
+        types: '{U16: uint16, I16: int16}',
+    });
+    const make = cStruct.make(myClass);
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+
+{
+    class MyClass {
+        public propertyA: number;
+        public propertyB: number;
+    }
+
+    const myClass = new MyClass();
+    myClass.propertyA = 10;
+    myClass.propertyB = -10;
+
+    const model = { propertyA: 'u16', propertyB: 'i16' };
+    const cStruct = CStructBE.fromModelTypes(model);
+    const make = cStruct.make(myClass);
+    console.log(make.buffer.toString('hex'));
+    // 000afff6
+    // 000a fff6
+}
+
+{
+    import * as fs from "fs";
+
+    interface GeoAltitude {
+        lat: number;
+        long: number;
+        alt: number;
+    }
+
+    @CStructClass({
+        types: `{ GeoAltitude: { lat:double, long:double, alt:double }}`
+    })
+    class GeoAltitudesFile {
+        @CStructProperty({type: 'string30'})
+        public fileName = 'GeoAltitudesFile v1.0';
+
+        @CStructProperty({type: 'GeoAltitude[i32]'})
+        public geoAltitudes: GeoAltitude[] = [];
+    }
+
+    (async () => {
+        // Make random data
+        const geoAltitudesFile = new GeoAltitudesFile();
+        for (let i = 0; i < 1e6; i++) {
+            const randomLat = Math.random() * (90 - -90) + -90;
+            const randomLong = Math.random() * (180 - -180) + -180;
+            const randomAlt = 6.4e6 * Math.random() * (8e3 - -4e3) + -4e3;
+            const geo = {lat: randomLat, long: randomLong, alt: randomAlt};
+            geoAltitudesFile.geoAltitudes.push(geo);
+        }
+        console.log('Write data length,', geoAltitudesFile.geoAltitudes.length);
+
+        // Make buffer
+        console.time('make');
+        const writeFile = CStructBE.make(geoAltitudesFile).buffer;
+        console.timeEnd('make');
+        console.log('Write file length,', writeFile.length);
+
+        // Write to file
+        await fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
+
+        // Read from file
+        const readFile = await fs.promises.readFile('geoAltitudesFile.bin');
+        console.log('Read file length,', readFile.length);
+
+        // Read data
+        console.time('read');
+        const readGeoAltitudesFile = CStructBE.read(GeoAltitudesFile, readFile).struct;
+        console.timeEnd('read');
+
+        console.log('Read fileName,', readGeoAltitudesFile.fileName);
+        console.log('Read data length,', readGeoAltitudesFile.geoAltitudes.length);
+    })();
 }

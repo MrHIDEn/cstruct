@@ -6,7 +6,7 @@ describe('b16 - boolean', () => {
             it(`should read 'true', b16`, () => {
                 const buffer = hexToBuffer('0001');
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(true);
@@ -17,7 +17,7 @@ describe('b16 - boolean', () => {
             it(`should read 'false', b16`, () => {
                 const buffer = hexToBuffer('0000');
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(false);
@@ -28,7 +28,7 @@ describe('b16 - boolean', () => {
             it(`should read 'true' with offset 2, b16`, () => {
                 const buffer = hexToBuffer('0000 0001');
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(true);
@@ -39,7 +39,7 @@ describe('b16 - boolean', () => {
             it(`should read 'false' with offset 2, b16`, () => {
                 const buffer = hexToBuffer('0000 0000');
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(false);
@@ -51,7 +51,7 @@ describe('b16 - boolean', () => {
         describe(`make`, () => {
             it(`should make 'true', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const expected = hexToBuffer('0001');
 
                 const result = cStruct.make({r: true});
@@ -62,7 +62,7 @@ describe('b16 - boolean', () => {
 
             it(`should make 'false', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const expected = hexToBuffer('0000');
 
                 const result = cStruct.make({r: false});
@@ -75,7 +75,7 @@ describe('b16 - boolean', () => {
         describe(`write`, () => {
             it(`should write 'true', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000');
                 const expected = hexToBuffer('0001');
 
@@ -88,7 +88,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'false', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0001');
                 const expected = hexToBuffer('0000');
 
@@ -101,7 +101,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'true' with offset 2, b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('0000 0001');
 
@@ -114,7 +114,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'false' with offset 2, b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructBE<{ r: boolean }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0001');
                 const expected = hexToBuffer('0000 0000');
 
@@ -132,7 +132,7 @@ describe('b16 - boolean', () => {
             it(`should read 'true', b16`, () => {
                 const buffer = hexToBuffer('0001');
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(true);
@@ -143,7 +143,7 @@ describe('b16 - boolean', () => {
             it(`should read 'false', b16`, () => {
                 const buffer = hexToBuffer('0000');
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(false);
@@ -154,7 +154,7 @@ describe('b16 - boolean', () => {
             it(`should read 'true' with offset 2, b16`, () => {
                 const buffer = hexToBuffer('0000 0001');
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(true);
@@ -165,7 +165,7 @@ describe('b16 - boolean', () => {
             it(`should read 'false' with offset 2, b16`, () => {
                 const buffer = hexToBuffer('0000 0000');
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(false);
@@ -177,7 +177,7 @@ describe('b16 - boolean', () => {
         describe(`make`, () => {
             it(`should make 'true', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const expected = hexToBuffer('0100');
 
                 const result = cStruct.make({r: true});
@@ -188,7 +188,7 @@ describe('b16 - boolean', () => {
 
             it(`should make 'false', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const expected = hexToBuffer('0000');
 
                 const result = cStruct.make({r: false});
@@ -201,7 +201,7 @@ describe('b16 - boolean', () => {
         describe(`write`, () => {
             it(`should write 'true', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000');
                 const expected = hexToBuffer('0100');
 
@@ -214,7 +214,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'false', b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0100');
                 const expected = hexToBuffer('0000');
 
@@ -227,7 +227,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'true' with offset 2, b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0000');
                 const expected = hexToBuffer('0000 0100');
 
@@ -240,7 +240,7 @@ describe('b16 - boolean', () => {
 
             it(`should write 'false' with offset 2, b16`, () => {
                 const model = {r: 'b16'};
-                const cStruct = new CStructLE<{ r: boolean }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('0000 0100');
                 const expected = hexToBuffer('0000 0000');
 

@@ -6,7 +6,7 @@ describe('i8 - signed char', () => {
             it(`should read 0xEF`, () => {
                 const buffer = Buffer.from([0xEF]);
                 const model = {r: 'i8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-17);
@@ -17,7 +17,7 @@ describe('i8 - signed char', () => {
             it(`should read 0xEF with offset 2`, () => {
                 const buffer = Buffer.from([0x00, 0x00, 0xEF]);
                 const model = {r: 'i8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-17);
@@ -29,7 +29,7 @@ describe('i8 - signed char', () => {
         describe(`make`, () => {
             it(`should make 0xEF`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
 
                 const result = cStruct.make({r: -17});
                 expect(result.buffer).toEqual(Buffer.from([0xEF]));
@@ -41,7 +41,7 @@ describe('i8 - signed char', () => {
         describe(`write`, () => {
             it(`should write 0xEF`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = Buffer.from([0x00]);
                 const expected = Buffer.from([0xEF]);
 
@@ -54,7 +54,7 @@ describe('i8 - signed char', () => {
 
             it(`should write 0xEF with offset 2`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructBE<{ r: number }>(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = Buffer.from([0x00, 0x00, 0x00]);
                 const expected = Buffer.from([0x00, 0x00, 0xEF]);
 
@@ -72,7 +72,7 @@ describe('i8 - signed char', () => {
             it(`should read 0xEF`, () => {
                 const buffer = Buffer.from([0xEF]);
                 const model = {r: 'i8'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer);
                 expect(result.struct.r).toBe(-17);
@@ -83,7 +83,7 @@ describe('i8 - signed char', () => {
             it(`should read 0xEF with offset 2`, () => {
                 const buffer = Buffer.from([0x00, 0x00, 0xEF]);
                 const model = {r: 'i8'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.read(buffer, 2);
                 expect(result.struct.r).toBe(-17);
@@ -95,7 +95,7 @@ describe('i8 - signed char', () => {
         describe(`make`, () => {
             it(`should make 0xEF`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
 
                 const result = cStruct.make({r: -17});
                 expect(result.buffer).toEqual(Buffer.from([0xEF]));
@@ -107,7 +107,7 @@ describe('i8 - signed char', () => {
         describe(`write`, () => {
             it(`should write 0xEF`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = Buffer.from([0x00]);
                 const expected = Buffer.from([0xEF]);
 
@@ -120,7 +120,7 @@ describe('i8 - signed char', () => {
 
             it(`should write 0xEF with offset 2`, () => {
                 const model = {r: 'i8'};
-                const cStruct = new CStructLE<{ r: number }>(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = Buffer.from([0x00, 0x00, 0x00]);
                 const expected = Buffer.from([0x00, 0x00, 0xEF]);
 

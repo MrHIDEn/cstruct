@@ -5,7 +5,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`read`, () => {
             it(`should read {r: 'buf3'}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -18,7 +18,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -31,7 +31,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('03 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -44,7 +44,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'} with offset 2`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -57,7 +57,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'} with offset 2`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -70,7 +70,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r.i8: buf} with offset 2`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 03 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -85,7 +85,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`make`, () => {
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
 
@@ -98,7 +98,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
 
@@ -111,7 +111,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('03 12_34_56');
 
@@ -124,7 +124,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make and truncate static buffer`, () => {
                 const model = {staticBuffer: 'buf[2]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const struct = {
                     staticBuffer: Buffer.from("abcdef")
                 };
@@ -139,7 +139,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make and truncate static string`, () => {
                 const model = {staticString: 'string[2]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const struct = {
                     staticString: "abcdef"
                 };
@@ -156,7 +156,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`write`, () => {
             it(`should write {r: buf3}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
@@ -170,7 +170,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
@@ -184,7 +184,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('00 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('03 12_34_56');
@@ -198,7 +198,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should write {r: buf3} with offset 2`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 12_34_56');
@@ -212,7 +212,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3} with offset 2`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 12_34_56');
@@ -226,7 +226,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf} with offset 2`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructBE(model);
+                const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 03 12_34_56');
@@ -244,7 +244,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`read`, () => {
             it(`should read {r: 'buf3'}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -257,7 +257,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -270,7 +270,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('03 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -283,7 +283,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'} with offset 2`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -296,7 +296,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r: 'buf3'} with offset 2`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -309,7 +309,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should read {r.i8: buf} with offset 2`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 03 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
@@ -324,7 +324,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`make`, () => {
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
 
@@ -337,7 +337,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
 
@@ -350,7 +350,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('03 12_34_56');
 
@@ -363,7 +363,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make and truncate static buffer`, () => {
                 const model = {staticBuffer: 'buf[2]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const struct = {
                     staticBuffer: Buffer.from("abcdef")
                 };
@@ -378,7 +378,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make and truncate static string`, () => {
                 const model = {staticString: 'string[2]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const struct = {
                     staticString: "abcdef"
                 };
@@ -395,7 +395,7 @@ describe('buf - buffer - Buffer', () => {
         describe(`write`, () => {
             it(`should write {r: buf3}`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
@@ -409,7 +409,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3}`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('12_34_56');
@@ -423,7 +423,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf}`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('00 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('03 12_34_56');
@@ -437,7 +437,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should write {r: buf3} with offset 2`, () => {
                 const model = {r: 'buf3'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 12_34_56');
@@ -451,7 +451,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r: buf3} with offset 2`, () => {
                 const model = {r: 'buf[3]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 12_34_56');
@@ -465,7 +465,7 @@ describe('buf - buffer - Buffer', () => {
 
             it(`should make {r.i8: buf} with offset 2`, () => {
                 const model = {r: 'buf[i8]'};
-                const cStruct = new CStructLE(model);
+                const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer('7777 00 00_00_00');
                 const struct = {r: hexToBuffer('12_34_56')};
                 const expected = hexToBuffer('7777 03 12_34_56');

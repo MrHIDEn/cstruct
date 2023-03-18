@@ -9,7 +9,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // BE - Big endian
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
-    const cStruct = new CStructBE(`{abc: Abc}`, `{Abc: {a: u8, b: u16, c: u32}}`);
+    const cStruct = CStructBE.fromModelTypes(`{abc: Abc}`, `{Abc: {a: u8, b: u16, c: u32}}`);
 
     const {struct} = cStruct.read(buffer);
 
@@ -26,7 +26,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // BE - Big endian
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
-    const cStruct = new CStructBE(`[Abc, Abc]`, `{Abc: {a: u8, b: u16, c: u32}}`);
+    const cStruct = CStructBE.fromModelTypes(`[Abc, Abc]`, `{Abc: {a: u8, b: u16, c: u32}}`);
 
     const {struct} = cStruct.read(buffer);
 
@@ -36,7 +36,7 @@ import { hexToBuffer, CStructBE } from "../src";
 
 {
     // Make buffer from struct based on model and types
-    const cStruct = new CStructBE(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
+    const cStruct = CStructBE.fromModelTypes(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
 
     const {buffer, offset, size, toAtoms} = cStruct.make({
         errors: [
@@ -63,7 +63,7 @@ import { hexToBuffer, CStructBE } from "../src";
 {
     const writeBuffer = hexToBuffer('111111 000000000000000000000000000000000000000000000000 3333');
     // Write struct to buffer from struct based on model and types
-    const cStruct = new CStructBE(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
+    const cStruct = CStructBE.fromModelTypes(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
 
     const {buffer, offset, size, toAtoms} = cStruct.write(
         writeBuffer,
@@ -100,7 +100,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // BE - Big endian
     // Read a struct from a buffer
     // where the struct and data types are defined in a model
-    const cStruct = new CStructBE(`{order: Cnc}`, `{Cnc: {speed: f, goTo: Xyz}, Xyz: {x: u8, y: u8, z: u8}}`);
+    const cStruct = CStructBE.fromModelTypes(`{order: Cnc}`, `{Cnc: {speed: f, goTo: Xyz}, Xyz: {x: u8, y: u8, z: u8}}`);
 
     const {struct} = cStruct.read(buffer);
 
@@ -124,7 +124,7 @@ import { hexToBuffer, CStructBE } from "../src";
     }`;
 
     // IOT Sender
-    const sender = new CStructBE(iotModel, types);
+    const sender = CStructBE.fromModelTypes(iotModel, types);
     const senderData = {
         iotName: 'IOT-1',
         sensor: {
@@ -140,7 +140,7 @@ import { hexToBuffer, CStructBE } from "../src";
     console.log(senderFrame.toString('hex'));
 
     // IOT Receiver
-    const receiver = new CStructBE(iotModel, types);
+    const receiver = CStructBE.fromModelTypes(iotModel, types);
     const {struct: receiverData} = receiver.read(senderFrame);
     console.log(receiverData);
     // {
@@ -170,7 +170,7 @@ import { hexToBuffer, CStructBE } from "../src";
     }`;
 
     // IOT Sender
-    const sender = new CStructBE(iotModel, types);
+    const sender = CStructBE.fromModelTypes(iotModel, types);
     const senderData = {
         iotName: 'IOT-1',
         sensor: {
@@ -186,7 +186,7 @@ import { hexToBuffer, CStructBE } from "../src";
     console.log(senderFrame.toString('hex'));
 
     // IOT Receiver
-    const receiver = new CStructBE(iotModel, types);
+    const receiver = CStructBE.fromModelTypes(iotModel, types);
     const {struct: receiverData} = receiver.read(senderFrame);
     console.log(receiverData);
     // {
@@ -206,7 +206,7 @@ import { hexToBuffer, CStructBE } from "../src";
             a: u8,
         }
     }`;
-    const cStruct = new CStructBE('U8a', types);
+    const cStruct = CStructBE.fromModelTypes('U8a', types);
     const data = {a: 0x67};
 
     const {buffer} = cStruct.make(data);
@@ -232,7 +232,7 @@ import { hexToBuffer, CStructBE } from "../src";
             A,
         ]
     }`;
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
     console.log(cStruct.modelClone);
     // { table:
     //    [ { b: { c: [ 'u8', 'u8', 'u8' ] } },
@@ -254,7 +254,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // C-kind fields {Xyz x,y,z;} into JSON
     const model = `{Xyz m,n;}`;
     const types = `{Xyz: i16}`; // This helps to change the type of the fields called Xyz at once
-    const cStruct = new CStructBE(model, types);
+    const cStruct = CStructBE.fromModelTypes(model, types);
 
     const makeStruct = {m: 0x0102, n: 0x0103};
     // { m: 258, n: 259 }
@@ -272,7 +272,7 @@ import { hexToBuffer, CStructBE } from "../src";
 {
     // Mixed model and types
     // Make buffer from struct based on model and types
-    const cStruct = new CStructBE({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
+    const cStruct = CStructBE.fromModelTypes({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
 
     const {buffer, offset, size} = cStruct.make({
         errors: [
@@ -292,7 +292,7 @@ import { hexToBuffer, CStructBE } from "../src";
 {
     // Mixed model and types
     // Make buffer from struct based on model and types
-    const cStruct = new CStructBE(
+    const cStruct = CStructBE.fromModelTypes(
         {e: 'Error'},
         {Error: '{msg: s30, code: i16}'}
     );
