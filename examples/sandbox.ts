@@ -20,21 +20,23 @@ class GeoAltitudesFile {
 
 (async () => {
     // Make random data
-    console.time('make');
     const geoAltitudesFile = new GeoAltitudesFile();
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 400e3; i++) {
         let randomLat = Math.random() * (90 - -90) + -90;
         let randomLong = Math.random() * (180 - -180) + -180;
         let randomAlt = 6.4e6 * Math.random() * (8e3 - -4e3) + -4e3;
         const geo = {lat: randomLat, long: randomLong, alt: randomAlt};
         geoAltitudesFile.geoAltitudes.push(geo);
     }
-    console.timeEnd('make');
     console.log('Write data length,', geoAltitudesFile.geoAltitudes.length);
 
-    // Write to file
+    // Write data
+    console.time('make');
     const geoFileStruct = CStructBE.from(GeoAltitudesFile);
     const writeFile = geoFileStruct.make(geoAltitudesFile).buffer;
+    console.timeEnd('make');
+
+    // Write to file
     fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
 
     // Read from file
