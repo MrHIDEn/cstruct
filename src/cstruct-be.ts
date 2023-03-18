@@ -73,7 +73,7 @@ export class CStructBE<T> extends CStruct<T> {
         return result;
     }
 
-    static from<T = any>(from: Class | CStructClassOptions): CStructBE<T> {
+    static from<T = any>(from: Class | CStructClassOptions | T): CStructBE<T> {
         return CStructMetadata.getCStructBE(from);
     }
 
