@@ -168,3 +168,21 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     console.log(toAtoms());
     // [ 'u16:0044', 's20:78797a0000000000000000000000000000000000' ]
 }
+
+{
+    class Undecorated {
+        a: number;
+        b: number;
+    }
+    const undecorated = new Undecorated();
+    undecorated.a = -1;
+    undecorated.b = -2;
+
+    const undecoratedStruct = CStructBE.from({
+        model: '{a:float,b:double}',
+    });
+    const undecoratedBuffer = undecoratedStruct.make(undecorated).buffer;
+    console.log(undecoratedBuffer.toString('hex'));
+    // bf800000c000000000000000
+    // bf800000 c000000000000000
+}

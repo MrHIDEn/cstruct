@@ -539,7 +539,7 @@ console.log(readStruct);
 // { ab: { x: -2, y: -1 }, xyz: { x: 0, y: 1, z: 2 } }
 ```
 ```typescript
-import { CStructBE } from '@mrhiden/cstruct';
+c
 // Value, static array, dynamic array
 const model = `[
     i8,         // 1 byte
@@ -568,6 +568,24 @@ console.log(buffer.toString('hex'));
 const {struct: extractedData} = cStruct.read(buffer);
 console.log(extractedData);
 // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
+```
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+class Undecorated {
+    a: number;
+    b: number;
+}
+const undecorated = new Undecorated();
+undecorated.a = -1;
+undecorated.b = -2;
+
+const undecoratedStruct = CStructBE.from({
+    model: '{a:float,b:double}',
+});
+const undecoratedBuffer = undecoratedStruct.make(undecorated).buffer;
+console.log(undecoratedBuffer.toString('hex'));
+// bf800000c000000000000000
+// bf800000 c000000000000000
 ```
 
 ### Decorators
