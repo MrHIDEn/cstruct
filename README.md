@@ -683,9 +683,9 @@ class GeoAltitudesFile {
     console.time('make');
     const writeFile = CStructBE.make(geoAltitudesFile).buffer;
     console.timeEnd('make');
-    console.log('Write file length,', writeFile.length);
-
+    
     // Write to file
+    console.log('Write file length,', writeFile.length);
     await fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
 
     // Read from file

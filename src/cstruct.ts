@@ -1,14 +1,7 @@
 import { Model, Types } from "./types";
 import { ModelParser } from "./model-parser";
 
-/**
- * CStruct
- * Binary/Object and vice versa parser for JavaScript
- *
- * Parse MODEL,
- * Parse TYPES,
- * Uses Object, JSON, C_Struct lang (kind of C)
- */
+
 export class CStruct<T> {
     protected _jsonModel: string;
     protected _jsonTypes: Types;
@@ -24,10 +17,6 @@ export class CStruct<T> {
 
     get jsonModel(): string {
         return this._jsonModel;
-    }
-
-    get typesClone(): Model {
-        return this._jsonTypes ? JSON.parse(this.jsonTypes) as Model : undefined;
     }
 
     get modelClone(): Model {

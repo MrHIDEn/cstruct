@@ -168,8 +168,4 @@ export class Make<T> extends ReadWriteBase {
     getBufferAndOffset() {
         return [this.toBuffer(), this.offset];
     }
-
-    toAtoms(): string[] {
-        return this._writer.toAtoms();
-    }
 }

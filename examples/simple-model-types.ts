@@ -38,7 +38,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // Make buffer from struct based on model and types
     const cStruct = CStructBE.fromModelTypes({errors: ['Error', 'Error']}, {Error: {code: 'u16', message: 's10'}});
 
-    const {buffer, offset, size, toAtoms} = cStruct.make({
+    const {buffer, offset, size} = cStruct.make({
         errors: [
             {code: 0x12, message: 'message1'},
             {code: 0x34, message: 'message2'},
@@ -51,13 +51,6 @@ import { hexToBuffer, CStructBE } from "../src";
     // 24
     console.log(size);
     // 24
-    console.log(toAtoms());
-    // [
-    //   'u16:0012',
-    //   's10:6d657373616765310000',
-    //   'u16:0034',
-    //   's10:6d657373616765320000'
-    // ]
 }
 
 {
@@ -65,7 +58,7 @@ import { hexToBuffer, CStructBE } from "../src";
     // Write struct to buffer from struct based on model and types
     const cStruct = CStructBE.fromModelTypes({errors: ['Error', 'Error']}, {Error: {code: 'u16', message: 's10'}});
 
-    const {buffer, offset, size, toAtoms} = cStruct.write(
+    const {buffer, offset, size} = cStruct.write(
         writeBuffer,
         {
             errors: [
@@ -82,13 +75,6 @@ import { hexToBuffer, CStructBE } from "../src";
     // 27
     console.log(size);
     // 24
-    console.log(toAtoms());
-    // [
-    //   'u16:0012',
-    //   's10:6d657373616765310000',
-    //   'u16:0034',
-    //   's10:6d657373616765320000'
-    // ]
 }
 
 {
