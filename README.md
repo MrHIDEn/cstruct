@@ -539,7 +539,7 @@ console.log(readStruct);
 // { ab: { x: -2, y: -1 }, xyz: { x: 0, y: 1, z: 2 } }
 ```
 ```typescript
-c
+import { CStructBE } from '@mrhiden/cstruct';
 // Value, static array, dynamic array
 const model = `[
     i8,         // 1 byte
