@@ -5,49 +5,49 @@ export class WriteBufferBE extends WriteBuffer {
     _u16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
         buffer.writeUInt16BE(val);
-        this.addAtom('u16', buffer);
+        this.moveOffset(buffer);
     }
 
     _i16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
         buffer.writeInt16BE(val);
-        this.addAtom('i16', buffer);
+        this.moveOffset(buffer);
     }
 
     _u32(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeUInt32BE(val);
-        this.addAtom('u32', buffer);
+        this.moveOffset(buffer);
     }
 
     _i32(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeInt32BE(val);
-        this.addAtom('i32', buffer);
+        this.moveOffset(buffer);
     }
 
     _u64(val = 0n) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeBigUInt64BE(val);
-        this.addAtom('u64', buffer);
+        this.moveOffset(buffer);
     }
 
     _i64(val = 0n) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeBigInt64BE(val);
-        this.addAtom('i64', buffer);
+        this.moveOffset(buffer);
     }
 
     _f(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeFloatBE(val);
-        this.addAtom('f', buffer);
+        this.moveOffset(buffer);
     }
 
     _d(val = 0) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeDoubleBE(val);
-        this.addAtom('d', buffer);
+        this.moveOffset(buffer);
     }
     constructor() {
         super();

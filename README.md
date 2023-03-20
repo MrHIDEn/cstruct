@@ -569,6 +569,24 @@ const {struct: extractedData} = cStruct.read(buffer);
 console.log(extractedData);
 // [ 1, [ 2, 3 ], [ 4, 5, 6, 7 ] ]
 ```
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+class Undecorated {
+    a: number;
+    b: number;
+}
+const undecorated = new Undecorated();
+undecorated.a = -1;
+undecorated.b = -2;
+
+const undecoratedStruct = CStructBE.from({
+    model: '{a:float,b:double}',
+});
+const undecoratedBuffer = undecoratedStruct.make(undecorated).buffer;
+console.log(undecoratedBuffer.toString('hex'));
+// bf800000c000000000000000
+// bf800000 c000000000000000
+```
 
 ### Decorators
 TypeScript's decorators to serialize/deserialize class object to/from binary
@@ -665,9 +683,9 @@ class GeoAltitudesFile {
     console.time('make');
     const writeFile = CStructBE.make(geoAltitudesFile).buffer;
     console.timeEnd('make');
-    console.log('Write file length,', writeFile.length);
-
+    
     // Write to file
+    console.log('Write file length,', writeFile.length);
     await fs.promises.writeFile('geoAltitudesFile.bin', writeFile);
 
     // Read from file

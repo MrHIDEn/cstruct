@@ -156,8 +156,4 @@ export class Read<T> extends ReadWriteBase {
     get offset() {
         return this._reader.offset;
     }
-
-    toAtoms(): string[] {
-        return this._reader.toAtoms();
-    }
 }

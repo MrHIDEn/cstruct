@@ -2,8 +2,6 @@ import { ReaderFunctions, ReaderValue } from "./types";
 import { BaseBuffer } from "./base-buffer";
 
 export class ReadBuffer extends BaseBuffer {
-    protected _types: string[] = [];
-    protected _buffers: Buffer[] = [];
     protected _buffer: Buffer;
     protected _offset: number;
     protected _beginOffset: number;
@@ -11,13 +9,13 @@ export class ReadBuffer extends BaseBuffer {
 
     private _u8() {
         const val = this._buffer.readUInt8(this._offset);
-        this.addAtom('u8', 1);
+        this.moveOffset(1);
         return val;
     }
 
     private _i8() {
         const val = this._buffer.readInt8(this._offset);
-        this.addAtom('i8', 1);
+        this.moveOffset(1);
         return val;
     }
 
@@ -30,7 +28,7 @@ export class ReadBuffer extends BaseBuffer {
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
             .split('\0', 1).pop(); // remove all trailing null bytes
-        this.addAtom(`s${size}`, size);
+        this.moveOffset(size);
         return val;
     }
 
@@ -41,7 +39,7 @@ export class ReadBuffer extends BaseBuffer {
 
         const val = this._buffer
             .slice(this._offset, this._offset + size);
-        this.addAtom(`s${size}`, size);
+        this.moveOffset(size);
         return val;
     }
 
@@ -83,14 +81,7 @@ export class ReadBuffer extends BaseBuffer {
         return this._offset;
     }
 
-    protected addAtom(type: string, size: number) {
-        const buffer: Buffer = this._buffer.slice(this._offset, this._offset + size);
-        this._types.push(type);
-        this._buffers.push(buffer);
-        this._offset += buffer.length;
-    }
-
-    toAtoms(): string[] {
-        return this._types.map((a, i) => `${a}:${this._buffers[i].toString('hex')}`);
+    protected moveOffset(size: number) {
+        this._offset += size;
     }
 }

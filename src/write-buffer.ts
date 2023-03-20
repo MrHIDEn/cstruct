@@ -2,7 +2,6 @@ import { WriterFunctions, WriterValue } from "./types";
 import { BaseBuffer } from "./base-buffer";
 
 export class WriteBuffer extends BaseBuffer {
-    protected _types: string[] = [];
     protected _buffers: Buffer[] = [];
     protected _offset = 0;
     protected _atomFunctions: Map<string, WriterFunctions>;
@@ -10,13 +9,13 @@ export class WriteBuffer extends BaseBuffer {
     private _u8(val = 0) {
         const buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(val);
-        this.addAtom('u8', buffer);
+        this.moveOffset(buffer);
     }
 
     private _i8(val = 0) {
         const buffer = Buffer.allocUnsafe(1);
         buffer.writeInt8(val);
-        this.addAtom('i8', buffer);
+        this.moveOffset(buffer);
     }
 
     private _s(val = '', size?: number) {
@@ -36,10 +35,10 @@ export class WriteBuffer extends BaseBuffer {
         // Consider using "utf16le" encoding as well as "utf8" encoding
         const buffer = Buffer.allocUnsafe(size);
         buffer.write(val, 0, size, 'utf8');
-        this.addAtom(`s${size}`, buffer);
+        this.moveOffset(buffer);
     }
 
-    private _buf(val = Buffer.from(""), size?: number) {
+    private _buf(val = Buffer.alloc(0), size?: number) {
         if (!(val instanceof Buffer)) {
             throw new Error(`Invalid buffer value ${val}`);
         }
@@ -47,13 +46,12 @@ export class WriteBuffer extends BaseBuffer {
         let buffer;
         if (size === undefined) {
             buffer = val;
-            size = buffer.length;
         } else {
             buffer = Buffer.alloc(size);
             val.copy(buffer, 0, 0, size);
         }
 
-        this.addAtom(`buf${size}`, buffer);
+        this.moveOffset(buffer);
     }
 
     constructor() {
@@ -98,18 +96,8 @@ export class WriteBuffer extends BaseBuffer {
         return this._offset;
     }
 
-    protected addAtom(atom: string, buffer: Buffer) {
-        this._types.push(atom);
+    protected moveOffset(buffer: Buffer) {
         this._buffers.push(buffer);
         this._offset += buffer.length;
-    }
-
-    toAtoms(): string[] {
-        return this._types.map((a, i) => `${a}:${this._buffers[i].toString('hex')}`);
-    }
-
-    // TODO: Remove this method
-    get size2(): number {
-        return this._buffers.reduce((acc, b) => acc + b.length, 0);
     }
 }

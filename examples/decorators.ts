@@ -14,6 +14,23 @@ import {
  * }
  */
 {
+    @CStructClass({
+        model: '{a:float,b:double}',
+    })
+    class Decorated {
+        a: number;
+        b: number;
+    }
+    const decorated = new Decorated();
+    decorated.a = -1;
+    decorated.b = -2;
+
+    const dBuf = CStructBE.make(decorated).buffer;
+    console.log(dBuf.toString('hex'));
+    // bf800000c000000000000000
+    // bf800000 c000000000000000
+}
+{
     // Decorators - Serialize any class with CStructClass decorator, model
     @CStructClass({
         model: {a: 'u16', b: 'i16'}

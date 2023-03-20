@@ -103,7 +103,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = CStructBE.fromModelTypes({ error: {code: 'u16', message: 's20'} });
 
-    const { struct, offset, size, toAtoms } = cStruct.read(buffer);
+    const { struct, offset, size } = cStruct.read(buffer);
 
     console.log(struct);
     // { error: { code: 15, message: 'abc' } }
@@ -111,8 +111,6 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // 17
     console.log(size);
     // 17
-    console.log(toAtoms());
-    // ["u16:000f", "s20:616263000000000000000000000000"]
 }
 
 {
@@ -134,7 +132,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // Make buffer from struct based on model
     const cStruct = CStructBE.fromModelTypes({ error: {code: 'u16', message: 's20'} });
 
-    const { buffer, offset, size, toAtoms } = cStruct.make({ error: { code: 10, message: 'xyz' } });
+    const { buffer, offset, size } = cStruct.make({ error: { code: 10, message: 'xyz' } });
 
     console.log(buffer.toString('hex'));
     // 000a78797a0000000000000000000000000000000000
@@ -142,8 +140,6 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // 22
     console.log(size);
     // 22
-    console.log(toAtoms());
-    // [ 'u16:000a', 's20:78797a0000000000000000000000000000000000' ]
 }
 
 {
@@ -153,7 +149,7 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
 
     const cStruct = CStructBE.fromModelTypes({ error: {code: 'u16', message: 's20'} });
 
-    const { buffer: b, offset, size, toAtoms } = cStruct.write(
+    const { buffer: b, offset, size } = cStruct.write(
         buffer,
         { error: { code: 0x44, message: 'xyz' } },
         3
@@ -165,6 +161,22 @@ import { hexToBuffer, CStructBE, CStructLE } from "../src";
     // 25
     console.log(size);
     // 22
-    console.log(toAtoms());
-    // [ 'u16:0044', 's20:78797a0000000000000000000000000000000000' ]
+}
+
+{
+    class Undecorated {
+        a: number;
+        b: number;
+    }
+    const undecorated = new Undecorated();
+    undecorated.a = -1;
+    undecorated.b = -2;
+
+    const undecoratedStruct = CStructBE.from({
+        model: '{a:float,b:double}',
+    });
+    const undecoratedBuffer = undecoratedStruct.make(undecorated).buffer;
+    console.log(undecoratedBuffer.toString('hex'));
+    // bf800000c000000000000000
+    // bf800000 c000000000000000
 }
