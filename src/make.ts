@@ -59,7 +59,7 @@ export class Make<T> extends ReadWriteBase {
                     structValues = JSON.stringify(structValues);
 
                 // Write string or buffer
-                case SpecialType.String:
+                case SpecialType.String: // eslint-disable-line no-fallthrough
                 case SpecialType.Buffer:
                     this._writer.write(`${modelType}${staticSize}`, structValues);
                     break;
@@ -119,7 +119,7 @@ export class Make<T> extends ReadWriteBase {
                     structValues = JSON.stringify(structValues);
 
                 // Write string or buffer
-                case SpecialType.String:
+                case SpecialType.String: // eslint-disable-line no-fallthrough
                 case SpecialType.Buffer:
                     this._writer.write(dynamicType, structValues);
                     break;
