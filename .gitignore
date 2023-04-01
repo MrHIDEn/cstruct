@@ -3,3 +3,7 @@
 /.idea/
 sbox-*.ts
 /lib/
+
+
+--*.js
+--*.js.map
