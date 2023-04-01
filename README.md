@@ -176,6 +176,7 @@ Types can be much more complex.<br>
 ### Basic examples
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make BE buffer from struct based on model
 const model = { a: 'u16', b: 'i16' };
 const cStruct = CStructBE.fromModelTypes(model);
@@ -190,6 +191,7 @@ console.log(buffer.toString('hex'));
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make BE buffer from struct based on model
 const cStruct = CStructBE.fromModelTypes({ error: {code: 'u16', message: 's20'} });
 
@@ -205,6 +207,7 @@ console.log(size);
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Read BE buffer to struct based on model
 const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
 console.log(buffer.toString('hex'));
@@ -220,6 +223,7 @@ console.log(struct);
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Read BE buffer to struct based on model
 const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
 console.log(buffer.toString('hex'));
@@ -240,6 +244,7 @@ console.log(size);
 ### Examples with classes
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 class MyClass {
     public propertyA: number;
     public propertyB: number;
@@ -260,6 +265,7 @@ console.log(make.buffer.toString('hex'));
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 @CStructClass({
     model: `{propertyA: U16, propertyB: I16}`,
     types: '{U16: uint16, I16: int16}',
@@ -283,6 +289,7 @@ console.log(make.buffer.toString('hex'));
 ### Examples with types
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Model and Types for Sender & Receiver
 const types = {
   Sensor: {
@@ -331,6 +338,7 @@ console.log(receiverData);
 ### String based examples. Model and Types are strings but you can mix approach
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make buffer from struct based on model and types
 const cStruct = CStructBE.fromModelTypes(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
 
@@ -350,6 +358,7 @@ console.log(size);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Mixed approach for model and types
 const cStruct = CStructBE.fromModelTypes({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
 
@@ -371,6 +380,7 @@ console.log(size);
 ### C-kind data fields
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C-kind fields {u8 a,b;} into {a:u8,b:u8}
 const model = `{u8 a,b;}`;
 const cStruct = CStructBE.fromModelTypes(model);
@@ -390,6 +400,7 @@ console.log(readStruct);
 ### Dynamic length
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Dynamic (length) array with types
 const model = {
     ab: "Ab[i16]",
@@ -421,6 +432,7 @@ console.log(extractedData);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Dynamic (length) string
 const model = {
     txt1: "s[i16]",
@@ -450,6 +462,7 @@ console.log(extractedData);
 ### PLC example
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 const model = {b: 'BYTE', w: 'WORD', f: 'BOOL'};
 
 const cStruct = CStructBE.fromModelTypes(model);
@@ -473,6 +486,7 @@ console.log(extractedData);
 ### C-kind struct
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C struct types
 const model = {
     xyzs: "Xyx[2]",
@@ -504,6 +518,7 @@ console.log(readStruct);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C struct types
 const types = `{
     // 1st approach
@@ -542,6 +557,7 @@ console.log(readStruct);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Value, static array, dynamic array
 const model = `[
     i8,         // 1 byte
@@ -573,6 +589,7 @@ console.log(extractedData);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 class Undecorated {
     a: number;
     b: number;
@@ -702,6 +719,41 @@ class GeoAltitudesFile {
     console.log('Read fileName,', readGeoAltitudesFile.fileName);
     console.log('Read data length,', readGeoAltitudesFile.geoAltitudes.length);
 })();
+```
+
+### JSON mode
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+@CStructClass({
+    model: {
+        any1: 'j[i8]',
+        any2: 'json[i8]',
+        any3: 'any[i8]',
+    }
+})
+class MyClass {
+    any1: any;
+    any2: any;
+    any3: any;
+}
+
+const myClass = new MyClass();
+myClass.any1 = {a: 1};
+myClass.any2 = {b: "B"};
+myClass.any3 = [1, 3, 5];
+
+const buffer = CStructBE.make(myClass).buffer;
+console.log(buffer.toString('hex'));
+// 077b2261223a317d097b2262223a2242227d075b312c332c355d
+// 07_7b2261223a317d 09_7b2262223a2242227d 07_5b312c332c355d
+const myClass2 = CStructBE.read(MyClass, buffer).struct;
+console.log(myClass2);
+// MyClass {
+//   any1: { a: 1 },
+//   any2: { b: 'B' },
+//   any3: [ 1, 3, 5 ]
+// }
 ```
 
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
