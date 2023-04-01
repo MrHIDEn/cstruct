@@ -108,8 +108,6 @@ export class Make<T> extends ReadWriteBase {
             staticSize
         } = this.extractTypeAndSize(modelType, dynamicLength);
         let structValues = struct[modelKey];
-        // const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBufferOrJson(modelType);
-        // const {isStatic, staticSize} = this._getStaticSize(dynamicLength);
 
         // Static size
         if (isStatic) {

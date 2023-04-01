@@ -63,7 +63,7 @@ export class WriteBuffer extends BaseBuffer {
             ['i8', (val: number) => this._i8(val)],
             ['s', (val: string, size?: number) => this._s(val, size)],
             ['buf', (val: Buffer, size?: number) => this._buf(val, size)],
-            ['j', (val: any) => this._s(val)],
+            ['j', (val: any, size?: number) => this._s(val, size)],
         ]);
     }
 
