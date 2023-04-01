@@ -55,12 +55,13 @@ export class ReadBuffer extends BaseBuffer {
             ['i8', () => this._i8()],
             ['s', (size: number) => this._s(size)],
             ['buf', (size: number) => this._buf(size)],
+            ['j', (size: number) => this._s(size)]
         ])
     }
 
     read(type: string): ReaderValue {
         let size: number;
-        const groups = type.match(/^(?<type>s|buf)(?<size>\d+)$/)?.groups;
+        const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
         if (groups) {
             type = groups.type;
             size = +groups.size;

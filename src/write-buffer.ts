@@ -33,6 +33,7 @@ export class WriteBuffer extends BaseBuffer {
         }
 
         // Consider using "utf16le" encoding as well as "utf8" encoding
+        // This fit data up to size
         const buffer = Buffer.allocUnsafe(size);
         buffer.write(val, 0, size, 'utf8');
         this.moveOffset(buffer);
@@ -62,12 +63,13 @@ export class WriteBuffer extends BaseBuffer {
             ['i8', (val: number) => this._i8(val)],
             ['s', (val: string, size?: number) => this._s(val, size)],
             ['buf', (val: Buffer, size?: number) => this._buf(val, size)],
+            ['j', (val: any) => this._s(val)],
         ]);
     }
 
     write(type: string, val: WriterValue) {
         let size: number;
-        const groups = type.match(/^(?<type>s|buf)(?<size>\d+)$/)?.groups;
+        const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
         if (groups) {
             type = groups.type;
             size = +groups.size;
