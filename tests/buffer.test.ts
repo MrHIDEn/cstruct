@@ -146,7 +146,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('6162');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'staticString.2': 's'});
+                expect(cStruct.modelClone).toEqual({'staticString.2': 'string'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(2);
                 expect(result.size).toBe(2);
@@ -385,7 +385,7 @@ describe('buf - buffer - Buffer', () => {
                 const expected = hexToBuffer('6162');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'staticString.2': 's'});
+                expect(cStruct.modelClone).toEqual({'staticString.2': 'string'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(2);
                 expect(result.size).toBe(2);
