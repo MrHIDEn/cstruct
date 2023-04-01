@@ -23,7 +23,7 @@ export interface CStructWriteResult {
 }
 
 export enum SpecialType {
-    String = 0,
-    Buffer = 1,
-    Json = 2,
+    String = 1,
+    Buffer,
+    Json,
 }
