@@ -42,9 +42,6 @@ export class ModelParser {
         json = json.replace(/['"]/g, ``); // remove all `'"`
         json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
         json = json.replace(/\s{2,}/g, ` `); // reduce spaces '\s'x to one ' '
-        json = json.replace(/string(\d+|\/|\[\w+])/g, `s$1`); // replace 'string' with 's'
-        json = json.replace(/buffer(\d+|\/|\[\w+])/g, `buf$1`); // reduce 'buffer' with 'buf'
-
         return json;
     }
 
@@ -88,15 +85,21 @@ export class ModelParser {
         // Static
         // `{some:s[2]}`      => `{some: s2}`
         // `{some:string[2]}` => `{some: s2}`
-        // `{some:Abc[i8]}`    => `{some: [Abc,Abc]}`
+        // `{some:Abc[i8]}`   => `{some: [Abc,Abc]}`
         // `{some:buf[2]}`    => `{some: buf2}`
         // `{some:buffer[2]}` => `{some: buf2}`
+        // `{some:j[2]}`      => `{some: j2}`
+        // `{some:json[2]}`   => `{some: j2}`
+        // `{some:any[2]}`    => `{some: j2}`
         // Dynamic
         // `{some:s[i8]}`      => `{some.i8: s}`
         // `{some:string[i8]}` => `{some.i8: s}`
         // `{some:Abc[i8]}`    => `{some.i8: Abc}`
         // `{some:buf[i8]}`    => `{some.i8: buf}`
         // `{some:buffer[i8]}` => `{some.i8: buf}`
+        // `{some:j[i8]}`      => `{some.i8: j}`
+        // `{some:json[i8]}`   => `{some.i8: j}`
+        // `{some:any[i8]}`    => `{some.i8: j}`
         const matches =
             json.match(/\w+:\w+\[\w+]/g) ??
             [];
@@ -118,6 +121,9 @@ export class ModelParser {
         // `buf[2]`     => `buf.2`
         // `buffer[2]`  => `buf.2`
         // `i16[2]`     => `i16.2`
+        // `j[2]`       => `j.2`
+        // `json[2]`    => `j.2`
+        // `any[2]`     => `j.2`
         // Dynamic
         // `s[i8]`      => `s.i8`
         // `string[i8]` => `s.i8`
@@ -125,6 +131,9 @@ export class ModelParser {
         // `buf[i8]`    => `buf.i8`
         // `buffer[i8]` => `buf.i8`
         // `i16[i8]`    => `i16.i8`
+        // `j[i8]`      => `j.i8`
+        // `json[i8]`   => `j.i8`
+        // `any[i8]`    => `j.i8`
         const matches =
             json.match(/\w+\[\w+]/g) ??
             [];
