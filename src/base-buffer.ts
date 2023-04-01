@@ -1,13 +1,14 @@
 import { Alias, ReaderFunctions, WriterFunctions } from "./types";
 
 export class BaseBuffer {
-    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s,buf`.split(',');
-    private _stringOrBufferAtom = /^(s|buf)[0-9]+/;
+    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s,buf,j`.split(',');
+    private _stringOrBufferAtomOrJson = /^(s|string|buf|buffer|j|json|any)[0-9]+$/;
+    protected _stringOrBufferAtomOrJsonGroups = /^(?<type>s|string|buf|buffer|j|json|any)(?<size>[0-9]+)$/;
 
     protected isProtectedType(type: string): boolean {
         return (
             this._atomTypes.includes(type) ||
-            this._stringOrBufferAtom.test(type)
+            this._stringOrBufferAtomOrJson.test(type)
         );
     }
 
@@ -30,6 +31,10 @@ export class BaseBuffer {
 
             ['f', 'REAL', 'float', 'float32', 'float32_t', 'single'],
             ['d', 'LREAL', 'double', 'float64', 'float64_t'],
+
+            ['s', 'string'],
+            ['buf', 'buffer'],
+            ['j', 'json', 'any'],
         ];
         this.addAliases(aliases);
     }
