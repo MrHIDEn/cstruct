@@ -45,7 +45,6 @@ export class Read<T> extends ReadWriteBase {
         // 2 modelKey: some.5  , modelType: u8, dynamicType: some, dynamicLength: 5
         // 1 (some.i16: u8)
         // 2 (some.5  : u8)
-        const type = modelType;
 
         const {
             specialType,
@@ -75,7 +74,6 @@ export class Read<T> extends ReadWriteBase {
         // 2 struct, modelKey: "0", modelType: u8.5  , dynamicType: u8, dynamicLength: 5
         // 1 (u8.i16) (<dynamicType>.<dynamicLength>)
         // 2 (u8.5)   (<dynamicType>.<dynamicLength>)
-        const type = modelType;
 
         const {
             specialType,
