@@ -12,7 +12,8 @@
 * TypeScript decorators for classes and properties
 
 ### Whats new?
-* Decorators have been refactored and improved
+* Added JSON type to transfer blocks of data as JSON string inside buffer
+* Fixed model parser to prevent replace field keys names such as 'string...', 'buffer...', 'json...', 's...', 'buf...', 'j...'
 
 ### Install
 `npm i @mrhiden/cstruct`
@@ -36,6 +37,7 @@
 | d    | double             | 4        | double float64 float64_t LREAL       |
 | sN   | string             | N        | string                               |
 | bufN | buffer             | N        | buffer                               |
+| jN   | json               | N        | json any                             |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
