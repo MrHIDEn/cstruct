@@ -1,5 +1,7 @@
-@mrhiden/cstruct - *'C like structures'* - TypeScript library
-=
+# @mrhiden/cstruct
+- *'C like structures'* - TypeScript library
+
+[![npm version](https://badge.fury.io/js/@mrhiden%2Fcstruct.svg)](https://badge.fury.io/js/@mrhiden%2Fcstruct)
 
 ### Features
 * Read/make/write buffer, **Buffer <=> Object/Array**
@@ -11,33 +13,36 @@
 * Big endian - BE
 * TypeScript decorators for classes and properties
 
-### Whats new?
+### Whats new in 1.2 ?
 * Added JSON type to transfer blocks of data as JSON string inside buffer
 * Fixed model parser to prevent replace field keys names such as 'string...', 'buffer...', 'json...', 's...', 'buf...', 'j...'
+### Whats new in 1.3 ?
+* Added trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
+* When we try to write Buffer or Json into too small space, it will throw an error. String will be trimmed to fit.
 
 ### Install
 `npm i @mrhiden/cstruct`
 
 ### Data types, Atom types and aliases
-| Atom | Type               | Size [B] | Aliases                              |
-|------|--------------------|----------|--------------------------------------|
-| b8   | boolean            | 1        | bool8                    BOOL        |
-| b16  | boolean            | 2        | bool16                               |
-| b32  | boolean            | 4        | bool32                               |
-| b64  | boolean            | 8        | bool64                               |
-| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |
-| u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |
-| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |
-| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD       |
-| i8   | signed char        | 1        | int8  int8_t             SINT        |
-| i16  | signed int         | 2        | int16 int16_t            INT         |
-| i32  | signed long        | 4        | int32 int32_t            DINT        |
-| i64  | signed long long   | 8        | int64 int64_t            LINT        |
-| f    | float              | 4        | float  float32 float32_t REAL single |
-| d    | double             | 4        | double float64 float64_t LREAL       |
-| sN   | string             | N        | string                               |
-| bufN | buffer             | N        | buffer                               |
-| jN   | json               | N        | json any                             |
+| Atom | Type               | Size [B] | Aliases                              | Notes |
+|------|--------------------|----------|--------------------------------------|-------|
+| b8   | boolean            | 1        | bool8                    BOOL        |       |
+| b16  | boolean            | 2        | bool16                               |       |
+| b32  | boolean            | 4        | bool32                               |       |
+| b64  | boolean            | 8        | bool64                               |       |
+| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |       |
+| u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |       |
+| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |       |
+| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD       |       |
+| i8   | signed char        | 1        | int8  int8_t             SINT        |       |
+| i16  | signed int         | 2        | int16 int16_t            INT         |       |
+| i32  | signed long        | 4        | int32 int32_t            DINT        |       |
+| i64  | signed long long   | 8        | int64 int64_t            LINT        |       |
+| f    | float              | 4        | float  float32 float32_t REAL single |       |
+| d    | double             | 4        | double float64 float64_t LREAL       |       |
+| sN   | string             | N        | string                               | N= 0+ |
+| bufN | buffer             | N        | buffer                               | N= 1+ |
+| jN   | json               | N        | json any                             | M= 0+ |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
@@ -756,4 +761,43 @@ console.log(myClass2);
 // }
 ```
 
+### Trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
+This library has support for trailing zero for "string" and "json" types.<br>
+When you use it "json" and "string" will be written as full unknown length and '\0' will be added at the end.<br>
+That ending zero helps to read data from binary file without knowing the length of the string / json.<br>
+We can not use that trick with buffer as it may contain zeros at any place.<br>
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+const model = {
+    any1: 'j[0]', // or 'json[0]' or 'any[0]'
+    any2: 's[0]', // or 'string[0]'
+};
+
+const cStruct = CStructBE.fromModelTypes(model);
+
+const data = {
+    any1: [1, 2, 3],
+    any2: 'abc',
+};
+
+const buffer = cStruct.make(data).buffer;
+console.log(buffer.toString('hex'));
+// 5b312c322c335d0061626300
+// 5b_31_2c_32_2c_33_5d_00 616263_00
+// [  1  ,  2  ,  3  ]  \0 a b c  \0
+
+const extractedData = cStruct.read(buffer).struct;
+console.log(extractedData);
+// { any1: [ 1, 2, 3 ], any2: 'abc' }
+
+console.log(JSON.stringify(data) === JSON.stringify(extractedData));
+// true
+```
+
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
+
+### Contact
+If you have any questions or suggestions, please contact me at<br>
+[mrhiden@outlook.com](mailto:mrhiden@outlook.com)

@@ -48,7 +48,7 @@ describe('buf - buffer - Buffer', () => {
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
-                const result = cStruct.read(buffer ,2);
+                const result = cStruct.read(buffer, 2);
                 expect(cStruct.modelClone).toEqual({r: 'buf3'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(5);
@@ -128,13 +128,11 @@ describe('buf - buffer - Buffer', () => {
                 const struct = {
                     staticBuffer: Buffer.from("abcdef")
                 };
-                const expected = hexToBuffer('6162');
 
-                const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'staticBuffer.2': 'buf'});
-                expect(result.buffer).toEqual(expected);
-                expect(result.offset).toBe(2);
-                expect(result.size).toBe(2);
+                const t = () => {
+                    cStruct.make(struct);
+                };
+                expect(t).toThrow(new Error('Size of value 6 is greater than 2.'));
             });
 
             it(`should make and truncate static string`, () => {
@@ -287,7 +285,7 @@ describe('buf - buffer - Buffer', () => {
                 const buffer = hexToBuffer('7777 12_34_56');
                 const expected = {r: hexToBuffer('12_34_56')};
 
-                const result = cStruct.read(buffer ,2);
+                const result = cStruct.read(buffer, 2);
                 expect(cStruct.modelClone).toEqual({r: 'buf3'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(5);
@@ -367,13 +365,11 @@ describe('buf - buffer - Buffer', () => {
                 const struct = {
                     staticBuffer: Buffer.from("abcdef")
                 };
-                const expected = hexToBuffer('6162');
 
-                const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'staticBuffer.2': 'buf'});
-                expect(result.buffer).toEqual(expected);
-                expect(result.offset).toBe(2);
-                expect(result.size).toBe(2);
+                const t = () => {
+                    cStruct.make(struct);
+                };
+                expect(t).toThrow(new Error('Size of value 6 is greater than 2.'));
             });
 
             it(`should make and truncate static string`, () => {

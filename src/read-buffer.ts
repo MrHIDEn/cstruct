@@ -20,14 +20,17 @@ export class ReadBuffer extends BaseBuffer {
     }
 
     private _s(size: number) {
-        if (!size || size < 0) {
+        if (size === undefined || size < 0) {
             throw new Error(`Invalid string size ${size ?? typeof size}`);
+        }
+        if (size === 0) {
+            size = this._buffer.indexOf(0, this._offset) - this._offset + 1;
         }
 
         // Consider using "utf16le" encoding as well as "utf8" encoding
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
-            .split('\0', 1).pop(); // remove all trailing null bytes
+            .split('\x00', 1).pop(); // remove all trailing null bytes
         this.moveOffset(size);
         return val;
     }
@@ -59,12 +62,13 @@ export class ReadBuffer extends BaseBuffer {
         ])
     }
 
-    read(type: string): ReaderValue {
-        let size: number;
-        const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
-        if (groups) {
-            type = groups.type;
-            size = +groups.size;
+    read(type: string, size?: number): ReaderValue {
+        if (size === undefined) {
+            const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
+            if (groups) {
+                type = groups.type;
+                size = +groups.size;
+            }
         }
         if (this._atomFunctions.has(type)) {
             const reader = this._atomFunctions.get(type);
