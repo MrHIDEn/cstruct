@@ -17,3 +17,4 @@
 | d    | double             | 4        | double float64 float64_t LREAL       |
 | sN   | string             | N        | string                               |
 | bufN | buffer             | N        | buffer                               |
+| jN   | json               | N        | json any                             |

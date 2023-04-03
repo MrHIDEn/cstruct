@@ -1,4 +1,4 @@
-import { Model, StructEntry, Type, WriterValue } from "./types";
+import { Model, SpecialType, StructEntry, Type, WriterValue } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 import { ReadWriteBase } from "./read-write-base";
@@ -10,24 +10,24 @@ export class Make<T> extends ReadWriteBase {
         const entries: StructEntry[] = Object.entries(model);
 
         for (const [modelKey, modelType] of entries) {
-            // Catch dynamic key
-            const keyDynamicGroups = this._dynamicGroupsMatch(modelKey);
+            // Catch key.length
+            const keyLengthGroups = this._getTypeLengthGroupsMatch(modelKey);
 
             // Dynamic key
-            if (keyDynamicGroups) {
-                const {dynamicKey, dynamicLength} = keyDynamicGroups;
-                this._writeDynamicKey(struct, modelKey, modelType, dynamicKey, dynamicLength);
+            if (keyLengthGroups) {
+                const {dynamicType, dynamicLength} = keyLengthGroups;
+                this._writDynamicOrStatic(struct, modelType as string, dynamicLength, dynamicType, modelType as string);
                 continue;
             }
 
             // Dynamic type
             if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this._dynamicGroupsMatch(modelType);
+                const typeDynamicGroups = this._getTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
-                    const {dynamicKey: dynamicType, dynamicLength} = typeDynamicGroups;
-                    this._writeDynamicType(struct, modelKey, modelType, dynamicType, dynamicLength);
+                    const {dynamicType, dynamicLength} = typeDynamicGroups;
+                    this._writDynamicOrStatic(struct, dynamicType, dynamicLength, modelKey, dynamicType);
                     continue;
                 }
             }
@@ -37,89 +37,51 @@ export class Make<T> extends ReadWriteBase {
         }
     }
 
-    private _writeDynamicKey(struct: T, modelKey: string, modelType: Type, dynamicKey: string, dynamicLength: string) {
-        // (some.i16: u8)
-        // modelKey: some.i16, itemsType: u8, dynamicKey: some, dynamicLength: i16
-        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(modelType);
-        const structValues = struct[dynamicKey];
-        const {isNumber, staticSize} = this._getSize(dynamicLength);
+    private _writDynamicOrStatic(struct: T, modelType: string, dynamicLength: string, structKey: string, writeType: string) {
+        // Dynamic key
+        // Dyn (some.i16: u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[i8]'} modelType = u8
+        // Sta (some.5  : u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[9]'}  modelType = u8
+        // Dynamic type
+        // Dyn (u8.i16) (<dynamicType>.<dynamicLength>) data = ['j[i8]'] modelType = u8
+        // Sta (u8.5)   (<dynamicType>.<dynamicLength>) data = ['j[9]']  modelType = u8
 
-        // Static size
-        if (isNumber) {
-            // (some.2: u8)
-            // modelKey: some.2, modelType: u8, dynamicKey: some, dynamicLength: 2
+        const {
+            specialType,
+            isStatic,
+            staticSize
+        } = this.extractTypeAndSize(modelType, dynamicLength);
 
-            // Write string or buffer
-            if (itemTypeIsStringOrBuffer) {
-                this._writer.write(`${modelType}${staticSize}`, structValues);
-            }
-            // Write array of modelType
-            else {
-                if (structValues.length !== staticSize) {
-                    throw new Error(`Expected ${staticSize} items, got ${structValues.length}`);
-                }
-                this._writeArray(modelType, structValues);
-            }
+        let structValues = struct[structKey];
+        if (specialType === SpecialType.Json) {
+            structValues = JSON.stringify(structValues);
         }
-        // Dynamic size
-        else {
-            // (some.i16: u8)
-            // modelKey: some.i16, modelType: u8, dynamicKey: some, dynamicLength: i16
-            const size = structValues.length;
 
-            // Write size
+        if (isStatic && staticSize !== 0 && structValues.length > staticSize  && specialType !== SpecialType.String) {
+            throw new Error(`Size of value ${structValues.length} is greater than ${staticSize}.`);
+        }
+
+        const size = isStatic
+            ? staticSize
+            : structValues.length;
+
+        if (size === 0 && specialType === SpecialType.Buffer) {
+            throw new Error(`Buffer size can not be 0.`);
+        }
+
+        // Dynamic, write size before value
+        if (!isStatic) {
             this._writer.write(dynamicLength, size);
-
-            // Write string or buffer
-            if (itemTypeIsStringOrBuffer) {
-                this._writer.write(modelType as string, structValues);
-            }
-            // Write array of modelType
-            else {
-                this._writeArray(modelType, structValues);
-            }
         }
-    }
 
-    private _writeDynamicType(struct: T, modelKey: string, modelType: Type, dynamicType: string, dynamicLength: string) {
-        const itemTypeIsStringOrBuffer = this._itemTypeIsStringOrBuffer(modelType);
-        const structValues = struct[modelKey];
-        const {isNumber, staticSize} = this._getSize(dynamicLength);
-
-        // Static size
-        if (isNumber) {
-            // (i8.3)
-            // modelKey: "0", modelType: i8.3, dynamicKey: i8, dynamicLength: 3
-
-            // Write string or buffer
-            if (itemTypeIsStringOrBuffer) {
-                this._writer.write(dynamicType, structValues);
-            }
-            // Write array of dynamicType
-            else {
-                if (structValues.length !== staticSize) {
-                    throw new Error(`Expected ${staticSize} items, got ${structValues.length}`);
-                }
-                this._writeArray(dynamicType, structValues);
-            }
+        // Write string or buffer or json
+        if (specialType) {
+            // this._writer.write(writeType, structValues, isStatic && (passSize || size === 0) ? size : undefined);
+            this._writer.write(writeType, structValues, isStatic ? size : undefined);
         }
-        // Dynamic size
+
+        // Write array of writeType
         else {
-            // (i8.i16)
-            // modelKey: "0", modelType: i8.i16, dynamicKey: i8, dynamicLength: i16
-            const size = structValues.length;
-
-            // Write size
-            this._writer.write(dynamicLength, size);
-
-            // Write string or buffer
-            if (itemTypeIsStringOrBuffer) {
-                this._writer.write(dynamicType as string, structValues);
-            }
-            // Write array of dynamicType
-            else {
-                this._writeArray(dynamicType, structValues);
-            }
+            this._writeArray(writeType, structValues);
         }
     }
 

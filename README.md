@@ -1,5 +1,7 @@
-@mrhiden/cstruct - *'C like structures'* - TypeScript library
-=
+# @mrhiden/cstruct
+- *'C like structures'* - TypeScript library
+
+[![npm version](https://badge.fury.io/js/@mrhiden%2Fcstruct.svg)](https://badge.fury.io/js/@mrhiden%2Fcstruct)
 
 ### Features
 * Read/make/write buffer, **Buffer <=> Object/Array**
@@ -11,31 +13,36 @@
 * Big endian - BE
 * TypeScript decorators for classes and properties
 
-### Whats new?
-* Decorators have been refactored and improved
+### Whats new in 1.2 ?
+* Added JSON type to transfer blocks of data as JSON string inside buffer
+* Fixed model parser to prevent replace field keys names such as 'string...', 'buffer...', 'json...', 's...', 'buf...', 'j...'
+### Whats new in 1.3 ?
+* Added trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
+* When we try to write Buffer or Json into too small space, it will throw an error. String will be trimmed to fit.
 
 ### Install
 `npm i @mrhiden/cstruct`
 
 ### Data types, Atom types and aliases
-| Atom | Type               | Size [B] | Aliases                              |
-|------|--------------------|----------|--------------------------------------|
-| b8   | boolean            | 1        | bool8                    BOOL        |
-| b16  | boolean            | 2        | bool16                               |
-| b32  | boolean            | 4        | bool32                               |
-| b64  | boolean            | 8        | bool64                               |
-| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |
-| u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |
-| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |
-| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD       |
-| i8   | signed char        | 1        | int8  int8_t             SINT        |
-| i16  | signed int         | 2        | int16 int16_t            INT         |
-| i32  | signed long        | 4        | int32 int32_t            DINT        |
-| i64  | signed long long   | 8        | int64 int64_t            LINT        |
-| f    | float              | 4        | float  float32 float32_t REAL single |
-| d    | double             | 4        | double float64 float64_t LREAL       |
-| sN   | string             | N        | string                               |
-| bufN | buffer             | N        | buffer                               |
+| Atom | Type               | Size [B] | Aliases                              | Notes |
+|------|--------------------|----------|--------------------------------------|-------|
+| b8   | boolean            | 1        | bool8                    BOOL        |       |
+| b16  | boolean            | 2        | bool16                               |       |
+| b32  | boolean            | 4        | bool32                               |       |
+| b64  | boolean            | 8        | bool64                               |       |
+| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |       |
+| u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |       |
+| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |       |
+| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD       |       |
+| i8   | signed char        | 1        | int8  int8_t             SINT        |       |
+| i16  | signed int         | 2        | int16 int16_t            INT         |       |
+| i32  | signed long        | 4        | int32 int32_t            DINT        |       |
+| i64  | signed long long   | 8        | int64 int64_t            LINT        |       |
+| f    | float              | 4        | float  float32 float32_t REAL single |       |
+| d    | double             | 4        | double float64 float64_t LREAL       |       |
+| sN   | string             | N        | string                               | N= 0+ |
+| bufN | buffer             | N        | buffer                               | N= 1+ |
+| jN   | json               | N        | json any                             | M= 0+ |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
@@ -174,6 +181,7 @@ Types can be much more complex.<br>
 ### Basic examples
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make BE buffer from struct based on model
 const model = { a: 'u16', b: 'i16' };
 const cStruct = CStructBE.fromModelTypes(model);
@@ -188,6 +196,7 @@ console.log(buffer.toString('hex'));
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make BE buffer from struct based on model
 const cStruct = CStructBE.fromModelTypes({ error: {code: 'u16', message: 's20'} });
 
@@ -203,6 +212,7 @@ console.log(size);
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Read BE buffer to struct based on model
 const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
 console.log(buffer.toString('hex'));
@@ -218,6 +228,7 @@ console.log(struct);
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Read BE buffer to struct based on model
 const buffer = hexToBuffer('000F 6162630000_0000000000_0000000000');
 console.log(buffer.toString('hex'));
@@ -238,6 +249,7 @@ console.log(size);
 ### Examples with classes
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 class MyClass {
     public propertyA: number;
     public propertyB: number;
@@ -258,6 +270,7 @@ console.log(make.buffer.toString('hex'));
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 @CStructClass({
     model: `{propertyA: U16, propertyB: I16}`,
     types: '{U16: uint16, I16: int16}',
@@ -281,6 +294,7 @@ console.log(make.buffer.toString('hex'));
 ### Examples with types
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Model and Types for Sender & Receiver
 const types = {
   Sensor: {
@@ -329,6 +343,7 @@ console.log(receiverData);
 ### String based examples. Model and Types are strings but you can mix approach
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Make buffer from struct based on model and types
 const cStruct = CStructBE.fromModelTypes(`{errors: [Error, Error]}`, `{Error: {code: u16, message: s10}}`);
 
@@ -348,6 +363,7 @@ console.log(size);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Mixed approach for model and types
 const cStruct = CStructBE.fromModelTypes({errors: `[Error, Error]`}, {Error: `{code: u16, message: s10}`});
 
@@ -369,6 +385,7 @@ console.log(size);
 ### C-kind data fields
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C-kind fields {u8 a,b;} into {a:u8,b:u8}
 const model = `{u8 a,b;}`;
 const cStruct = CStructBE.fromModelTypes(model);
@@ -388,6 +405,7 @@ console.log(readStruct);
 ### Dynamic length
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Dynamic (length) array with types
 const model = {
     ab: "Ab[i16]",
@@ -419,6 +437,7 @@ console.log(extractedData);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Dynamic (length) string
 const model = {
     txt1: "s[i16]",
@@ -448,6 +467,7 @@ console.log(extractedData);
 ### PLC example
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 const model = {b: 'BYTE', w: 'WORD', f: 'BOOL'};
 
 const cStruct = CStructBE.fromModelTypes(model);
@@ -471,6 +491,7 @@ console.log(extractedData);
 ### C-kind struct
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C struct types
 const model = {
     xyzs: "Xyx[2]",
@@ -502,6 +523,7 @@ console.log(readStruct);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // C struct types
 const types = `{
     // 1st approach
@@ -540,6 +562,7 @@ console.log(readStruct);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 // Value, static array, dynamic array
 const model = `[
     i8,         // 1 byte
@@ -571,6 +594,7 @@ console.log(extractedData);
 ```
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
+
 class Undecorated {
     a: number;
     b: number;
@@ -702,4 +726,78 @@ class GeoAltitudesFile {
 })();
 ```
 
+### JSON mode
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+@CStructClass({
+    model: {
+        any1: 'j[i8]',
+        any2: 'json[i8]',
+        any3: 'any[i8]',
+    }
+})
+class MyClass {
+    any1: any;
+    any2: any;
+    any3: any;
+}
+
+const myClass = new MyClass();
+myClass.any1 = {a: 1};
+myClass.any2 = {b: "B"};
+myClass.any3 = [1, 3, 5];
+
+const buffer = CStructBE.make(myClass).buffer;
+console.log(buffer.toString('hex'));
+// 077b2261223a317d097b2262223a2242227d075b312c332c355d
+// 07_7b2261223a317d 09_7b2262223a2242227d 07_5b312c332c355d
+const myClass2 = CStructBE.read(MyClass, buffer).struct;
+console.log(myClass2);
+// MyClass {
+//   any1: { a: 1 },
+//   any2: { b: 'B' },
+//   any3: [ 1, 3, 5 ]
+// }
+```
+
+### Trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
+This library has support for trailing zero for "string" and "json" types.<br>
+When you use it "json" and "string" will be written as full unknown length and '\0' will be added at the end.<br>
+That ending zero helps to read data from binary file without knowing the length of the string / json.<br>
+We can not use that trick with buffer as it may contain zeros at any place.<br>
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+const model = {
+    any1: 'j[0]', // or 'json[0]' or 'any[0]'
+    any2: 's[0]', // or 'string[0]'
+};
+
+const cStruct = CStructBE.fromModelTypes(model);
+
+const data = {
+    any1: [1, 2, 3],
+    any2: 'abc',
+};
+
+const buffer = cStruct.make(data).buffer;
+console.log(buffer.toString('hex'));
+// 5b312c322c335d0061626300
+// 5b_31_2c_32_2c_33_5d_00 616263_00
+// [  1  ,  2  ,  3  ]  \0 a b c  \0
+
+const extractedData = cStruct.read(buffer).struct;
+console.log(extractedData);
+// { any1: [ 1, 2, 3 ], any2: 'abc' }
+
+console.log(JSON.stringify(data) === JSON.stringify(extractedData));
+// true
+```
+
 ### [TODO](https://github.com/MrHIDEn/cstruct/blob/main/doc/TODO.md)
+
+### Contact
+If you have any questions or suggestions, please contact me at<br>
+[mrhiden@outlook.com](mailto:mrhiden@outlook.com)

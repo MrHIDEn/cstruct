@@ -29,11 +29,12 @@ export class WriteBuffer extends BaseBuffer {
             if (size < 0) {
                 throw new Error(`Invalid string size ${size}`);
             }
-            val = val.padEnd(size, '\0');
+            if (size === 0) {
+                size = val.length + 1;
+            }
         }
 
-        // Consider using "utf16le" encoding as well as "utf8" encoding
-        const buffer = Buffer.allocUnsafe(size);
+        const buffer = Buffer.alloc(size);
         buffer.write(val, 0, size, 'utf8');
         this.moveOffset(buffer);
     }
@@ -62,15 +63,17 @@ export class WriteBuffer extends BaseBuffer {
             ['i8', (val: number) => this._i8(val)],
             ['s', (val: string, size?: number) => this._s(val, size)],
             ['buf', (val: Buffer, size?: number) => this._buf(val, size)],
+            ['j', (val: any, size?: number) => this._s(val, size)],
         ]);
     }
 
-    write(type: string, val: WriterValue) {
-        let size: number;
-        const groups = type.match(/^(?<type>s|buf)(?<size>\d+)$/)?.groups;
-        if (groups) {
-            type = groups.type;
-            size = +groups.size;
+    write(type: string, val: WriterValue, size?: number) {
+        if (size === undefined) {
+            const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
+            if (groups) {
+                type = groups.type;
+                size = +groups.size;
+            }
         }
         if (this._atomFunctions.has(type)) {
             const writer = this._atomFunctions.get(type);

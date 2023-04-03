@@ -21,3 +21,9 @@ export interface CStructWriteResult {
     offset: number;
     size: number;
 }
+
+export enum SpecialType {
+    String = 1,
+    Buffer,
+    Json,
+}
