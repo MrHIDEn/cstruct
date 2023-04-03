@@ -23,7 +23,7 @@ export class ReadWriteBase {
         }
     }
 
-    protected _getStaticSize(size: string): {isStatic: boolean, staticSize: number} {
+    protected _getStaticSize(size: string): { isStatic: boolean, staticSize: number } {
         const value = +size;
         return {
             isStatic: !Number.isNaN(value),
@@ -31,7 +31,8 @@ export class ReadWriteBase {
         };
     }
 
-    protected extractTypeAndSize(modelType: object | string, dynamicLength: string) {
+    protected extractTypeAndSize(modelType: object | string, dynamicLength: string)
+        : { specialType: SpecialType | undefined, isStatic: boolean, staticSize: number } {
         const specialType = this._getSpecialType(modelType);
         const {isStatic, staticSize} = this._getStaticSize(dynamicLength);
         return {specialType, isStatic, staticSize};
