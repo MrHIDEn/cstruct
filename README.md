@@ -42,7 +42,7 @@
 | d    | double             | 4        | double float64 float64_t LREAL       |       |
 | sN   | string             | N        | string                               | N= 0+ |
 | bufN | buffer             | N        | buffer                               | N= 1+ |
-| jN   | json               | N        | json any                             | M= 0+ |
+| jN   | json               | N        | json any                             | N= 0+ |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
