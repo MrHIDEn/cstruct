@@ -1,8 +1,6 @@
 # @mrhiden/cstruct
 - *'C like structures'* - TypeScript library
 
-[![npm version](https://badge.fury.io/js/@mrhiden%2Fcstruct.svg)](https://badge.fury.io/js/@mrhiden%2Fcstruct)
-
 ### Features
 * Read/make/write buffer, **Buffer <=> Object/Array**
 * Pack / unpack, compress / decompress data to minimize size.
