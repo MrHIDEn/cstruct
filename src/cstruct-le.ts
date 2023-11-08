@@ -65,7 +65,7 @@ export class CStructLE<T> extends CStruct<T> {
     }
 
     static from<T = any>(from: Class | CStructClassOptions | T): CStructLE<T> {
-        return CStructMetadata.getCStructBE(from);
+        return CStructMetadata.getCStructLE(from);
     }
 
     static fromModelTypes<T = any>(model: Model, types?: Types): CStructLE<T> {
