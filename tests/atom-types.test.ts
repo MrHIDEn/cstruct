@@ -340,6 +340,80 @@ describe('atom types', () => {
                 expect(result.size).toBe(8);
             });
         });
+
+        describe('dynamic types', () => {
+            it(`should make S, STR, STRING - static length by size`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: S(3)},
+                });
+                const expected = hexToBuffer("414243");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(3);
+                expect(result.size).toBe(3);
+            });
+
+            it(`should make S, STR, STRING - dynamic length by size`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: S(INT)},
+                });
+                const expected = hexToBuffer("0003414243");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(5);
+                expect(result.size).toBe(5);
+            });
+
+            it(`should make S, STR, STRING - dynamic length by trailing zero`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: S(0)},
+                });
+                const expected = hexToBuffer("41424300");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(4);
+                expect(result.size).toBe(4);
+            });
+
+            it(`should make BUF, BUFFER`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: BUF(3)},
+                });
+                const expected = hexToBuffer("010203");
+
+                const result = cStruct.make({r: Buffer.from([1, 2, 3])});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(3);
+                expect(result.size).toBe(3);
+            });
+
+            it(`should make J, JSON - dynamic length by size`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: J(INT)},
+                });
+                const expected = hexToBuffer("000d7b2261223a312c2262223a327d");
+
+                const result = cStruct.make({r: {a: 1, b: 2}});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(15);
+                expect(result.size).toBe(15);
+            });
+
+            it(`should make J, JSON - dynamic length by trailing zero`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: J(0)},
+                });
+                const expected = hexToBuffer("7b2261223a312c2262223a327d00");
+
+                const result = cStruct.make({r: {a: 1, b: 2}});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(14);
+            });
+        });
     });
 
 
@@ -651,43 +725,79 @@ describe('atom types', () => {
                 expect(result.size).toEqual(8);
             });
         });
-    });
 
-    describe('dynamic types', () => {
-        it(`should make S, STR, STRING`, () => {
-            const cStruct = CStructBE.from({
-                model: {r: S(3)},
+        describe('dynamic types', () => {
+            it(`should make S, STR, STRING - static length by size`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: S(3)},
+                });
+                const expected = hexToBuffer("414243");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(3);
+                expect(result.size).toBe(3);
             });
-            const expected = hexToBuffer("414243");
 
-            const result = cStruct.make({r: "ABC"});
-            expect(result.buffer).toEqual(expected);
-            expect(result.offset).toBe(3);
-            expect(result.size).toBe(3);
-        });
+            it(`should make S, STR, STRING - dynamic length by size`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: S(INT)},
+                });
+                const expected = hexToBuffer("0300414243");
 
-        it(`should make BUF, BUFFER`, () => {
-            const cStruct = CStructBE.from({
-                model: {r: BUF(3)},
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(5);
+                expect(result.size).toBe(5);
             });
-            const expected = hexToBuffer("010203");
 
-            const result = cStruct.make({r: Buffer.from([1, 2, 3])});
-            expect(result.buffer).toEqual(expected);
-            expect(result.offset).toBe(3);
-            expect(result.size).toBe(3);
-        });
+            it(`should make S, STR, STRING - dynamic length by trailing zero`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: S(0)},
+                });
+                const expected = hexToBuffer("41424300");
 
-        it(`should make J, JSON`, () => {
-            const cStruct = CStructBE.from({
-                model: {r: J(INT)},
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(4);
+                expect(result.size).toBe(4);
             });
-            const expected = hexToBuffer("000d7b2261223a312c2262223a327d");
 
-            const result = cStruct.make({r: {a: 1, b: 2}});
-            expect(result.buffer).toEqual(expected);
-            expect(result.offset).toBe(15);
-            expect(result.size).toBe(15);
+            it(`should make BUF, BUFFER`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: BUF(3)},
+                });
+                const expected = hexToBuffer("010203");
+
+                const result = cStruct.make({r: Buffer.from([1, 2, 3])});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(3);
+                expect(result.size).toBe(3);
+            });
+
+            it(`should make J, JSON - dynamic length by size`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: J(INT)},
+                });
+                const expected = hexToBuffer("0d007b2261223a312c2262223a327d");
+
+                const result = cStruct.make({r: {a: 1, b: 2}});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(15);
+                expect(result.size).toBe(15);
+            });
+
+            it(`should make J, JSON - dynamic length by trailing zero`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: J(0)},
+                });
+                const expected = hexToBuffer("7b2261223a312c2262223a327d00");
+
+                const result = cStruct.make({r: {a: 1, b: 2}});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(14);
+            });
         });
     });
 });

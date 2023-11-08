@@ -33,14 +33,14 @@ export const D = 'd';
 export const F64 = 'd';
 export const LREAL = 'd';
 
-export const S = (size: number) => `s${size}`;
+export const S = (size: number | string) => Number.isFinite(size) ?  `s${size}` : `s[${size}]`;
 export const STR = S;
 export const STRING = S;
 
 export const BUF = (size: number) => `buf${size}`;
 export const BUFFER = BUF;
 
-export const J = (sizeType: string) => `j[${sizeType}]`;
+export const J = (sizeType: string | number) => `j[${sizeType}]`;
 export const JSON = J;
 
 export type AtomType =
