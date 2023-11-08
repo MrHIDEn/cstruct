@@ -103,6 +103,7 @@ import { CStructBE } from "../src";
     const struct = {abc: Buffer.from("01234")};
     const buffer = cStruct.make(struct).buffer;
     // Error: Buffer size can not be 0.
+    console.log(buffer);
 }
 
 {
@@ -113,4 +114,5 @@ import { CStructBE } from "../src";
     const struct = [Buffer.from("01234")];
     const buffer = cStruct.make(struct).buffer;
     // Error: Buffer size can not be 0.
+    console.log(buffer);
 }
