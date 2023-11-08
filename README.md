@@ -11,12 +11,14 @@
 * Big endian - BE
 * TypeScript decorators for classes and properties
 
-### Whats new in 1.2 ?
-* Added JSON type to transfer blocks of data as JSON string inside buffer
-* Fixed model parser to prevent replace field keys names such as 'string...', 'buffer...', 'json...', 's...', 'buf...', 'j...'
 ### Whats new in 1.3 ?
 * Added trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
 * When we try to write Buffer or Json into too small space, it will throw an error. String will be trimmed to fit.
+### Whats new in 1.4 ?
+* Added predefined types
+* Added predefined aliases
+* Fixed issue in one function where we use endian BE -> LE
+* Added more tests to cover that issue and predefined types
 
 ### Install
 `npm i @mrhiden/cstruct`
