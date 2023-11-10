@@ -2,49 +2,49 @@ import { ReadBuffer } from "./read-buffer";
 import { ReaderFunctions } from "./types";
 
 export class ReadBufferLE extends ReadBuffer {
-    _u16() {
+    u16() {
         const val = this._buffer.readUInt16LE(this._offset);
         this.moveOffset(2);
         return val;
     }
 
-    _i16() {
+    i16() {
         const val = this._buffer.readInt16LE(this._offset);
         this.moveOffset(2);
         return val;
     }
 
-    _u32() {
+    u32() {
         const val = this._buffer.readUInt32LE(this._offset);
         this.moveOffset(4);
         return val;
     }
 
-    _i32() {
+    i32() {
         const val = this._buffer.readInt32LE(this._offset);
         this.moveOffset(4);
         return val;
     }
 
-    _u64() {
+    u64() {
         const val = this._buffer.readBigUInt64LE(this._offset);
         this.moveOffset(8);
         return val;
     }
 
-    _i64() {
+    i64() {
         const val = this._buffer.readBigInt64LE(this._offset);
         this.moveOffset(8);
         return val;
     }
 
-    _f() {
+    f() {
         const val = this._buffer.readFloatLE(this._offset);
         this.moveOffset(4);
         return val;
     }
 
-    _d() {
+    d() {
         const val = this._buffer.readDoubleLE(this._offset);
         this.moveOffset(8);
         return val;
@@ -54,20 +54,20 @@ export class ReadBufferLE extends ReadBuffer {
         super(buffer, offset);
         this._atomFunctions = new Map<string, ReaderFunctions>([
             ...[...this._atomFunctions],
-            ['b16', () => Boolean(this._i16())],
-            ['b32', () => Boolean(this._i32())],
-            ['b64', () => Boolean(this._i64())],
+            ['b16', () => Boolean(this.i16())],
+            ['b32', () => Boolean(this.i32())],
+            ['b64', () => Boolean(this.i64())],
 
-            ['u16', () => this._u16()],
-            ['u32', () => this._u32()],
-            ['u64', () => this._u64()],
+            ['u16', () => this.u16()],
+            ['u32', () => this.u32()],
+            ['u64', () => this.u64()],
 
-            ['i16', () => this._i16()],
-            ['i32', () => this._i32()],
-            ['i64', () => this._i64()],
+            ['i16', () => this.i16()],
+            ['i32', () => this.i32()],
+            ['i64', () => this.i64()],
 
-            ['f', () => this._f()],
-            ['d', () => this._d()],
+            ['f', () => this.f()],
+            ['d', () => this.d()],
         ]);
 
         this.addPredefinedAliases();

@@ -3,17 +3,17 @@ import { Model, Types } from "./types";
 export class ModelParser {
     private static _allowedLengthTypes = 'u8,u16,u32,u64,i8,i16,i32,i64'.split(',');
 
-    private static _checkWhetherSizeIsNumber(size: string): boolean {
+    private static checkWhetherSizeIsNumber(size: string): boolean {
         return !Number.isNaN(+size);
     }
 
-    private static _checkSize(size: string): void {
-        if (!this._allowedLengthTypes.includes(size) && !this._checkWhetherSizeIsNumber(size)) {
+    private static checkSize(size: string): void {
+        if (!this._allowedLengthTypes.includes(size) && !this.checkWhetherSizeIsNumber(size)) {
             throw Error(`Unsupported size "${size}".`);
         }
     }
 
-    private static _getSize(size: string): { isNumber: boolean, staticSize: number } {
+    private static getSize(size: string): { isNumber: boolean, staticSize: number } {
         const value = +size;
         return {
             isNumber: !Number.isNaN(value),
@@ -21,7 +21,7 @@ export class ModelParser {
         };
     }
 
-    private static _removeComments(json) {
+    private static removeComments(json: string) {
         return json
             .split('\n')
             .map(line => {
@@ -35,7 +35,7 @@ export class ModelParser {
     }
 
     private static prepareJson(json: string): string {
-        json = this._removeComments(json); // remove comments
+        json = this.removeComments(json); // remove comments
         json = json.replace(/^\s+$/m, ``); // remove empty lines
         json = json.replace(/\n/g, ``); // remove line breaks
         json = json.trim();
@@ -52,7 +52,7 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/^(?<type>\w+)\[(?<size>\w+)]$/)?.groups;
             const {size, type} = groups;
-            const {isNumber, staticSize} = this._getSize(size);
+            const {isNumber, staticSize} = this.getSize(size);
             if (isNumber) {
                 const replacer = `[${Array(staticSize).fill(type).join(',')}]`;
                 json = json.split(match).join(replacer);
@@ -70,7 +70,7 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/\[(?<type>\w+)\/(?<size>\w+)]/)?.groups;
             const {size, type} = groups;
-            const {isNumber, staticSize} = this._getSize(size);
+            const {isNumber, staticSize} = this.getSize(size);
             if (isNumber) {
                 const replacer = `[${Array(staticSize).fill(type).join(',')}]`;
                 json = json.split(match).join(replacer);
@@ -106,7 +106,7 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/(?<key>\w+):?(?<type>\w+)\[(?<size>\w+)];?/)?.groups;
             const {key, size, type} = groups;
-            this._checkSize(size);
+            this.checkSize(size);
             const replacer = `${key}.${size}:${type}`;
             json = json.split(match).join(replacer);
         }
@@ -140,7 +140,7 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/(?<type>\w+)\[(?<size>\w+)];?/)?.groups;
             const {type, size} = groups;
-            this._checkSize(size);
+            this.checkSize(size);
             const replacer = `${type}.${size}`;
             json = json.split(match).join(replacer);
         }

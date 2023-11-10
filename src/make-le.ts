@@ -6,6 +6,6 @@ export class MakeLE<T> extends Make<T> {
     constructor(model: Model, struct: T) {
         super();
         this._writer = new WriteBufferLE();
-        this._recursion(model, struct);
+        this.recursion(model, struct);
     }
 }
