@@ -1,5 +1,7 @@
 /node_modules/
 /.vscode/
 /.idea/
-sbox-*.ts
 /lib/
+
+# test files, sandbox files
+sbx-*.*
