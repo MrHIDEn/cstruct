@@ -11,7 +11,7 @@ export class Make<T> extends ReadWriteBase {
 
         for (const [modelKey, modelType] of entries) {
             // Catch key.length
-            const keyLengthGroups = this.getTypeLengthGroupsMatch(modelKey);
+            const keyLengthGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
             // Dynamic key
             if (keyLengthGroups) {
@@ -23,7 +23,7 @@ export class Make<T> extends ReadWriteBase {
             // Dynamic type
             if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this.getTypeLengthGroupsMatch(modelType);
+                const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
                     const {dynamicType, dynamicLength} = typeDynamicGroups;
@@ -56,7 +56,7 @@ export class Make<T> extends ReadWriteBase {
             structValues = JSON.stringify(structValues);
         }
 
-        if (isStatic && staticSize !== 0 && structValues.length > staticSize  && specialType !== SpecialType.String) {
+        if (isStatic && staticSize !== 0 && structValues.length > staticSize && specialType !== SpecialType.String) {
             throw new Error(`Size of value ${structValues.length} is greater than ${staticSize}.`);
         }
 
@@ -91,7 +91,14 @@ export class Make<T> extends ReadWriteBase {
                 this.recursion(model[modelKey], struct[modelKey]);
                 break;
             case 'string':
-                this._writer.write(modelType, struct[modelKey]);
+                if (modelType === 'buf0') {
+                    throw new Error(`Buffer size can not be 0. (make)`);
+                }
+                let structValues = struct[modelKey];
+                if (modelType === 'j0') {
+                    structValues = JSON.stringify(structValues);
+                }
+                this._writer.write(modelType, structValues);
                 break;
             default:
                 throw TypeError(`Unknown type "${modelType}"`);

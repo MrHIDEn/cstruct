@@ -2,15 +2,34 @@ import { Model, Types } from "./types";
 
 export class ModelParser {
     private static _allowedLengthTypes = 'u8,u16,u32,u64,i8,i16,i32,i64'.split(',');
+    private static _sTypes = 's,str,string'.split(',');
+    private static _bufTypes = 'buf,buffer'.split(',');
+    private static _jTypes = 'j,json,any'.split(',');
 
     private static checkWhetherSizeIsNumber(size: string): boolean {
         return !Number.isNaN(+size);
     }
 
-    private static checkSize(size: string): void {
+    private static checkSize(size: string): string {
+        size = size.toLowerCase();
         if (!this._allowedLengthTypes.includes(size) && !this.checkWhetherSizeIsNumber(size)) {
             throw Error(`Unsupported size "${size}".`);
         }
+        return size;
+    }
+
+    private static translateType(type: string): string {
+        const typeLowerCase = type.toLowerCase();
+        if (this._sTypes.includes(typeLowerCase)) {
+            return 's';
+        }
+        if (this._bufTypes.includes(typeLowerCase)) {
+            return 'buf';
+        }
+        if (this._jTypes.includes(typeLowerCase)) {
+            return 'j';
+        }
+        return type;
     }
 
     private static getSize(size: string): { isNumber: boolean, staticSize: number } {
@@ -35,11 +54,11 @@ export class ModelParser {
     }
 
     private static prepareJson(json: string): string {
-        json = this.removeComments(json); // remove comments
-        json = json.replace(/^\s+$/m, ``); // remove empty lines
-        json = json.replace(/\n/g, ``); // remove line breaks
+        json = this.removeComments(json);   // remove comments
+        json = json.replace(/^\s+$/m, ``);  // remove empty lines
+        json = json.replace(/\n/g, ``);     // remove line breaks
         json = json.trim();
-        json = json.replace(/['"]/g, ``); // remove all `'"`
+        json = json.replace(/['"]/g, ``);   // remove all `'"`
         json = json.replace(/\s*([,:;{}[\]])\s*/g, `$1`); // remove spaces around `,:;{}[]`
         json = json.replace(/\s{2,}/g, ` `); // reduce spaces '\s'x to one ' '
         return json;
@@ -106,8 +125,9 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/(?<key>\w+):?(?<type>\w+)\[(?<size>\w+)];?/)?.groups;
             const {key, size, type} = groups;
-            this.checkSize(size);
-            const replacer = `${key}.${size}:${type}`;
+            const sizeLowerCase = this.checkSize(size);
+            const translatedType = this.translateType(type);
+            const replacer = `${key}.${sizeLowerCase}:${translatedType}`;
             json = json.split(match).join(replacer);
         }
         return json;
@@ -140,8 +160,9 @@ export class ModelParser {
         for (const match of matches) {
             const groups = match.match(/(?<type>\w+)\[(?<size>\w+)];?/)?.groups;
             const {type, size} = groups;
-            this.checkSize(size);
-            const replacer = `${type}.${size}`;
+            const sizeLowerCase = this.checkSize(size);
+            const translatedType = this.translateType(type);
+            const replacer = `${translatedType}.${sizeLowerCase}`;
             json = json.split(match).join(replacer);
         }
         return json;

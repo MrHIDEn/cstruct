@@ -13,7 +13,7 @@ export class Read<T> extends ReadWriteBase {
 
         for (const [modelKey, modelType] of entries) {
             // Catch dynamic key
-            const keyDynamicGroups = this.getTypeLengthGroupsMatch(modelKey);
+            const keyDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
             // Dynamic key
             if (keyDynamicGroups) {
@@ -26,7 +26,7 @@ export class Read<T> extends ReadWriteBase {
             // Dynamic type
             if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this.getTypeLengthGroupsMatch(modelType);
+                const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
                     const {dynamicType, dynamicLength} = typeDynamicGroups;
@@ -75,16 +75,23 @@ export class Read<T> extends ReadWriteBase {
         }
     }
 
-    private read(struct: T, key: string, type: Type) {
-        switch (typeof type) {
+    private read(struct: T, modelKey: string, modelType: Type) {
+        switch (typeof modelType) {
             case 'object':
-                this.recursion(struct[key]);
+                this.recursion(struct[modelKey]);
                 break;
             case 'string':
-                struct[key] = this._reader.read(type);
+                if (modelType === 'buf0') {
+                    throw new Error(`Buffer size can not be 0. (read)`);
+                }
+                let structValues = this._reader.read(modelType);
+                if (modelType === 'j0') {
+                    structValues = JSON.parse(structValues as string);
+                }
+                struct[modelKey] = structValues;
                 break;
             default:
-                throw TypeError(`Unknown type "${type}"`);
+                throw TypeError(`Unknown type "${modelType}"`);
         }
     }
 

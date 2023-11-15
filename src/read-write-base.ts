@@ -2,13 +2,18 @@ import { Type, SpecialType } from "./types";
 
 
 export class ReadWriteBase {
-    protected typeLengthRegex = /^(?<dynamicType>\w+)\.(?<dynamicLength>\w+)$/;
+    protected dynamicTypeLengthRegex = /^(?<dynamicType>\w+)\.(?<dynamicLength>\w+)$/;
+    protected staticTypeLengthRegex = /^(?<staticType>\w+)(?<staticLength>\d+)$/;
     private stringTypes = ['s', 'string'];
     private bufferTypes = ['buf', 'buffer'];
     private jsonTypes = ['j', 'json', 'any'];
 
-    protected getTypeLengthGroupsMatch(key: string) {
-        return key.match(this.typeLengthRegex)?.groups;
+    protected getDynamicTypeLengthGroupsMatch(key: string) {
+        return key.match(this.dynamicTypeLengthRegex)?.groups;
+    }
+
+    protected getStaticTypeLengthGroupsMatch(key: string) {
+        return key.match(this.staticTypeLengthRegex)?.groups;
     }
 
     protected getSpecialType(modelType: Type): SpecialType | undefined {

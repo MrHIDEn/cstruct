@@ -1,11 +1,14 @@
 import {
-    CStructBE, CStructLE, hexToBuffer,
+    CStructBE, CStructLE, hexToBuffer, AtomTypes
+} from "../src";
+
+const {
     BOOL, B8, B16, B32, B64,
     U8, U16, U32, U64, BYTE, WORD, DWORD, QWORD,
     I8, I16, I32, I64, CHAR, INT, DINT, QINT,
     F, F32, REAL, D, F64, LREAL,
     S, BUF, J,
-} from "../src";
+} = AtomTypes;
 
 describe('atom types', () => {
     describe('BE', () => {

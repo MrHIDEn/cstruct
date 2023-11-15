@@ -14,27 +14,27 @@ export class BaseBuffer {
 
     protected addPredefinedAliases() {
         const aliases: [type: string, ...aliases: string[]][] = [
-            ['b8', 'bool8', 'bool', 'BOOL'],
-            ['b16', 'bool16'],
-            ['b32', 'bool32'],
-            ['b64', 'bool64'],
+            ['b8', 'B8', 'bool8', 'bool', 'BOOL'],
+            ['b16', 'B16', 'bool16'],
+            ['b32', 'B32', 'bool32'],
+            ['b64', 'B64', 'bool64'],
 
-            ['u8', 'BYTE', 'uint8', 'uint8_t'],
-            ['u16', 'WORD', 'uint16', 'uint16_t'],
-            ['u32', 'DWORD', 'uint32', 'uint32_t'],
-            ['u64', 'QWORD','LWORD', 'uint64', 'uint64_t'],
+            ['u8', 'U8', 'BYTE', 'uint8', 'uint8_t'],
+            ['u16', 'U16', 'WORD', 'uint16', 'uint16_t'],
+            ['u32', 'U32', 'DWORD', 'uint32', 'uint32_t'],
+            ['u64', 'U64', 'QWORD','LWORD', 'uint64', 'uint64_t'],
 
-            ['i8', 'SINT', 'int8', 'int8_t'],
-            ['i16', 'INT', 'int16', 'int16_t'],
-            ['i32', 'DINT', 'int32', 'int32_t'],
-            ['i64', 'QINT', 'LINT', 'int64', 'int64_t'],
+            ['i8', 'I8', 'SINT', 'int8', 'int8_t'],
+            ['i16', 'I16', 'INT', 'int16', 'int16_t'],
+            ['i32', 'I32', 'DINT', 'int32', 'int32_t'],
+            ['i64', 'I64', 'QINT', 'LINT', 'int64', 'int64_t'],
 
-            ['f', 'f32', 'REAL', 'float', 'float32', 'float32_t', 'single'],
-            ['d', 'f64', 'LREAL', 'double', 'float64', 'float64_t'],
+            ['f', 'F', 'REAL', 'f32', 'F32', 'float', 'float32', 'float32_t', 'single'],
+            ['d', 'D', 'LREAL', 'f64', 'F64', 'double', 'float64', 'float64_t'],
 
-            ['s', 'string'],
-            ['buf', 'buffer'],
-            ['j', 'json', 'any'],
+            ['s', 'string', 'S', 'STR', 'STRING'],
+            ['buf', 'buffer', 'BUF', 'BUFFER'],
+            ['j', 'json', 'any', 'J', 'JSON'],
         ];
         this.addAliases(aliases);
     }
