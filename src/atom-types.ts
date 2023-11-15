@@ -1,3 +1,56 @@
+export class AtomTypes {
+    static readonly BOOL: string = 'b8';
+    static readonly B8: string = 'b8';
+    static readonly B16: string = 'b16';
+    static readonly B32: string = 'b32';
+    static readonly B64: string = 'b64';
+    static readonly U8: string = 'u8';
+    static readonly U16: string = 'u16';
+    static readonly U32: string = 'u32';
+    static readonly U64: string = 'u64';
+    static readonly BYTE: string = 'u8';
+    static readonly WORD: string = 'u16';
+    static readonly DWORD: string = 'u32';
+    static readonly LWORD: string = 'u64';
+    static readonly QWORD: string = 'u64';
+    static readonly I8: string = 'i8';
+    static readonly I16: string = 'i16';
+    static readonly I32: string = 'i32';
+    static readonly I64: string = 'i64';
+    static readonly CHAR: string = 'i8';
+    static readonly SINT: string = 'i8';
+    static readonly INT: string = 'i16';
+    static readonly DINT: string = 'i32';
+    static readonly LINT: string = 'i64';
+    static readonly QINT: string = 'i64';
+    static readonly F: string = 'f';
+    static readonly F32: string = 'f';
+    static readonly REAL: string = 'f';
+    static readonly D: string = 'd';
+    static readonly F64: string = 'd';
+    static readonly LREAL: string = 'd';
+    static readonly S = (size: number | string) => Number.isFinite(size)
+        ? /*{number}*/ `s${size}`      // S(0) -> End zero
+        : /*{string}*/ `s[${size}]`;    // S("0") ->Trailing zero
+    static readonly STR = AtomTypes.S;
+    static readonly STRING = AtomTypes.S;
+    static readonly SE0 = AtomTypes.S(0); // 's0'
+    static readonly SEndZero = AtomTypes.S(0); // 's0' -> '{a: "s0"}' -> End zero
+    static readonly ST0 = AtomTypes.S('0'); // 's[0]'
+    static readonly STrailingZero = AtomTypes.S('0'); // 's[0]' -> '{a.0: "s"}' -> Trailing zero
+    static readonly STREndZero = AtomTypes.SEndZero;
+    static readonly STRINGEndZero = AtomTypes.SEndZero;
+    static readonly STRTTrailingZero = AtomTypes.STrailingZero;
+    static readonly STRINGTTrailingZero = AtomTypes.STrailingZero;
+    static readonly BUF = (size: number) => `buf${size}`;
+    static readonly BUFFER = AtomTypes.BUF;
+    static readonly J = (size: string | number) => Number.isFinite(size)
+        ? /*{number}*/ `j${size}`       // J(0) -> End zero
+        : /*{string}*/ `j[${size}]`;    // J("0") ->Trailing zero
+    static readonly JSON = AtomTypes.J;
+    static readonly ANY =  AtomTypes.J;
+
+}
 export const BOOL = 'b8';
 export const B8 = 'b8';
 export const B16 = 'b16';
@@ -33,51 +86,73 @@ export const D = 'd';
 export const F64 = 'd';
 export const LREAL = 'd';
 
-export const S = (size: number | string) => Number.isFinite(size) ?  `s${size}` : `s[${size}]`;
+export const S = (size: number | string) => Number.isFinite(size)
+    ?  /*{number}*/ `s${size}`      // S(0) -> End zero
+    : /*{string}*/ `s[${size}]`;    // S("0") ->Trailing zero
 export const STR = S;
 export const STRING = S;
+export const SE0 = S(0); // 's0'
+export const SEndZero = S(0); // 's0' -> '{a: "s0"}' -> End zero
+export const STREndZero = SEndZero;
+export const STRINGEndZero = SEndZero;
+export const ST0 = S('0'); // 's[0]'
+export const STrailingZero = S('0'); // 's[0]' -> '{a.0: "s"}' -> Trailing zero
+export const STRTTrailingZero = STrailingZero;
+export const STRINGTTrailingZero = STrailingZero;
 
 export const BUF = (size: number) => `buf${size}`;
 export const BUFFER = BUF;
 
-export const J = (sizeType: string | number) => `j[${sizeType}]`;
+export const J = (size: string | number) => Number.isFinite(size)
+    ? /*{number}*/ `j${size}`       // J(0) -> End zero
+    : /*{string}*/ `j[${size}]`;    // J("0") ->Trailing zero
 export const JSON = J;
+export const ANY =  J;
 
 export type AtomType =
-    typeof BOOL |
-    typeof B8 |
-    typeof B16 |
-    typeof B32 |
-    typeof B64 |
-    typeof U8 |
-    typeof U16 |
-    typeof U32 |
-    typeof U64 |
-    typeof BYTE |
-    typeof WORD |
-    typeof DWORD |
-    typeof LWORD |
-    typeof QWORD |
-    typeof I8 |
-    typeof I16 |
-    typeof I32 |
-    typeof I64 |
-    typeof CHAR |
-    typeof SINT |
-    typeof INT |
-    typeof DINT |
-    typeof LINT |
-    typeof QINT |
-    typeof F |
-    typeof F32 |
-    typeof REAL |
-    typeof D |
-    typeof F64 |
-    typeof LREAL |
-    typeof S |
-    typeof STR |
-    typeof STRING |
-    typeof BUF |
-    typeof BUFFER |
-    typeof J |
-    typeof JSON;
+    typeof AtomTypes.BOOL |
+    typeof AtomTypes.B8 |
+    typeof AtomTypes.B16 |
+    typeof AtomTypes.B32 |
+    typeof AtomTypes.B64 |
+    typeof AtomTypes.U8 |
+    typeof AtomTypes.U16 |
+    typeof AtomTypes.U32 |
+    typeof AtomTypes.U64 |
+    typeof AtomTypes.BYTE |
+    typeof AtomTypes.WORD |
+    typeof AtomTypes.DWORD |
+    typeof AtomTypes.LWORD |
+    typeof AtomTypes.QWORD |
+    typeof AtomTypes.I8 |
+    typeof AtomTypes.I16 |
+    typeof AtomTypes.I32 |
+    typeof AtomTypes.I64 |
+    typeof AtomTypes.CHAR |
+    typeof AtomTypes.SINT |
+    typeof AtomTypes.INT |
+    typeof AtomTypes.DINT |
+    typeof AtomTypes.LINT |
+    typeof AtomTypes.QINT |
+    typeof AtomTypes.F |
+    typeof AtomTypes.F32 |
+    typeof AtomTypes.REAL |
+    typeof AtomTypes.D |
+    typeof AtomTypes.F64 |
+    typeof AtomTypes.LREAL |
+    typeof AtomTypes.S |
+    typeof AtomTypes.STR |
+    typeof AtomTypes.STRING |
+    typeof AtomTypes.BUF |
+    typeof AtomTypes.BUFFER |
+    typeof AtomTypes.J |
+    typeof AtomTypes.JSON |
+    typeof AtomTypes.ANY |
+    typeof AtomTypes.SE0 |
+    typeof AtomTypes.SEndZero |
+    typeof AtomTypes.ST0 |
+    typeof AtomTypes.STrailingZero |
+    typeof AtomTypes.STREndZero |
+    typeof AtomTypes.STRINGEndZero |
+    typeof AtomTypes.STRTTrailingZero |
+    typeof AtomTypes.STRINGTTrailingZero;
