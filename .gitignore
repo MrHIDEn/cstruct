@@ -1,6 +1,7 @@
-/node_modules/
 /.vscode/
 /.idea/
+
 sbx-*.*
-/**/lib/
+node_modules/
+lib/
 
