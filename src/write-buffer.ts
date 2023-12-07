@@ -6,19 +6,19 @@ export class WriteBuffer extends BaseBuffer {
     protected _offset = 0;
     protected _atomFunctions: Map<string, WriterFunctions>;
 
-    private _u8(val = 0) {
+    private u8(val = 0) {
         const buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(val);
         this.moveOffset(buffer);
     }
 
-    private _i8(val = 0) {
+    private i8(val = 0) {
         const buffer = Buffer.allocUnsafe(1);
         buffer.writeInt8(val);
         this.moveOffset(buffer);
     }
 
-    private _s(val = '', size?: number) {
+    private s(val = '', size?: number) {
         if (typeof val !== 'string') {
             throw new Error(`Invalid string value ${val}`);
         }
@@ -39,7 +39,7 @@ export class WriteBuffer extends BaseBuffer {
         this.moveOffset(buffer);
     }
 
-    private _buf(val = Buffer.alloc(0), size?: number) {
+    private buf(val = Buffer.alloc(0), size?: number) {
         if (!(val instanceof Buffer)) {
             throw new Error(`Invalid buffer value ${val}`);
         }
@@ -58,12 +58,12 @@ export class WriteBuffer extends BaseBuffer {
     constructor() {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
-            ['b8', (val: boolean) => this._i8(+Boolean(val))],
-            ['u8', (val: number) => this._u8(val)],
-            ['i8', (val: number) => this._i8(val)],
-            ['s', (val: string, size?: number) => this._s(val, size)],
-            ['buf', (val: Buffer, size?: number) => this._buf(val, size)],
-            ['j', (val: any, size?: number) => this._s(val, size)],
+            ['b8', (val: boolean) => this.i8(+Boolean(val))],
+            ['u8', (val: number) => this.u8(val)],
+            ['i8', (val: number) => this.i8(val)],
+            ['s', (val: string, size?: number) => this.s(val, size)],
+            ['buf', (val: Buffer, size?: number) => this.buf(val, size)],
+            ['j', (val: any, size?: number) => this.s(val, size)],
         ]);
     }
 

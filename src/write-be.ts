@@ -6,6 +6,6 @@ export class WriteBE<T> extends Write<T> {
     constructor(model: Model, struct: T, buffer: Buffer, offset = 0) {
         super(buffer, offset);
         this._writer = new WriteBufferBE();
-        this._recursion(model, struct);
+        this.recursion(model, struct);
     }
 }

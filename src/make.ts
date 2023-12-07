@@ -6,38 +6,38 @@ import { ReadWriteBase } from "./read-write-base";
 export class Make<T> extends ReadWriteBase {
     protected _writer: WriteBufferLE | WriteBufferBE;
 
-    _recursion(model: Model, struct: T) {
+    recursion(model: Model, struct: T) {
         const entries: StructEntry[] = Object.entries(model);
 
         for (const [modelKey, modelType] of entries) {
             // Catch key.length
-            const keyLengthGroups = this._getTypeLengthGroupsMatch(modelKey);
+            const keyLengthGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
             // Dynamic key
             if (keyLengthGroups) {
                 const {dynamicType, dynamicLength} = keyLengthGroups;
-                this._writDynamicOrStatic(struct, modelType as string, dynamicLength, dynamicType, modelType as string);
+                this.writDynamicOrStatic(struct, modelType as string, dynamicLength, dynamicType, modelType as string);
                 continue;
             }
 
             // Dynamic type
             if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this._getTypeLengthGroupsMatch(modelType);
+                const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
                     const {dynamicType, dynamicLength} = typeDynamicGroups;
-                    this._writDynamicOrStatic(struct, dynamicType, dynamicLength, modelKey, dynamicType);
+                    this.writDynamicOrStatic(struct, dynamicType, dynamicLength, modelKey, dynamicType);
                     continue;
                 }
             }
 
             // Static item
-            this._write(model, struct, modelKey, modelType);
+            this.write(model, struct, modelKey, modelType);
         }
     }
 
-    private _writDynamicOrStatic(struct: T, modelType: string, dynamicLength: string, structKey: string, writeType: string) {
+    private writDynamicOrStatic(struct: T, modelType: string, dynamicLength: string, structKey: string, writeType: string) {
         // Dynamic key
         // Dyn (some.i16: u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[i8]'} modelType = u8
         // Sta (some.5  : u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[9]'}  modelType = u8
@@ -56,7 +56,7 @@ export class Make<T> extends ReadWriteBase {
             structValues = JSON.stringify(structValues);
         }
 
-        if (isStatic && staticSize !== 0 && structValues.length > staticSize  && specialType !== SpecialType.String) {
+        if (isStatic && staticSize !== 0 && structValues.length > staticSize && specialType !== SpecialType.String) {
             throw new Error(`Size of value ${structValues.length} is greater than ${staticSize}.`);
         }
 
@@ -81,28 +81,35 @@ export class Make<T> extends ReadWriteBase {
 
         // Write array of writeType
         else {
-            this._writeArray(writeType, structValues);
+            this.writeArray(writeType, structValues);
         }
     }
 
-    private _write(model: Model, struct: T, modelKey: string, modelType: Type) {
+    private write(model: Model, struct: T, modelKey: string, modelType: Type) {
         switch (typeof modelType) {
             case 'object':
-                this._recursion(model[modelKey], struct[modelKey]);
+                this.recursion(model[modelKey], struct[modelKey]);
                 break;
             case 'string':
-                this._writer.write(modelType, struct[modelKey]);
+                if (modelType === 'buf0') {
+                    throw new Error(`Buffer size can not be 0. (make)`);
+                }
+                let structValues = struct[modelKey];
+                if (modelType === 'j0') {
+                    structValues = JSON.stringify(structValues);
+                }
+                this._writer.write(modelType, structValues);
                 break;
             default:
                 throw TypeError(`Unknown type "${modelType}"`);
         }
     }
 
-    private _writeArray(itemsType: Type, structValues: T[]) {
+    private writeArray(itemsType: Type, structValues: T[]) {
         switch (typeof itemsType) {
             case 'object':
                 for (const structValue of structValues) {
-                    this._recursion(itemsType, structValue);
+                    this.recursion(itemsType, structValue);
                 }
                 break;
             case 'string':

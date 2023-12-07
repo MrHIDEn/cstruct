@@ -1,9 +1,14 @@
-import { CStructBE } from "../src";
+/* eslint-disable @typescript-eslint/no-var-requires,no-undef */
+
+// const {CStructBE,CStructLE, hexToBuffer} = require('@mrhiden/cstruct');
+const {CStructBE} = require('../lib/index.js');
 
 {
-    const model = {abc: 'j[0]'};
+    const model = {abc: 'j0'};
 
     const cStruct = CStructBE.fromModelTypes(model);
+    console.log(cStruct.jsonModel);
+    // {"abc":"j0"}
 
     const struct = {abc: [1, 2, 3]};
     const buffer = cStruct.make(struct).buffer;
@@ -15,10 +20,13 @@ import { CStructBE } from "../src";
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // { abc: [ 1, 2, 3 ] }
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
+    // true
 }
 
 {
-    const model = ['j[0]'];
+    const model = ['j0'];
 
     const cStruct = CStructBE.fromModelTypes(model);
 
@@ -32,10 +40,13 @@ import { CStructBE } from "../src";
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // [ { a: 1, b: 2 } ]
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
+    // true
 }
 
 {
-    const model = {abc: 's[0]'};
+    const model = {abc: 's0'};
 
     const cStruct = CStructBE.fromModelTypes(model);
 
@@ -49,10 +60,13 @@ import { CStructBE } from "../src";
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // { abc: 'abcde' }
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
+    // true
 }
 
 {
-    const model = ['s[0]'];
+    const model = ['s0'];
 
     const cStruct = CStructBE.fromModelTypes(model);
 
@@ -66,22 +80,25 @@ import { CStructBE } from "../src";
     const {struct: extractedData} = cStruct.read(buffer);
     console.log(extractedData);
     // [ 'abcde' ]
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
+    // true
 }
 
 {
     const model = {
-        any1: 'j[0]',
-        any2: 's[0]'
+        any1: 'j0',
+        any2: 's0'
     };
 
     const cStruct = CStructBE.fromModelTypes(model);
 
-    const data = {
+    const struct = {
         any1: [1, 2, 3],
         any2: 'abc'
     };
 
-    const buffer = cStruct.make(data).buffer;
+    const buffer = cStruct.make(struct).buffer;
     console.log(buffer.toString('hex'));
     // 5b312c322c335d0061626300
     // 5b_31_2c_32_2c_33_5d_00 616263_00
@@ -91,28 +108,40 @@ import { CStructBE } from "../src";
     console.log(extractedData);
     // { any1: [ 1, 2, 3 ], any2: 'abc' }
 
-    console.log(JSON.stringify(data) === JSON.stringify(extractedData));
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
     // true
 }
 
 {
-    const model = {abc: 'buf[0]'};
+    const model = {abc: 'buf0'};
 
     const cStruct = CStructBE.fromModelTypes(model);
 
     const struct = {abc: Buffer.from("01234")};
     const buffer = cStruct.make(struct).buffer;
-    // Error: Buffer size can not be 0.
-    console.log(buffer);
+    // Error: Buffer size can not be 0. (make)
+    console.log(buffer.toString('hex'));
+
+    const extractedData = cStruct.read(buffer).struct;
+    // Error: Buffer size can not be 0. (read)
+    console.log(extractedData);
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
 }
 
 {
-    const model = ['buf[0]'];
+    const model = ['buf0'];
 
     const cStruct = CStructBE.fromModelTypes(model);
 
     const struct = [Buffer.from("01234")];
     const buffer = cStruct.make(struct).buffer;
-    // Error: Buffer size can not be 0.
-    console.log(buffer);
+    // Error: Buffer size can not be 0. (make)
+    console.log(buffer.toString('hex'));
+
+    const extractedData = cStruct.read(buffer).struct;
+    // Error: Buffer size can not be 0. (read)
+    console.log(extractedData);
+
+    console.log(JSON.stringify(struct) === JSON.stringify(extractedData));
 }

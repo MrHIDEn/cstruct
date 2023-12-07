@@ -4,3 +4,4 @@ export * from './cstruct-be';
 export * from './cstruct-le';
 export * from './decorators';
 export * from './decorators-types';
+export * from './atom-types';

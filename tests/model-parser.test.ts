@@ -413,7 +413,7 @@ describe('ModelParser', () => {
                         {some: string[i8]}
                     `);
                     const expected = JSON.stringify(
-                        {"some.i8": "string"}
+                        {"some.i8": "s"}
                     );
                     expect(model).toEqual(expected);
                 });

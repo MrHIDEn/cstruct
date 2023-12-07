@@ -2,28 +2,33 @@ import { Type, SpecialType } from "./types";
 
 
 export class ReadWriteBase {
-    protected _typeLengthRegex = /^(?<dynamicType>\w+)\.(?<dynamicLength>\w+)$/;
-    private _stringTypes = ['s', 'string'];
-    private _bufferTypes = ['buf', 'buffer'];
-    private _jsonTypes = ['j', 'json', 'any'];
+    protected dynamicTypeLengthRegex = /^(?<dynamicType>\w+)\.(?<dynamicLength>\w+)$/;
+    protected staticTypeLengthRegex = /^(?<staticType>\w+)(?<staticLength>\d+)$/;
+    private stringTypes = ['s', 'string'];
+    private bufferTypes = ['buf', 'buffer'];
+    private jsonTypes = ['j', 'json', 'any'];
 
-    protected _getTypeLengthGroupsMatch(key: string) {
-        return key.match(this._typeLengthRegex)?.groups;
+    protected getDynamicTypeLengthGroupsMatch(key: string) {
+        return key.match(this.dynamicTypeLengthRegex)?.groups;
     }
 
-    protected _getSpecialType(modelType: Type): SpecialType | undefined {
-        if (this._stringTypes.includes(modelType as string)) {
+    protected getStaticTypeLengthGroupsMatch(key: string) {
+        return key.match(this.staticTypeLengthRegex)?.groups;
+    }
+
+    protected getSpecialType(modelType: Type): SpecialType | undefined {
+        if (this.stringTypes.includes(modelType as string)) {
             return SpecialType.String;
         }
-        if (this._bufferTypes.includes(modelType as string)) {
+        if (this.bufferTypes.includes(modelType as string)) {
             return SpecialType.Buffer;
         }
-        if (this._jsonTypes.includes(modelType as string)) {
+        if (this.jsonTypes.includes(modelType as string)) {
             return SpecialType.Json;
         }
     }
 
-    protected _getStaticSize(size: string): { isStatic: boolean, staticSize: number } {
+    protected getStaticSize(size: string): { isStatic: boolean, staticSize: number } {
         const value = +size;
         return {
             isStatic: !Number.isNaN(value),
@@ -33,8 +38,8 @@ export class ReadWriteBase {
 
     protected extractTypeAndSize(modelType: object | string, dynamicLength: string)
         : { specialType: SpecialType | undefined, isStatic: boolean, staticSize: number } {
-        const specialType = this._getSpecialType(modelType);
-        const {isStatic, staticSize} = this._getStaticSize(dynamicLength);
+        const specialType = this.getSpecialType(modelType);
+        const {isStatic, staticSize} = this.getStaticSize(dynamicLength);
         return {specialType, isStatic, staticSize};
     }
 }

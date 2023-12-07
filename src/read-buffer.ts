@@ -7,19 +7,19 @@ export class ReadBuffer extends BaseBuffer {
     protected _beginOffset: number;
     protected _atomFunctions: Map<string, ReaderFunctions>;
 
-    private _u8() {
+    private u8() {
         const val = this._buffer.readUInt8(this._offset);
         this.moveOffset(1);
         return val;
     }
 
-    private _i8() {
+    private i8() {
         const val = this._buffer.readInt8(this._offset);
         this.moveOffset(1);
         return val;
     }
 
-    private _s(size: number) {
+    private s(size: number) {
         if (size === undefined || size < 0) {
             throw new Error(`Invalid string size ${size ?? typeof size}`);
         }
@@ -35,7 +35,7 @@ export class ReadBuffer extends BaseBuffer {
         return val;
     }
 
-    private _buf(size: number) {
+    private buf(size: number) {
         if (!size || size < 0) {
             throw new Error(`Invalid buffer size ${size ?? typeof size}`);
         }
@@ -53,12 +53,12 @@ export class ReadBuffer extends BaseBuffer {
         this._beginOffset = offset;
 
         this._atomFunctions = new Map<string, ReaderFunctions>([
-            ['b8', () => Boolean(this._i8())],
-            ['u8', () => this._u8()],
-            ['i8', () => this._i8()],
-            ['s', (size: number) => this._s(size)],
-            ['buf', (size: number) => this._buf(size)],
-            ['j', (size: number) => this._s(size)]
+            ['b8', () => Boolean(this.i8())],
+            ['u8', () => this.u8()],
+            ['i8', () => this.i8()],
+            ['s', (size: number) => this.s(size)],
+            ['buf', (size: number) => this.buf(size)],
+            ['j', (size: number) => this.s(size)]
         ])
     }
 
@@ -78,11 +78,11 @@ export class ReadBuffer extends BaseBuffer {
         }
     }
 
-    get size() {
+    get size(): number {
         return this._offset - this._beginOffset;
     }
 
-    get offset() {
+    get offset(): number {
         return this._offset;
     }
 

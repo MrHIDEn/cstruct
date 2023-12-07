@@ -8,39 +8,39 @@ export class Read<T> extends ReadWriteBase {
     protected _struct: T;
     protected _reader: ReadBufferLE | ReadBufferBE;
 
-    _recursion(struct: T) {
+    recursion(struct: T) {
         const entries: StructEntry[] = Object.entries(struct);
 
         for (const [modelKey, modelType] of entries) {
             // Catch dynamic key
-            const keyDynamicGroups = this._getTypeLengthGroupsMatch(modelKey);
+            const keyDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
             // Dynamic key
             if (keyDynamicGroups) {
                 delete struct[modelKey];
                 const {dynamicType, dynamicLength} = keyDynamicGroups;
-                this._readDynamicOrStatic(struct, modelType as string, dynamicType, dynamicLength, modelType as string, dynamicType);
+                this.readDynamicOrStatic(struct, modelType as string, dynamicType, dynamicLength, modelType as string, dynamicType);
                 continue;
             }
 
             // Dynamic type
             if (typeof modelType === 'string') {
                 // Catch dynamic type
-                const typeDynamicGroups = this._getTypeLengthGroupsMatch(modelType);
+                const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
                     const {dynamicType, dynamicLength} = typeDynamicGroups;
-                    this._readDynamicOrStatic(struct, dynamicType, dynamicType, dynamicLength, dynamicType, modelKey);
+                    this.readDynamicOrStatic(struct, dynamicType, dynamicType, dynamicLength, dynamicType, modelKey);
                     continue;
                 }
             }
 
             // Static item
-            this._read(struct, modelKey, modelType);
+            this.read(struct, modelKey, modelType);
         }
     }
 
-    private _readDynamicOrStatic(struct: T, modelType: string, dynamicType: string, dynamicLength: string, readType: string, structKey: string) {
+    private readDynamicOrStatic(struct: T, modelType: string, dynamicType: string, dynamicLength: string, readType: string, structKey: string) {
         // Dynamic key
         // 1 (some.i16: u8)
         // 2 (some.5  : u8)
@@ -71,34 +71,41 @@ export class Read<T> extends ReadWriteBase {
 
         // Read array of itemsType
         else {
-            this._readArray(readType, struct, structKey, size);
+            this.readArray(readType, struct, structKey, size);
         }
     }
 
-    private _read(struct: T, key: string, type: Type) {
-        switch (typeof type) {
+    private read(struct: T, modelKey: string, modelType: Type) {
+        switch (typeof modelType) {
             case 'object':
-                this._recursion(struct[key]);
+                this.recursion(struct[modelKey]);
                 break;
             case 'string':
-                struct[key] = this._reader.read(type);
+                if (modelType === 'buf0') {
+                    throw new Error(`Buffer size can not be 0. (read)`);
+                }
+                let structValues = this._reader.read(modelType);
+                if (modelType === 'j0') {
+                    structValues = JSON.parse(structValues as string);
+                }
+                struct[modelKey] = structValues;
                 break;
             default:
-                throw TypeError(`Unknown type "${type}"`);
+                throw TypeError(`Unknown type "${modelType}"`);
         }
     }
 
-    private _readArray(itemsType: Type, struct: T, dynamicKey: string, size: number) {
+    private readArray(itemsType: Type, struct: T, dynamicKey: string, size: number) {
         switch (typeof itemsType) {
             case 'object': {
                 const json = JSON.stringify(itemsType);
                 struct[dynamicKey] = Array(size).fill(0).map(() => JSON.parse(json));
-                this._recursion(struct[dynamicKey]);
+                this.recursion(struct[dynamicKey]);
                 break;
             }
             case 'string':
                 struct[dynamicKey] = Array(size).fill(itemsType);
-                this._recursion(struct[dynamicKey]);
+                this.recursion(struct[dynamicKey]);
                 break;
             default:
                 throw TypeError(`Unknown type "${itemsType}"`);

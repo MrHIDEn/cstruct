@@ -7,6 +7,6 @@ export class ReadBE<T> extends Read<T> {
         super();
         this._reader = new ReadBufferBE(buffer, offset);
         this._struct = model as T;
-        this._recursion(this._struct);
+        this.recursion(this._struct);
     }
 }

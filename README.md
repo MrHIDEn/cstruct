@@ -11,12 +11,14 @@
 * Big endian - BE
 * TypeScript decorators for classes and properties
 
-### Whats new in 1.2 ?
-* Added JSON type to transfer blocks of data as JSON string inside buffer
-* Fixed model parser to prevent replace field keys names such as 'string...', 'buffer...', 'json...', 's...', 'buf...', 'j...'
 ### Whats new in 1.3 ?
 * Added trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
 * When we try to write Buffer or Json into too small space, it will throw an error. String will be trimmed to fit.
+### Whats new in 1.4 ?
+* Added predefined types
+* Added predefined aliases
+* Fixed issue in one function where we use endian BE -> LE
+* Added more tests to cover that issue and predefined types
 
 ### Install
 `npm i @mrhiden/cstruct`
@@ -24,18 +26,18 @@
 ### Data types, Atom types and aliases
 | Atom | Type               | Size [B] | Aliases                              | Notes |
 |------|--------------------|----------|--------------------------------------|-------|
-| b8   | boolean            | 1        | bool8                    BOOL        |       |
+| b8   | boolean            | 1        | bool8 bool               BOOL        |       |
 | b16  | boolean            | 2        | bool16                               |       |
 | b32  | boolean            | 4        | bool32                               |       |
 | b64  | boolean            | 8        | bool64                               |       |
 | u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |       |
 | u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |       |
 | u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |       |
-| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD       |       |
+| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD QWORD |       |
 | i8   | signed char        | 1        | int8  int8_t             SINT        |       |
 | i16  | signed int         | 2        | int16 int16_t            INT         |       |
 | i32  | signed long        | 4        | int32 int32_t            DINT        |       |
-| i64  | signed long long   | 8        | int64 int64_t            LINT        |       |
+| i64  | signed long long   | 8        | int64 int64_t            LINT QINT   |       |
 | f    | float              | 4        | float  float32 float32_t REAL single |       |
 | d    | double             | 4        | double float64 float64_t LREAL       |       |
 | sN   | string             | N        | string                               | N= 0+ |
@@ -85,6 +87,65 @@ Static `make` creates new instance of provided class and fills it with parsed da
 
 **NOTE**<br>
 When using `@CStructClass` decorator with `{model: ... }` it can override `@CStructProperty` decorators.<br>
+
+**Pure JavaScript examples**<br>
+```javascript
+const {CStructBE,CStructLE, hexToBuffer, AtomTypes} = require('@mrhiden/cstruct');
+const {U16, I16, STRING} = AtomTypes; // You can also use 'u16', 'i16', 'string' / 's' as before
+
+// JavaScript Example 1
+{
+    // Model with two fields.
+    const model = {a: U16, b: I16}; // = {a: 'u16', b: 'i16'};
+    // Create CStruct from model. Precompile.
+    const cStruct = CStructBE.fromModelTypes(model);
+    // Data to transfer. Make buffer from data. Transfer buffer.
+    const data = {a: 10, b: -10};
+    // Buffer made.
+    const buffer = cStruct.make(data).buffer;
+    console.log(buffer.toString('hex'));
+    // 000afff6
+    // {a: 000a, b: fff6}
+
+    // Read buffer. Receive data.
+    const result = cStruct.read(buffer);
+    console.log(result.struct);
+    // { a: 10, b: -10 }
+}
+
+// JavaScript Example 2
+{
+    // Sensor type. ID and value.
+    const types = {
+        Sensor: {id: U16, value: I16}, // Sensor: {id: 'u16', value: 'i16'},
+    }
+    // Model with IOT name and two sensors.
+    const model = {
+        iotName: STRING(0), // iotName: 's0',
+        sensors: 'Sensor[2]',
+    };
+    // Create CStruct from model and types. Precompile.
+    const cStruct = CStructBE.fromModelTypes(model, types);
+    // Data to transfer. Make buffer from data. Transfer buffer.
+    const data = {
+        iotName: 'iot-1',
+        sensors: [
+            {id: 1, value: -10},
+            {id: 2, value: -20}
+        ]
+    };
+    // Buffer made.
+    const buffer = cStruct.make(data).buffer;
+    console.log(buffer.toString('hex'));
+    // 696f742d31000001fff60002ffec
+    // '696f742d31'00 [{0001, fff6}, {0002, ffec}]
+
+    // Read buffer. Receive data.
+    const result = cStruct.read(buffer);
+    console.log(result.struct);
+    // { iotName: 'iot-1', sensors: [ { id: 1, value: -10 }, { id: 2, value: -20 } ] }
+}
+```
 
 **Make example**<br>
 ```typescript

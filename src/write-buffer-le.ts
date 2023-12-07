@@ -2,49 +2,49 @@ import { WriteBuffer } from "./write-buffer";
 import { WriterFunctions } from "./types";
 
 export class WriteBufferLE extends WriteBuffer {
-    _u16(val = 0) {
+    u16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
         buffer.writeUInt16LE(val);
         this.moveOffset(buffer);
     }
 
-    _i16(val = 0) {
+    i16(val = 0) {
         const buffer = Buffer.allocUnsafe(2);
         buffer.writeInt16LE(val);
         this.moveOffset(buffer);
     }
 
-    _u32(val = 0) {
+    u32(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeUInt32LE(val);
         this.moveOffset(buffer);
     }
 
-    _i32(val = 0) {
+    i32(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeInt32LE(val);
         this.moveOffset(buffer);
     }
 
-    _u64(val = 0n) {
+    u64(val = 0n) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeBigUInt64LE(val);
         this.moveOffset(buffer);
     }
 
-    _i64(val = 0n) {
+    i64(val = 0n) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeBigInt64LE(val);
         this.moveOffset(buffer);
     }
 
-    _f(val = 0) {
+    f(val = 0) {
         const buffer = Buffer.allocUnsafe(4);
         buffer.writeFloatLE(val);
         this.moveOffset(buffer);
     }
 
-    _d(val = 0) {
+    d(val = 0) {
         const buffer = Buffer.allocUnsafe(8);
         buffer.writeDoubleLE(val);
         this.moveOffset(buffer);
@@ -54,20 +54,20 @@ export class WriteBufferLE extends WriteBuffer {
         super();
         this._atomFunctions = new Map<string, WriterFunctions>([
             ...[...this._atomFunctions],
-            ['b16', (val: boolean) => this._i16(+Boolean(val))],
-            ['b32', (val: boolean) => this._i32(+Boolean(val))],
-            ['b64', (val: boolean) => this._i64(BigInt(val))],
+            ['b16', (val: boolean) => this.i16(+Boolean(val))],
+            ['b32', (val: boolean) => this.i32(+Boolean(val))],
+            ['b64', (val: boolean) => this.i64(BigInt(val))],
 
-            ['u16', (val = 0) => this._u16(val as number)],
-            ['u32', (val = 0) => this._u32(val as number)],
-            ['u64', (val = 0n) => this._u64(val as bigint)],
+            ['u16', (val = 0) => this.u16(val as number)],
+            ['u32', (val = 0) => this.u32(val as number)],
+            ['u64', (val = 0n) => this.u64(val as bigint)],
 
-            ['i16', (val = 0) => this._i16(val as number)],
-            ['i32', (val = 0) => this._i32(val as number)],
-            ['i64', (val = 0n) => this._i64(val as bigint)],
+            ['i16', (val = 0) => this.i16(val as number)],
+            ['i32', (val = 0) => this.i32(val as number)],
+            ['i64', (val = 0n) => this.i64(val as bigint)],
 
-            ['f', (val = 0) => this._f(val as number)],
-            ['d', (val = 0) => this._d(val as number)],
+            ['f', (val = 0) => this.f(val as number)],
+            ['d', (val = 0) => this.d(val as number)],
         ]);
 
         this.addPredefinedAliases();

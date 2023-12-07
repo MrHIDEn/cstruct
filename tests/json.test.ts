@@ -23,7 +23,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0011_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(19);
                 expect(result.size).toBe(19);
@@ -36,7 +36,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0011_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(19);
                 expect(result.size).toBe(19);
@@ -64,7 +64,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(20);
                 expect(result.size).toBe(20);
@@ -77,7 +77,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(20);
                 expect(result.size).toBe(20);
@@ -107,7 +107,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_0011_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -121,7 +121,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_0011_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -151,7 +151,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -165,7 +165,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -193,7 +193,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -206,7 +206,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -234,7 +234,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -247,7 +247,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -277,7 +277,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('1100_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(19);
                 expect(result.size).toBe(19);
@@ -290,7 +290,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('1100_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(19);
                 expect(result.size).toBe(19);
@@ -318,7 +318,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(20);
                 expect(result.size).toBe(20);
@@ -331,7 +331,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.make(struct);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(20);
                 expect(result.size).toBe(20);
@@ -361,7 +361,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_1100_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -375,7 +375,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_1100_7b2261223a312c2262223a5b322c335d7d');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -405,7 +405,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -419,7 +419,7 @@ describe('j - json - any - JSON', () => {
                 const expected = hexToBuffer('0000_7b2261223a312c2262223a5b322c335d7d000000');
 
                 const result = cStruct.write(buffer, struct, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -447,7 +447,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -460,7 +460,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.i16': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.i16': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(21);
                 expect(result.size).toBe(19);
@@ -488,7 +488,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'json'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
@@ -501,7 +501,7 @@ describe('j - json - any - JSON', () => {
                 const expected = {any1: {a:1,b:[2,3]}};
 
                 const result = cStruct.read(buffer, 2);
-                expect(cStruct.modelClone).toEqual({'any1.20': 'any'});
+                expect(cStruct.modelClone).toEqual({'any1.20': 'j'});
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(22);
                 expect(result.size).toBe(20);
