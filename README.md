@@ -88,7 +88,8 @@ Static `make` creates new instance of provided class and fills it with parsed da
 **NOTE**<br>
 When using `@CStructClass` decorator with `{model: ... }` it can override `@CStructProperty` decorators.<br>
 
-**Pure JavaScript examples**<br>
+# JavaScript examples
+**Atomic types instead pure string types**<br>
 ```javascript
 const {CStructBE,CStructLE, hexToBuffer, AtomTypes} = require('@mrhiden/cstruct');
 const {U16, I16, STRING} = AtomTypes; // You can also use 'u16', 'i16', 'string' / 's' as before
@@ -147,6 +148,7 @@ const {U16, I16, STRING} = AtomTypes; // You can also use 'u16', 'i16', 'string'
 }
 ```
 
+# TypeScript examples
 **Make example**<br>
 ```typescript
 import { CStructBE, CStructProperty } from '@mrhiden/cstruct';
