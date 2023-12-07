@@ -40,6 +40,9 @@
     "make:link": "npm link",
     "remove:unlink": "npm r @mrhiden/cstruct -g"
   },
+  "dependencies": {
+    "@mrhiden/cstruct": "1.x"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.8",
     "@types/node": "^16.18.23",
