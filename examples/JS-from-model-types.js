@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires,no-undef */
+
 // const {CStructBE,CStructLE, hexToBuffer, AtomTypes} = require('@mrhiden/cstruct');
-const {CStructBE, CStructLE, hexToBuffer, AtomTypes} = require('../lib/index.js');
+const {CStructBE, AtomTypes} = require('../lib/index.js');
 const {U16, I16, STRING} = AtomTypes;
 
 // JavaScript Example 1

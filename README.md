@@ -91,7 +91,7 @@ When using `@CStructClass` decorator with `{model: ... }` it can override `@CStr
 **Pure JavaScript examples**<br>
 ```javascript
 const {CStructBE,CStructLE, hexToBuffer, AtomTypes} = require('@mrhiden/cstruct');
-const {U16, I16, STRING} = AtomTypes;
+const {U16, I16, STRING} = AtomTypes; // You can also use 'u16', 'i16', 'string' / 's' as before
 
 // JavaScript Example 1
 {
