@@ -39,6 +39,27 @@ export class WriteBuffer extends BaseBuffer {
         this.moveOffset(buffer);
     }
 
+    private ws(val = '', size?: number) {
+        if (typeof val !== 'string') {
+            throw new Error(`Invalid string value ${val}`);
+        }
+
+        if (size === undefined) {
+            size = val.length;
+        } else {
+            if (size < 0) {
+                throw new Error(`Invalid string size ${size}`);
+            }
+            if (size === 0) {
+                size = val.length + 1;
+            }
+        }
+
+        const buffer = Buffer.alloc(size*2);
+        buffer.write(val, 0, size*2, 'utf16le');
+        this.moveOffset(buffer);
+    }
+
     private buf(val = Buffer.alloc(0), size?: number) {
         if (!(val instanceof Buffer)) {
             throw new Error(`Invalid buffer value ${val}`);
@@ -62,6 +83,7 @@ export class WriteBuffer extends BaseBuffer {
             ['u8', (val: number) => this.u8(val)],
             ['i8', (val: number) => this.i8(val)],
             ['s', (val: string, size?: number) => this.s(val, size)],
+            ['ws', (val: string, size?: number) => this.ws(val, size)],
             ['buf', (val: Buffer, size?: number) => this.buf(val, size)],
             ['j', (val: any, size?: number) => this.s(val, size)],
         ]);

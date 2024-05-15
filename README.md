@@ -41,6 +41,7 @@
 | f    | float              | 4        | float  float32 float32_t REAL single |       |
 | d    | double             | 4        | double float64 float64_t LREAL       |       |
 | sN   | string             | N        | string                               | N= 0+ |
+| wsN  | wstring (UTF-16LE) | N        | wstring                              | N= 0+ |
 | bufN | buffer             | N        | buffer                               | N= 1+ |
 | jN   | json               | N        | json any                             | N= 0+ |
 
