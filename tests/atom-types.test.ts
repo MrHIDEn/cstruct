@@ -7,7 +7,7 @@ const {
     U8, U16, U32, U64, BYTE, WORD, DWORD, QWORD,
     I8, I16, I32, I64, CHAR, INT, DINT, QINT,
     F, F32, REAL, D, F64, LREAL,
-    S, BUF, J,
+    S, BUF, J, WS,
 } = AtomTypes;
 
 describe('atom types', () => {
@@ -416,6 +416,42 @@ describe('atom types', () => {
                 expect(result.offset).toBe(14);
                 expect(result.size).toBe(14);
             });
+
+            it(`should make WS, WSTR, WSTRING - static length by size`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: WS(3)},
+                });
+                const expected = hexToBuffer("4100 4200 4300");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(6);
+                expect(result.size).toBe(6);
+            });
+
+            it(`should make WS, WSTR, WSTRING - dynamic length by size`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: WS(INT)},
+                });
+                const expected = hexToBuffer("0003 4100 4200 4300");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should make WS, WSTR, WSTRING - dynamic length by trailing zero`, () => {
+                const cStruct = CStructBE.from({
+                    model: {r: WS(0)},
+                });
+                const expected = hexToBuffer("4100 4200 4300 0000");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
         });
     });
 
@@ -800,6 +836,42 @@ describe('atom types', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(14);
                 expect(result.size).toBe(14);
+            });
+
+            it(`should make WS, WSTR, WSTRING - static length by size`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: WS(3)},
+                });
+                const expected = hexToBuffer("4100 4200 4300");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(6);
+                expect(result.size).toBe(6);
+            });
+
+            it(`should make WS, WSTR, WSTRING - dynamic length by size`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: WS(INT)},
+                });
+                const expected = hexToBuffer("0300 4100 4200 4300");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should make WS, WSTR, WSTRING - dynamic length by trailing zero`, () => {
+                const cStruct = CStructLE.from({
+                    model: {r: WS(0)},
+                });
+                const expected = hexToBuffer("4100 4200 4300 0000");
+
+                const result = cStruct.make({r: "ABC"});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
             });
         });
     });

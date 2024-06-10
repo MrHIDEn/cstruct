@@ -55,6 +55,32 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.size).toBe(4);
             });
 
+            it(`should make buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = {any1: 'abc'};
+                const expected = hexToBuffer('610062006300 0000');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should make buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = ['abc'];
+                const expected = hexToBuffer('610062006300 0000');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
             it(`should not make buffer from {} buf[0]`, () => {
                 const model = {any1: 'buf[0]'};
                 const cStruct = CStructBE.fromModelTypes(model);
@@ -135,6 +161,34 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.size).toBe(4);
             });
 
+            it(`should write to buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = {any1: 'abc'};
+                const buffer = hexToBuffer(  '1111 222222222222 3333');
+                const expected = hexToBuffer('1111 610062006300 0000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should write to buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = ['abc'];
+                const buffer = hexToBuffer(  '1111 222222222222 3333');
+                const expected = hexToBuffer('1111 610062006300 0000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
             it(`should not write to buffer from {} buf[0]`, () => {
                 const model = {any1: 'buf[0]'};
                 const cStruct = CStructBE.fromModelTypes(model);
@@ -212,6 +266,32 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
+            });
+
+            it(`should read from buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '1111 610062006300 0000');
+                const expected = {any1: 'abc'};
+
+                const result = cStruct.read(buffer, 2);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should read from buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '1111 610062006300 0000');
+                const expected = ['abc'];
+
+                const result = cStruct.read(buffer, 2);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
             });
 
             it(`should not read from buffer from {} buf[0]`, () => {
@@ -293,6 +373,32 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.size).toBe(4);
             });
 
+            it(`should make buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = {any1: 'abc'};
+                const expected = hexToBuffer('610062006300 0000');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should make buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = ['abc'];
+                const expected = hexToBuffer('610062006300 0000');
+
+                const result = cStruct.make(struct);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(8);
+                expect(result.size).toBe(8);
+            });
+
             it(`should not make buffer from {} buf[0]`, () => {
                 const model = {any1: 'buf[0]'};
                 const cStruct = CStructLE.fromModelTypes(model);
@@ -373,6 +479,34 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.size).toBe(4);
             });
 
+            it(`should write to buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = {any1: 'abc'};
+                const buffer = hexToBuffer(  '1111 222222222222 3333');
+                const expected = hexToBuffer('1111 610062006300 0000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should write to buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = ['abc'];
+                const buffer = hexToBuffer(  '1111 222222222222 3333');
+                const expected = hexToBuffer('1111 610062006300 0000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
             it(`should not write to buffer from {} buf[0]`, () => {
                 const model = {any1: 'buf[0]'};
                 const cStruct = CStructLE.fromModelTypes(model);
@@ -450,6 +584,32 @@ describe('Trailing zero, string, json, not buffer', () => {
                 expect(result.struct).toEqual(expected);
                 expect(result.offset).toBe(6);
                 expect(result.size).toBe(4);
+            });
+
+            it(`should read from buffer from {} ws[0]`, () => {
+                const model = {any1: 'ws[0]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '1111 610062006300 0000');
+                const expected = {any1: 'abc'};
+
+                const result = cStruct.read(buffer, 2);
+                expect(cStruct.modelClone).toEqual({'any1.0': 'ws'});
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
+            });
+
+            it(`should read from buffer from [] ws[0]`, () => {
+                const model = ['ws[0]'];
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '1111 610062006300 0000');
+                const expected = ['abc'];
+
+                const result = cStruct.read(buffer, 2);
+                expect(cStruct.modelClone).toEqual(['ws.0']);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(10);
+                expect(result.size).toBe(8);
             });
 
             it(`should not read from buffer from {} buf[0]`, () => {
