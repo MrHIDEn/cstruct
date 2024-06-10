@@ -86,6 +86,7 @@ export class Make<T> extends ReadWriteBase {
     }
 
     private write(model: Model, struct: T, modelKey: string, modelType: Type) {
+        let structValues: WriterValue;
         switch (typeof modelType) {
             case 'object':
                 this.recursion(model[modelKey], struct[modelKey]);
@@ -94,7 +95,7 @@ export class Make<T> extends ReadWriteBase {
                 if (modelType === 'buf0') {
                     throw new Error(`Buffer size can not be 0. (make)`);
                 }
-                let structValues = struct[modelKey];
+                structValues = struct[modelKey];
                 if (modelType === 'j0') {
                     structValues = JSON.stringify(structValues);
                 }

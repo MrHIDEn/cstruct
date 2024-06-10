@@ -1,6 +1,6 @@
 import { ReadBufferBE } from "./read-buffer-be";
 import { ReadBufferLE } from "./read-buffer-le";
-import { SpecialType, StructEntry, Type } from "./types";
+import { ReaderValue, SpecialType, StructEntry, Type } from "./types";
 import { ReadWriteBase } from "./read-write-base";
 
 
@@ -76,6 +76,7 @@ export class Read<T> extends ReadWriteBase {
     }
 
     private read(struct: T, modelKey: string, modelType: Type) {
+        let structValues: ReaderValue;
         switch (typeof modelType) {
             case 'object':
                 this.recursion(struct[modelKey]);
@@ -84,7 +85,7 @@ export class Read<T> extends ReadWriteBase {
                 if (modelType === 'buf0') {
                     throw new Error(`Buffer size can not be 0. (read)`);
                 }
-                let structValues = this._reader.read(modelType);
+                structValues = this._reader.read(modelType);
                 if (modelType === 'j0') {
                     structValues = JSON.parse(structValues as string);
                 }
