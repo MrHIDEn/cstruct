@@ -63,7 +63,7 @@ export class Read<T> extends ReadWriteBase {
             throw new Error(`Buffer size can not be 0.`);
         }
 
-        // Read string or buffer or json
+        // Read string or wstring or buffer or json
         if (specialType) {
             const value = this._reader.read(readType, size);
             struct[structKey] = specialType === SpecialType.Json ? JSON.parse(value as string) : value;

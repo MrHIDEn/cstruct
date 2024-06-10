@@ -1,7 +1,8 @@
 /.vscode/
 /.idea/
 
-sbx-*.*
+/--*/
+--*.*
 node_modules/
 lib/
 /out/

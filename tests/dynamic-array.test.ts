@@ -1,4 +1,4 @@
-import { hexToBuffer, CStructBE, CStructLE } from "../src";
+import { CStructBE, CStructLE, hexToBuffer } from "../src";
 
 
 describe('dynamic array', () => {
@@ -117,6 +117,40 @@ describe('dynamic array', () => {
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
             });
+
+            it(`should read {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer('0002 4100_4200_0000_0000 4100_4200_4300_0000');
+                const expected = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+
+                const result = cStruct.read(buffer);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should read {ab: "ws4[i16]"} with offset 2`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer('7777 0002 4100_4200_0000_0000 4100_4200_4300_0000');
+                const expected = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+
+                const result = cStruct.read(buffer, 2);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
+            });
         });
 
         describe(`make`, () => {
@@ -173,6 +207,23 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should make {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const expected = hexToBuffer('0002 4100_4200_0000_0000 4100_4200_4300_0000');
+
+                const result = cStruct.make(struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
             });
 
             it(`should make [i8, i8[2], i8[i16]]`, () => {
@@ -243,6 +294,32 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should write {r: 'ws4[i16]'}`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer('0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0002 6100620000000000 6300640000000000');
+
+                const result = cStruct.write(buffer, {r: ['ab', 'cd']});
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should write {r: 'ws4[i16]'} with offset 2`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer('0000 0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0000 0002 6100620000000000 6300640000000000');
+
+                const result = cStruct.write(buffer, {r: ['ab', 'cd']}, 2);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
             });
 
             it(`should write {ab: "Ab[i16]"}`, () => {
@@ -318,6 +395,42 @@ describe('dynamic array', () => {
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
             });
+
+            it(`should write {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const buffer = hexToBuffer(  '0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0002 4100420000000000 4100420043000000');
+
+                const result = cStruct.write(buffer, struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should write {ab: "ws4[i16]"} with offset 2`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructBE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const buffer = hexToBuffer('7777 0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('7777 0002 4100420000000000 4100420043000000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
+            });
         });
     });
 
@@ -365,6 +478,28 @@ describe('dynamic array', () => {
                 expect(result.struct.r).toStrictEqual(['ab', 'cd']);
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should read {r: 'ws4[i16]'}`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer('0200 6100620000000000 6300640000000000');
+
+                const result = cStruct.read(buffer);
+                expect(result.struct.r).toStrictEqual(['ab', 'cd']);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should read {r: 'ws4[i16]'} with offset 2`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer('0000 0200 6100620000000000 6300640000000000');
+
+                const result = cStruct.read(buffer, 2);
+                expect(result.struct.r).toStrictEqual(['ab', 'cd']);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
             });
 
             it(`should read {ab: "Ab[i16]"}`, () => {
@@ -436,6 +571,40 @@ describe('dynamic array', () => {
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
             });
+
+            it(`should read {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer('0200 4100420000000000 4100420043000000');
+                const expected = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+
+                const result = cStruct.read(buffer);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should read {ab: "ws4[i16]"} with offset 2`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer('7777 0200 4100420000000000 4100420043000000');
+                const expected = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+
+                const result = cStruct.read(buffer, 2);
+                expect(result.struct).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
+            });
         });
 
         describe(`make`, () => {
@@ -457,6 +626,16 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(hexToBuffer('0200 61620000 63640000'));
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should make {r: 'ws4[i16]'}`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+
+                const result = cStruct.make({r: ['ab', 'cd']});
+                expect(result.buffer).toEqual(hexToBuffer('0200 6100620000000000 6300640000000000'));
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
             });
 
             it(`should make {ab: "Ab[i16]"}`, () => {
@@ -492,6 +671,23 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should make {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const expected = hexToBuffer('0200 4100420000000000 4100420043000000');
+
+                const result = cStruct.make(struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
             });
 
             it(`should make [i8, i8[2], i8[i16]]`, () => {
@@ -562,6 +758,32 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should write {r: 'ws4[i16]'}`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0200 6100620000000000 6300640000000000');
+
+                const result = cStruct.write(buffer, {r: ['ab', 'cd']});
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should write {r: 'ws4[i16]'} with offset 2`, () => {
+                const model = {r: 'ws4[i16]'};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '0000 0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0000 0200 6100620000000000 6300640000000000');
+
+                const result = cStruct.write(buffer, {r: ['ab', 'cd']}, 2);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
             });
 
             it(`should write {ab: "Ab[i16]"}`, () => {
@@ -636,6 +858,42 @@ describe('dynamic array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(12);
                 expect(result.size).toBe(10);
+            });
+
+            it(`should write {ab: "ws4[i16]"}`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const buffer = hexToBuffer('0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('0200 4100420000000000 4100420043000000');
+
+                const result = cStruct.write(buffer, struct);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(18);
+                expect(result.size).toBe(18);
+            });
+
+            it(`should write {ab: "ws4[i16]"} with offset 2`, () => {
+                const model = {ab: "ws4[i16]"};
+                const cStruct = CStructLE.fromModelTypes(model);
+                const struct = {
+                    ab: [
+                        "AB",
+                        "ABC",
+                    ]
+                };
+                const buffer = hexToBuffer(  '7777 0000 0000000000000000 0000000000000000');
+                const expected = hexToBuffer('7777 0200 4100420000000000 4100420043000000');
+
+                const result = cStruct.write(buffer, struct, 2);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(20);
+                expect(result.size).toBe(18);
             });
         });
     });

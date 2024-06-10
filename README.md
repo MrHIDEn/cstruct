@@ -9,41 +9,42 @@
 * Can return whole buffer from your data Object/Array (make)
 * Little endian - LE
 * Big endian - BE
-* TypeScript decorators for classes and properties
+* TypeScript's decorators for classes and properties
 
-### Whats new in 1.3 ?
-* Added trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
-* When we try to write Buffer or Json into too small space, it will throw an error. String will be trimmed to fit.
 ### Whats new in 1.4 ?
 * Added predefined types
 * Added predefined aliases
 * Fixed issue in one function where we use endian BE -> LE
 * Added more tests to cover that issue and predefined types
 
+### Whats new in 1.5 ?
+* Added support for wstring (UTF-16LE) type. Thanks to [Sorunome](https://github.com/Sorunome).<br>
+  For wstring/utf16le trailing character is/must be 16bit zero '\u0000'.<br>
+
 ### Install
 `npm i @mrhiden/cstruct`
 
 ### Data types, Atom types and aliases
-| Atom | Type               | Size [B] | Aliases                              | Notes |
-|------|--------------------|----------|--------------------------------------|-------|
-| b8   | boolean            | 1        | bool8 bool               BOOL        |       |
-| b16  | boolean            | 2        | bool16                               |       |
-| b32  | boolean            | 4        | bool32                               |       |
-| b64  | boolean            | 8        | bool64                               |       |
-| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE        |       |
-| u16  | unsigned int       | 2        | uint16 uint16_t          WORD        |       |
-| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD       |       |
-| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD QWORD |       |
-| i8   | signed char        | 1        | int8  int8_t             SINT        |       |
-| i16  | signed int         | 2        | int16 int16_t            INT         |       |
-| i32  | signed long        | 4        | int32 int32_t            DINT        |       |
-| i64  | signed long long   | 8        | int64 int64_t            LINT QINT   |       |
-| f    | float              | 4        | float  float32 float32_t REAL single |       |
-| d    | double             | 4        | double float64 float64_t LREAL       |       |
-| sN   | string             | N        | string                               | N= 0+ |
-| wsN  | wstring (UTF-16LE) | N        | wstring                              | N= 0+ |
-| bufN | buffer             | N        | buffer                               | N= 1+ |
-| jN   | json               | N        | json any                             | N= 0+ |
+| Atom | Type               | Size [B] | Aliases                                     | Notes |
+|------|--------------------|----------|---------------------------------------------|-------|
+| b8   | boolean            | 1        | bool8 bool               BOOL               |       |
+| b16  | boolean            | 2        | bool16                                      |       |
+| b32  | boolean            | 4        | bool32                                      |       |
+| b64  | boolean            | 8        | bool64                                      |       |
+| u8   | unsigned char      | 1        | uint8  uint8_t           BYTE               |       |
+| u16  | unsigned int       | 2        | uint16 uint16_t          WORD               |       |
+| u32  | unsigned long      | 4        | uint32 uint32_t          DWORD              |       |
+| u64  | unsigned long long | 8        | uint64 uint64_t          LWORD QWORD        |       |
+| i8   | signed char        | 1        | int8  int8_t             SINT               |       |
+| i16  | signed int         | 2        | int16 int16_t            INT                |       |
+| i32  | signed long        | 4        | int32 int32_t            DINT               |       |
+| i64  | signed long long   | 8        | int64 int64_t            LINT QINT          |       |
+| f    | float              | 4        | float  float32 float32_t single REAL  F F32 |       |
+| d    | double             | 4        | double float64 float64_t        LREAL D F64 |       |
+| sN   | string             | N        | string                                      | N= 0+ |
+| wsN  | wstring (UTF-16LE) | N * 2    | wstring                  WS WSTR WSTRING    | N= 0+ |
+| bufN | buffer             | N        | buffer                   BUF BUFFER         | N= 1+ |
+| jN   | json               | N        | json any                 J JSON ANY         | N= 0+ |
 
 ### Usage
 The main concept is to first create a model of your data structure and then utilize it to read from and write to a buffer.
@@ -823,11 +824,12 @@ console.log(myClass2);
 // }
 ```
 
-### Trailing zero support for "string" and "json" types ("s", "string", "j", "json", "any")
+### Trailing zero support for "string", "wstring" and "json" types ("s", "string", "ws", "wstring", "j", "json", "any")
 This library has support for trailing zero for "string" and "json" types.<br>
 When you use it "json" and "string" will be written as full unknown length and '\0' will be added at the end.<br>
 That ending zero helps to read data from binary file without knowing the length of the string / json.<br>
 We can not use that trick with buffer as it may contain zeros at any place.<br>
+For wstring/utf16le trailing character is/must be 16bit zero '\u0000'.<br>
 
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';

@@ -47,6 +47,14 @@ export class AtomTypes {
     : /*{string}*/ `ws[${size}]`;    // S("0") ->Trailing zero
     static readonly WSTR = AtomTypes.WS;
     static readonly WSTRING = AtomTypes.WS;
+    static readonly WSE0 = AtomTypes.WS(0); // 'ws0'
+    static readonly WSEndZero = AtomTypes.WS(0); // 'ws0' -> '{a: "ws0"}' -> End zero
+    static readonly WST0 = AtomTypes.WS('0'); // 'ws[0]'
+    static readonly WSTrailingZero = AtomTypes.WS('0'); // 'ws[0]' -> '{a.0: "ws"}' -> Trailing zero
+    static readonly WSTREndZero = AtomTypes.WSEndZero;
+    static readonly WSTRINGEndZero = AtomTypes.WSEndZero;
+    static readonly WSTTrailingZero = AtomTypes.WSTrailingZero;
+    static readonly WSTRINGTTrailingZero = AtomTypes.WSTrailingZero;
     static readonly BUF = (size: number) => `buf${size}`;
     static readonly BUFFER = AtomTypes.BUF;
     static readonly J = (size: string | number) => Number.isFinite(size)

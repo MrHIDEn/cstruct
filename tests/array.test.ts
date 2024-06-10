@@ -57,6 +57,17 @@ describe('Array', () => {
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(8);
             });
+
+            it(`should read wstring[] with offset 2`, () => {
+                const buffer = hexToBuffer('0000 610062000000 630064000000');
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructBE.fromModelTypes(model);
+
+                const result = cStruct.read(buffer, 2);
+                expect(result.struct).toStrictEqual(['ab', 'cd']);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(12);
+            });
         });
 
         describe(`make`, () => {
@@ -88,6 +99,16 @@ describe('Array', () => {
                 expect(result.buffer).toEqual(hexToBuffer('61620000 63640000'));
                 expect(result.offset).toBe(8);
                 expect(result.size).toBe(8);
+            });
+
+            it(`should make wstring[]`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructBE.fromModelTypes(model);
+
+                const result = cStruct.make(['ab', 'cd']);
+                expect(result.buffer).toEqual(hexToBuffer('610062000000 630064000000'));
+                expect(result.offset).toBe(12);
+                expect(result.size).toBe(12);
             });
         });
 
@@ -168,6 +189,32 @@ describe('Array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(8);
+            });
+
+            it(`should write wstring[]`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '000000000000 000000000000');
+                const expected = hexToBuffer('610062000000 630064000000');
+
+                const result = cStruct.write(buffer, ['ab', 'cd']);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(12);
+                expect(result.size).toBe(12);
+            });
+
+            it(`should write wstring[] with offset 2`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructBE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '0000 000000000000 000000000000');
+                const expected = hexToBuffer('0000 610062000000 630064000000');
+
+                const result = cStruct.write(buffer, ['ab', 'cd'], 2);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(12);
             });
         });
     });
@@ -228,6 +275,17 @@ describe('Array', () => {
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(8);
             });
+
+            it(`should read string[] with offset 2`, () => {
+                const buffer = hexToBuffer('0000 610062000000 630064000000');
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructLE.fromModelTypes(model);
+
+                const result = cStruct.read(buffer, 2);
+                expect(result.struct).toStrictEqual(['ab', 'cd']);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(12);
+            });
         });
 
         describe(`make`, () => {
@@ -259,6 +317,16 @@ describe('Array', () => {
                 expect(result.buffer).toEqual(hexToBuffer('61620000 63640000'));
                 expect(result.offset).toBe(8);
                 expect(result.size).toBe(8);
+            });
+
+            it(`should make wstring[]`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructLE.fromModelTypes(model);
+
+                const result = cStruct.make(['ab', 'cd']);
+                expect(result.buffer).toEqual(hexToBuffer('610062000000 630064000000'));
+                expect(result.offset).toBe(12);
+                expect(result.size).toBe(12);
             });
         });
 
@@ -339,6 +407,32 @@ describe('Array', () => {
                 expect(result.buffer).toEqual(expected);
                 expect(result.offset).toBe(10);
                 expect(result.size).toBe(8);
+            });
+
+            it(`should write wstring[]`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer(  '000000000000 000000000000');
+                const expected = hexToBuffer('610062000000 630064000000');
+
+                const result = cStruct.write(buffer, ['ab', 'cd']);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(12);
+                expect(result.size).toBe(12);
+            });
+
+            it(`should write wstring[] with offset 2`, () => {
+                const model = ['ws3', 'ws3'];
+                const cStruct = CStructLE.fromModelTypes(model);
+                const buffer = hexToBuffer('0000 000000000000 000000000000');
+                const expected = hexToBuffer('0000 610062000000 630064000000');
+
+                const result = cStruct.write(buffer, ['ab', 'cd'], 2);
+                expect(buffer).toEqual(expected);
+                expect(result.buffer).toEqual(expected);
+                expect(result.offset).toBe(14);
+                expect(result.size).toBe(12);
             });
         });
     });

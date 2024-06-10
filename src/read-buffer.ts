@@ -24,12 +24,12 @@ export class ReadBuffer extends BaseBuffer {
             throw new Error(`Invalid string size ${size ?? typeof size}`);
         }
         if (size === 0) {
-            size = this._buffer.indexOf(0, this._offset) - this._offset + 1;
+            size = this._buffer.indexOf('\0', this._offset, 'utf8') - this._offset + 1;
         }
 
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
-            .split('\x00', 1).pop(); // remove all trailing null bytes
+            .split('\0', 1).pop(); // remove all trailing null bytes
         this.moveOffset(size);
         return val;
     }
@@ -39,13 +39,16 @@ export class ReadBuffer extends BaseBuffer {
             throw new Error(`Invalid string size ${size ?? typeof size}`);
         }
         if (size === 0) {
-            size = (this._buffer.indexOf('\x00\x00', this._offset) - this._offset + 2) / 2;
+            // size already in bytes
+            size = this._buffer.indexOf('\u0000', this._offset, 'utf16le') - this._offset + 2;
+        } else {
+            size *= 2; // utf16le 2 bytes per character
         }
 
         const val = this._buffer
-            .toString('utf16le', this._offset, this._offset + size*2)
-            .split('\x00', 1).pop(); // remove all trailing null bytes
-        this.moveOffset(size * 2);
+            .toString('utf16le', this._offset, this._offset + size)
+            .split('\u0000', 1).pop(); // remove all trailing null bytes
+        this.moveOffset(size);
         return val;
     }
 

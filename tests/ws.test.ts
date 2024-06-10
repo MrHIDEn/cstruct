@@ -5,7 +5,7 @@ describe('ws - string', () => {
     describe('BE', () => {
         describe(`read`, () => {
             it(`should read 'abc'`, () => {
-                const buffer = hexToBuffer("61006200630000000000");
+                const buffer = hexToBuffer("6100 6200 6300 0000 0000");
                 const model = {r: 'ws5'};
                 const cStruct = CStructBE.fromModelTypes(model);
 
@@ -16,7 +16,7 @@ describe('ws - string', () => {
             });
 
             it(`should read 'abc' with offset 2`, () => {
-                const buffer = hexToBuffer("0000 61006200630000000000");
+                const buffer = hexToBuffer("0000 6100 6200 6300 0000 0000");
                 const model = {r: 'ws5'};
                 const cStruct = CStructBE.fromModelTypes(model);
 
@@ -28,10 +28,10 @@ describe('ws - string', () => {
         });
 
         describe(`make`, () => {
-            it(`should make 0x12003400560078009A00BC00DE00F000`, () => {
+            it(`should make buffer with wstring 'abc' (utf16le)`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructBE.fromModelTypes(model);
-                const expected = hexToBuffer("61006200630000000000");
+                const expected = hexToBuffer("6100 6200 6300 0000 0000");
 
                 const result = cStruct.make({r: "abc"});
                 expect(result.buffer).toEqual(expected);
@@ -41,11 +41,11 @@ describe('ws - string', () => {
         });
 
         describe(`write`, () => {
-            it(`should write 0x12003400560078009A00BC00DE00F000`, () => {
+            it(`should write buffer with wstring 'abc' (utf16le)`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructBE.fromModelTypes(model);
-                const buffer = hexToBuffer("00000000000000000000");
-                const expected = hexToBuffer("61006200630000000000");
+                const buffer = hexToBuffer("0000 0000 0000 0000 0000");
+                const expected = hexToBuffer("6100 6200 6300 0000 0000");
 
                 const result = cStruct.write(buffer, {r: "abc"});
                 expect(buffer).toEqual(expected);
@@ -54,11 +54,11 @@ describe('ws - string', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should write 0x12003400560078009A00BC00DE00F000 with offset 2`, () => {
+            it(`should write buffer with wstring 'abc' (utf16le) with offset 2`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructBE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 00000000000000000000");
-                const expected = hexToBuffer("0000 61006200630000000000");
+                const expected = hexToBuffer("0000 6100 6200 6300 0000 0000");
 
                 const result = cStruct.write(buffer, {r: "abc"}, 2);
                 expect(buffer).toEqual(expected);
@@ -71,7 +71,7 @@ describe('ws - string', () => {
 
     describe('LE', () => {
         describe(`read`, () => {
-            it(`should read 'abc'`, () => {
+            it(`should read 'abc' (utf16le)`, () => {
                 const buffer = hexToBuffer("61006200630000000000");
                 const model = {r: 'ws5'};
                 const cStruct = CStructLE.fromModelTypes(model);
@@ -82,8 +82,8 @@ describe('ws - string', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should read 'abc' with offset 2`, () => {
-                const buffer = hexToBuffer("0000 61006200630000000000");
+            it(`should read 'abc' (utf16le) with offset 2`, () => {
+                const buffer = hexToBuffer("0000 6100 6200 6300 0000 0000");
                 const model = {r: 'ws5'};
                 const cStruct = CStructLE.fromModelTypes(model);
 
@@ -95,10 +95,10 @@ describe('ws - string', () => {
         });
 
         describe(`make`, () => {
-            it(`should make 0x12003400560078009A00BC00DE00F000`, () => {
+            it(`should make buffer with wstring 'abc' (utf16le)`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructLE.fromModelTypes(model);
-                const expected = hexToBuffer("61006200630000000000");
+                const expected = hexToBuffer("6100 6200 6300 0000 0000");
 
                 const result = cStruct.make({r: "abc"});
                 expect(result.buffer).toEqual(expected);
@@ -108,11 +108,11 @@ describe('ws - string', () => {
         });
 
         describe(`write`, () => {
-            it(`should write 0x12003400560078009A00BC00DE00F000`, () => {
+            it(`should write buffer with wstring 'abc' (utf16le)`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("00000000000000000000");
-                const expected = hexToBuffer("61006200630000000000");
+                const expected = hexToBuffer("6100 6200 6300 0000 0000");
 
                 const result = cStruct.write(buffer, {r: "abc"});
                 expect(buffer).toEqual(expected);
@@ -121,11 +121,11 @@ describe('ws - string', () => {
                 expect(result.size).toBe(10);
             });
 
-            it(`should write 0x12003400560078009A00BC00DE00F000 with offset 2`, () => {
+            it(`should write buffer with wstring 'abc' (utf16le) with offset 2`, () => {
                 const model = {r: 'ws5'};
                 const cStruct = CStructLE.fromModelTypes(model);
                 const buffer = hexToBuffer("0000 00000000000000000000");
-                const expected = hexToBuffer("0000 61006200630000000000");
+                const expected = hexToBuffer("0000 6100 6200 6300 0000 0000");
 
                 const result = cStruct.write(buffer, {r: "abc"}, 2);
                 expect(buffer).toEqual(expected);

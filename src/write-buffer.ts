@@ -55,8 +55,10 @@ export class WriteBuffer extends BaseBuffer {
             }
         }
 
-        const buffer = Buffer.alloc(size*2);
-        buffer.write(val, 0, size*2, 'utf16le');
+        size *= 2; // utf16le 2 bytes per character
+
+        const buffer = Buffer.alloc(size);
+        buffer.write(val, 0, size, 'utf16le');
         this.moveOffset(buffer);
     }
 
@@ -65,7 +67,7 @@ export class WriteBuffer extends BaseBuffer {
             throw new Error(`Invalid buffer value ${val}`);
         }
 
-        let buffer;
+        let buffer: Buffer;
         if (size === undefined) {
             buffer = val;
         } else {
