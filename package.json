@@ -1,6 +1,6 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
