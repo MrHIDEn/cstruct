@@ -1,6 +1,7 @@
-name: On push
+name: Lint + Test - Manual Trigger
 
-on: [push]
+on:
+  workflow_dispatch:
 
 jobs:
   eslint:
