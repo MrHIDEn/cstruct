@@ -5,6 +5,7 @@ export class ReadWriteBase {
     protected dynamicTypeLengthRegex = /^(?<dynamicType>\w+)\.(?<dynamicLength>\w+)$/;
     protected staticTypeLengthRegex = /^(?<staticType>\w+)(?<staticLength>\d+)$/;
     private stringTypes = ['s', 'string'];
+    private wstringTypes = ['ws', 'wstring'];
     private bufferTypes = ['buf', 'buffer'];
     private jsonTypes = ['j', 'json', 'any'];
 
@@ -19,6 +20,9 @@ export class ReadWriteBase {
     protected getSpecialType(modelType: Type): SpecialType | undefined {
         if (this.stringTypes.includes(modelType as string)) {
             return SpecialType.String;
+        }
+        if (this.wstringTypes.includes(modelType as string)) {
+            return SpecialType.WString;
         }
         if (this.bufferTypes.includes(modelType as string)) {
             return SpecialType.Buffer;

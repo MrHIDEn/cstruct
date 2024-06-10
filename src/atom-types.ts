@@ -42,6 +42,11 @@ export class AtomTypes {
     static readonly STRINGEndZero = AtomTypes.SEndZero;
     static readonly STRTTrailingZero = AtomTypes.STrailingZero;
     static readonly STRINGTTrailingZero = AtomTypes.STrailingZero;
+    static readonly WS = (size: number | string) => Number.isFinite(size)
+    ? /*{number}*/ `ws${size}`      // S(0) -> End zero
+    : /*{string}*/ `ws[${size}]`;    // S("0") ->Trailing zero
+    static readonly WSTR = AtomTypes.WS;
+    static readonly WSTRING = AtomTypes.WS;
     static readonly BUF = (size: number) => `buf${size}`;
     static readonly BUFFER = AtomTypes.BUF;
     static readonly J = (size: string | number) => Number.isFinite(size)
@@ -86,6 +91,9 @@ export type AtomType =
     typeof AtomTypes.S |
     typeof AtomTypes.STR |
     typeof AtomTypes.STRING |
+    typeof AtomTypes.WS |
+    typeof AtomTypes.WSTR |
+    typeof AtomTypes.WSTRING |
     typeof AtomTypes.BUF |
     typeof AtomTypes.BUFFER |
     typeof AtomTypes.J |

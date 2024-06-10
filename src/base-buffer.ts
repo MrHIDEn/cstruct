@@ -1,9 +1,9 @@
 import { Alias, ReaderFunctions, WriterFunctions } from "./types";
 
 export class BaseBuffer {
-    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s,buf,j`.split(',');
-    private _stringOrBufferAtomOrJson = /^(s|string|buf|buffer|j|json|any)[0-9]+$/;
-    protected _stringOrBufferAtomOrJsonGroups = /^(?<type>s|string|buf|buffer|j|json|any)(?<size>[0-9]+)$/;
+    private _atomTypes: string[] = `b8,b16,b32,b64,u8,u16,u32,u64,u8,i16,i32,i64,f,d,s,ws,buf,j`.split(',');
+    private _stringOrBufferAtomOrJson = /^(s|string|ws|wstring|buf|buffer|j|json|any)[0-9]+$/;
+    protected _stringOrBufferAtomOrJsonGroups = /^(?<type>s|string|ws|wstring|buf|buffer|j|json|any)(?<size>[0-9]+)$/;
 
     protected isProtectedType(type: string): boolean {
         return (
@@ -33,6 +33,7 @@ export class BaseBuffer {
             ['d', 'D', 'LREAL', 'f64', 'F64', 'double', 'float64', 'float64_t'],
 
             ['s', 'string', 'S', 'STR', 'STRING'],
+            ['ws', 'wstring', 'WS', 'WSTR', 'WSTRING'],
             ['buf', 'buffer', 'BUF', 'BUFFER'],
             ['j', 'json', 'any', 'J', 'JSON'],
         ];

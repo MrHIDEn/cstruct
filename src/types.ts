@@ -24,6 +24,7 @@ export interface CStructWriteResult {
 
 export enum SpecialType {
     String = 1,
+    WString,
     Buffer,
     Json,
 }

@@ -3,6 +3,7 @@ import { Model, Types } from "./types";
 export class ModelParser {
     private static _allowedLengthTypes = 'u8,u16,u32,u64,i8,i16,i32,i64'.split(',');
     private static _sTypes = 's,str,string'.split(',');
+    private static _wsTypes = 'ws,wstr,wstring'.split(',');
     private static _bufTypes = 'buf,buffer'.split(',');
     private static _jTypes = 'j,json,any'.split(',');
 
@@ -22,6 +23,9 @@ export class ModelParser {
         const typeLowerCase = type.toLowerCase();
         if (this._sTypes.includes(typeLowerCase)) {
             return 's';
+        }
+        if (this._wsTypes.includes(typeLowerCase)) {
+            return 'ws';
         }
         if (this._bufTypes.includes(typeLowerCase)) {
             return 'buf';

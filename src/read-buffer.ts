@@ -27,11 +27,25 @@ export class ReadBuffer extends BaseBuffer {
             size = this._buffer.indexOf(0, this._offset) - this._offset + 1;
         }
 
-        // Consider using "utf16le" encoding as well as "utf8" encoding
         const val = this._buffer
             .toString('utf8', this._offset, this._offset + size)
             .split('\x00', 1).pop(); // remove all trailing null bytes
         this.moveOffset(size);
+        return val;
+    }
+
+    private ws(size: number) {
+        if (size === undefined || size < 0) {
+            throw new Error(`Invalid string size ${size ?? typeof size}`);
+        }
+        if (size === 0) {
+            size = (this._buffer.indexOf('\x00\x00', this._offset) - this._offset + 2) / 2;
+        }
+
+        const val = this._buffer
+            .toString('utf16le', this._offset, this._offset + size*2)
+            .split('\x00', 1).pop(); // remove all trailing null bytes
+        this.moveOffset(size * 2);
         return val;
     }
 
@@ -57,6 +71,7 @@ export class ReadBuffer extends BaseBuffer {
             ['u8', () => this.u8()],
             ['i8', () => this.i8()],
             ['s', (size: number) => this.s(size)],
+            ['ws', (size: number) => this.ws(size)],
             ['buf', (size: number) => this.buf(size)],
             ['j', (size: number) => this.s(size)]
         ])
