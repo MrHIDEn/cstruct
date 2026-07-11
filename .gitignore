@@ -1,8 +1,10 @@
 /.vscode/
 /.idea/
 
+# Local notes / scratch files (prefix --): never commit
 /--*/
 --*.*
+
 node_modules/
 lib/
 /out/
