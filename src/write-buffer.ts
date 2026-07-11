@@ -62,7 +62,7 @@ export class WriteBuffer extends BaseBuffer {
         this.moveOffset(buffer);
     }
 
-    private buf(val = Buffer.alloc(0), size?: number) {
+    private buf(val: Buffer = Buffer.alloc(0) as Buffer, size?: number) {
         if (!(val instanceof Buffer)) {
             throw new Error(`Invalid buffer value ${val}`);
         }
