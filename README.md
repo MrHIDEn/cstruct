@@ -922,7 +922,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 ### What's new in 1.7.0
 * Added `compileRead`, `compileWrite`, `compileMake` on `CStructBE` and `CStructLE` — compile a model once into specialized functions for high-throughput read/write/make
 * Instance methods `cStruct.compileRead()` / `compileWrite()` / `compileMake()` use cached `parsedModel`
-* `compileMake` uses single `allocUnsafe` for fully static models and `chunks + concat` for variable-length fields
+* `compileMake` uses single `allocUnsafe` for fully static models; for variable-length fields it precomputes size then allocates once (no `concat`)
 * Added [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) and README section [Compiled functions](#compiled-functions-codegen)
 * Added `npm run bench` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) with sample throughput (interpreter vs codegen)
 

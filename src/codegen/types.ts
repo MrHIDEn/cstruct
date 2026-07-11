@@ -18,6 +18,8 @@ export interface CodegenContext {
     lines: string[];
     counter: number;
     useChunks: boolean;
+    /** When true (make mode), emit `size += …` instead of buffer writes. */
+    accumulateSize?: boolean;
 }
 
 export type ParsedModel = Model;

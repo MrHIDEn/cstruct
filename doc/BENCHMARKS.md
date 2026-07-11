@@ -59,11 +59,11 @@ Compares **end methods only** — `readFn(buf, 0)` vs `cStruct.read(buf)`:
 
 ## Dynamic model (hot path)
 
-Model: `{ name: 's[i16]', items: 'u32[i16]' }` — variable length; `compileMake` uses **chunks + `Buffer.concat`**.
+Model: `{ name: 's[i16]', items: 'u32[i16]' }` — variable length; `compileMake` computes size first, then single `allocUnsafe` (no `concat`).
 
 | Operation | Interpreter | Pre-compiled `*Fn()` | Speedup |
 |-----------|-------------|----------------------|---------|
-| **make** | 175k ops/s (5.7 µs/op) | 971k ops/s (1.0 µs/op) | **~5.5×** |
+| **make** | 182k ops/s (5.5 µs/op) | 7.38M ops/s (136 ns/op) | **~41×** |
 | **read** | 182k ops/s (5.5 µs/op) | 7.64M ops/s (131 ns/op) | **~42×** |
 
 Dynamic fields add loops and concatenation, so gains are smaller than for fully static models — but codegen remains significantly faster.

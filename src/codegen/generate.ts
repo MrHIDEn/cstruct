@@ -25,7 +25,9 @@ function readLength(ctx: CodegenContext, lengthType: string, offsetVar: string):
 
 function writeLength(ctx: CodegenContext, lengthType: string, offsetVar: string, value: string) {
     const spec = getLengthPrefixSpec(lengthType, ctx.endian);
-    if (ctx.mode === 'make' && ctx.useChunks) {
+    if (ctx.accumulateSize) {
+        push(ctx, `size += ${spec.size};`);
+    } else if (isChunkMake(ctx)) {
         const b = tmpId(ctx);
         push(ctx, `{ const ${b} = Buffer.allocUnsafe(${spec.size}); ${spec.writeExpr(b, '0', value)}; chunks.push(${b}); }`);
     } else {
@@ -56,7 +58,15 @@ function readBuffer(ctx: CodegenContext, offsetVar: string, sizeExpr: string, ta
 }
 
 function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
-    if (ctx.mode === 'make' && ctx.useChunks) {
+    if (ctx.accumulateSize) {
+        if (trailing) {
+            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8') + 1;`);
+        } else if (dynamic) {
+            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8');`);
+        } else {
+            push(ctx, `size += ${size};`);
+        }
+    } else if (isChunkMake(ctx)) {
         if (trailing) {
             const b = tmpId(ctx);
             push(ctx, `{ const ${b} = Buffer.alloc(Buffer.byteLength(${valueExpr}, 'utf8') + 1); ${b}.write(${valueExpr}, 0, 'utf8'); chunks.push(${b}); }`);
@@ -80,7 +90,13 @@ function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: stri
 
 function writeWString(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false) {
     const byteSize = typeof size === 'number' ? size * 2 : `(${size}) * 2`;
-    if (ctx.mode === 'make' && ctx.useChunks) {
+    if (ctx.accumulateSize) {
+        if (trailing) {
+            push(ctx, `size += (${valueExpr}).length * 2 + 2;`);
+        } else {
+            push(ctx, `size += ${byteSize};`);
+        }
+    } else if (isChunkMake(ctx)) {
         if (trailing) {
             const b = tmpId(ctx);
             push(ctx, `{ const ${b} = Buffer.alloc((${valueExpr}).length * 2 + 2); ${b}.write(${valueExpr}, 0, 'utf16le'); chunks.push(${b}); }`);
@@ -99,7 +115,9 @@ function writeWString(ctx: CodegenContext, offsetVar: string, valueExpr: string,
 }
 
 function writeBufferField(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number) {
-    if (ctx.mode === 'make' && ctx.useChunks) {
+    if (ctx.accumulateSize) {
+        push(ctx, `size += ${size};`);
+    } else if (isChunkMake(ctx)) {
         const b = tmpId(ctx);
         push(ctx, `{ const ${b} = Buffer.alloc(${size}); ${valueExpr}.copy(${b}, 0, 0, ${size}); chunks.push(${b}); }`);
     } else {
@@ -110,7 +128,9 @@ function writeBufferField(ctx: CodegenContext, offsetVar: string, valueExpr: str
 function writeAtom(ctx: CodegenContext, type: string, offsetVar: string, valueExpr: string) {
     const spec = getAtomSpec(type, ctx.endian);
     if (!spec) throw new Error(`Unknown type ${type}`);
-    if (ctx.mode === 'make' && ctx.useChunks) {
+    if (ctx.accumulateSize) {
+        push(ctx, `size += ${spec.size};`);
+    } else if (isChunkMake(ctx)) {
         const b = tmpId(ctx);
         push(ctx, `{ const ${b} = Buffer.allocUnsafe(${spec.size}); ${spec.writeExpr(b, '0', valueExpr)}; chunks.push(${b}); }`);
     } else {
@@ -259,6 +279,14 @@ function writeArrayItems(
     structArrayExpr: string,
     offsetVar: string,
 ) {
+    if (ctx.accumulateSize && typeof itemsType === 'string') {
+        const spec = getAtomSpec(itemsType, ctx.endian);
+        if (spec) {
+            push(ctx, `size += ${structArrayExpr}.length * ${spec.size};`);
+            return;
+        }
+    }
+
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${structArrayExpr}.length; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
@@ -375,10 +403,13 @@ function writeDynamicOrStatic(
             if (isStatic && staticSize === 0) {
                 writeWString(ctx, offsetVar, structKeyExpr, 0, true);
             } else if (!isStatic) {
-                const b = tmpId(ctx);
-                if (ctx.mode === 'make' && ctx.useChunks) {
+                if (ctx.accumulateSize) {
+                    push(ctx, `size += (${structKeyExpr}).length * 2;`);
+                } else if (isChunkMake(ctx)) {
+                    const b = tmpId(ctx);
                     push(ctx, `{ const ${b} = Buffer.alloc((${structKeyExpr}).length * 2); ${b}.write(${structKeyExpr}, 0, 'utf16le'); chunks.push(${b}); }`);
                 } else {
+                    const b = tmpId(ctx);
                     push(ctx, `{ const ${b} = (${structKeyExpr}).length * 2; buf.write(${structKeyExpr}, ${offsetVar}, ${b}, 'utf16le'); ${offsetVar} += ${b}; }`);
                 }
             } else {
@@ -581,8 +612,12 @@ function generateWriteObject(ctx: CodegenContext, model: Model, offsetVar: strin
     }
 }
 
-function createContext(endian: Endian, mode: CodegenMode, useChunks: boolean): CodegenContext {
-    return { endian, mode, lines: [], counter: 0, useChunks };
+function createContext(endian: Endian, mode: CodegenMode, useChunks: boolean, accumulateSize = false): CodegenContext {
+    return { endian, mode, lines: [], counter: 0, useChunks, accumulateSize };
+}
+
+function isChunkMake(ctx: CodegenContext): boolean {
+    return ctx.mode === 'make' && ctx.useChunks && !ctx.accumulateSize;
 }
 
 export function generateReadBody(model: Model, endian: Endian): string {
@@ -618,18 +653,27 @@ export function generateWriteBody(model: Model, endian: Endian): string {
 }
 
 export function generateMakeBody(model: Model, endian: Endian, useChunks: boolean, staticSize: number): string {
-    const ctx = createContext(endian, 'make', useChunks);
     if (useChunks) {
-        push(ctx, 'const chunks = [];');
-        push(ctx, 'let o = 0;');
-        generateWriteObject(ctx, model, 'o', 'struct');
-        push(ctx, 'const buffer = Buffer.concat(chunks);');
-        push(ctx, 'return { buffer, offset: buffer.length, size: buffer.length };');
-    } else {
-        push(ctx, `const buf = Buffer.allocUnsafe(${staticSize});`);
-        push(ctx, 'let o = 0;');
-        generateWriteObject(ctx, model, 'o', 'struct');
-        push(ctx, 'return { buffer: buf, offset: o, size: o };');
+        const sizeCtx = createContext(endian, 'make', false, true);
+        push(sizeCtx, 'let size = 0;');
+        generateWriteObject(sizeCtx, model, 'o', 'struct');
+
+        const writeCtx = createContext(endian, 'make', false, false);
+        push(writeCtx, 'let o = 0;');
+        generateWriteObject(writeCtx, model, 'o', 'struct');
+
+        return [
+            ...sizeCtx.lines,
+            'const buf = Buffer.allocUnsafe(size);',
+            ...writeCtx.lines,
+            'return { buffer: buf, offset: o, size: o };',
+        ].join('\n');
     }
+
+    const ctx = createContext(endian, 'make', false);
+    push(ctx, `const buf = Buffer.allocUnsafe(${staticSize});`);
+    push(ctx, 'let o = 0;');
+    generateWriteObject(ctx, model, 'o', 'struct');
+    push(ctx, 'return { buffer: buf, offset: o, size: o };');
     return ctx.lines.join('\n');
 }
