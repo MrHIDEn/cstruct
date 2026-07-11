@@ -8,6 +8,10 @@ Run locally:
 npm run bench
 ```
 
+Bun (separate results): [`doc/BENCHMARKS-BUN.md`](BENCHMARKS-BUN.md) — `npm run bench:bun`
+
+**Node vs Bun comparison:** [`doc/BENCHMARKS-RUNTIMES.md`](BENCHMARKS-RUNTIMES.md)
+
 Optional longer run:
 
 ```bash
@@ -23,7 +27,7 @@ Source: [`benchmarks/codegen-bench.ts`](../benchmarks/codegen-bench.ts)
 | Machine | MacBook **M4 Pro** |
 | OS | macOS 26.5.1 |
 | Node.js | v26.4.0 |
-| Library | `@mrhiden/cstruct` 1.7.0 |
+| Library | `@mrhiden/cstruct` 1.7.1 |
 | Endian | Little-endian (`CStructLE`) |
 | Bench duration | ~700 ms per case (default `BENCH_MS`) |
 
@@ -121,3 +125,5 @@ npm run bench
 ```
 
 Paste your output into an issue or PR if you want to extend this table for other hardware.
+
+Compare with Bun: [`doc/BENCHMARKS-BUN.md`](BENCHMARKS-BUN.md). Head-to-head: [`doc/BENCHMARKS-RUNTIMES.md`](BENCHMARKS-RUNTIMES.md).
