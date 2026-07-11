@@ -856,6 +856,10 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.5.5
+* Reorganized README into Basic / Advanced / Specialized paths with TOC and Quick start
+* Added examples for LE, write+offset, `bufN`, and `wstring`; added `examples/README.md` index
+
 ### What's new in 1.5
 * Added support for wstring (UTF-16LE) type. Thanks to [Sorunome](https://github.com/Sorunome).<br>
   For wstring/utf16le trailing character is/must be 16bit zero `'\u0000'`.
