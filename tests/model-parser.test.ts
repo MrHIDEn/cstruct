@@ -328,7 +328,7 @@ describe('ModelParser', () => {
         });
 
         describe('model as special string', () => {
-            const ModelParserAny = ModelParser as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            const ModelParserAny = ModelParser as any;  
 
             describe('prepareJson', () => {
                 it('should remove comments', () => {

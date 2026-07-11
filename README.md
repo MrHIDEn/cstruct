@@ -882,6 +882,11 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.6.2
+* Modernized dev stack: ESLint 9 (flat config), typescript-eslint 8, TypeScript 5.9, @types/node 20
+* Fixed security vulnerabilities in devDependencies (`npm audit fix`)
+* No API or runtime changes (zero production dependencies)
+
 ### What's new in 1.6.1
 * **Immutable schema (read path):** `read` no longer mutates the compiled model — it builds a fresh result tree via `readSchema`
 * **Cached `parsedModel`:** the compiled model is parsed once in the constructor and reused across `read`, `write`, and `make` (eliminates `JSON.parse` per operation)
