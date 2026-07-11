@@ -6,9 +6,27 @@ export class CStruct<T> {
     protected _jsonModel: string;
     protected _jsonTypes: Types;
 
-    constructor(model: Model, types?: Types) {
+    constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
         this._jsonTypes = types;
-        this._jsonModel = ModelParser.parseModel(model, types);
+        if (compiledJsonModel !== undefined) {
+            this._jsonModel = CStruct.normalizeCompiledJsonModel(compiledJsonModel);
+        } else {
+            this._jsonModel = ModelParser.parseModel(model, types);
+        }
+    }
+
+    static normalizeCompiledJsonModel(input: string | Model): string {
+        const json = typeof input === 'string' ? input : JSON.stringify(input);
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(json);
+        } catch {
+            throw new Error('Compiled model must be valid JSON.');
+        }
+        if (parsed === null || typeof parsed !== 'object') {
+            throw new Error('Compiled model must be a JSON object or array.');
+        }
+        return json;
     }
 
     get jsonTypes(): string {

@@ -9,6 +9,7 @@ Runnable scripts in this folder. Build first (`npm run build`), then run with `n
 | [`string-model.ts`](./string-model.ts) | String-based models, LE vs BE |
 | [`string-model-types.ts`](./string-model-types.ts) | String models + named types |
 | [`little-endian.ts`](./little-endian.ts) | BE vs LE side-by-side |
+| [`from-compiled.ts`](./from-compiled.ts) | Precompiled `jsonModel` / `fromCompiled` |
 | [`write-offset.ts`](./write-offset.ts) | `make` vs `write` with offset |
 | [`with-buffer.ts`](./with-buffer.ts) | `bufN` / binary buffer fields |
 | [`wstring.ts`](./wstring.ts) | `wsN` / UTF-16LE wide strings |
