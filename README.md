@@ -9,6 +9,10 @@ If you only need to pack a plain object into a buffer — **Basic usage** is eno
 - [Quick start](#quick-start)
 - [Concepts](#concepts)
 - [Basic usage](#basic-usage-objects--strings)
+  - [Endianness (BE vs LE)](#endianness-be-vs-le)
+  - [Write into an existing buffer](#write-into-an-existing-buffer)
+  - [Binary buffer field (`bufN`)](#binary-buffer-field-bufn)
+  - [Wide string (`wstring` / `wsN`)](#wide-string-wstring--wsn)
 - [Advanced usage](#advanced-usage-classes--decorators)
 - [Specialized](#specialized-plc-c-struct-json)
 - [Data types reference](#data-types-reference)
@@ -71,6 +75,8 @@ console.log(result.struct);
 // { a: 10, b: -10 }
 ```
 
+Use `CStructLE` instead of `CStructBE` when your protocol is little-endian — same API, different byte order (see [Endianness](#endianness-be-vs-le)).
+
 ## Concepts
 
 The main idea: create a model of your data structure, precompile it into a `CStructBE` or `CStructLE` object, then use that object to read from and write to buffers.
@@ -104,6 +110,25 @@ When `@CStructClass` is used with `{ model: ... }` it can override `@CStructProp
 ## Basic usage (objects & strings)
 
 Start here for plain models. No classes or decorators required.
+
+### Endianness (BE vs LE)
+
+Same model and data — only the endian class changes the wire format:
+
+```typescript
+import { CStructBE, CStructLE } from '@mrhiden/cstruct';
+
+const model = { a: 'u16', b: 'i16' };
+const data = { a: 10, b: -10 };
+
+const beHex = CStructBE.fromModelTypes(model).make(data).buffer.toString('hex');
+const leHex = CStructLE.fromModelTypes(model).make(data).buffer.toString('hex');
+
+console.log(beHex); // 000afff6
+console.log(leHex); // 0a00f6ff
+```
+
+See also [`examples/little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts).
 
 ### Nested types and AtomTypes
 
@@ -163,6 +188,73 @@ console.log(struct);
 console.log(offset); // 17
 console.log(size);   // 17
 ```
+
+### Write into an existing buffer
+
+`make` allocates a new buffer. `write` patches data into a buffer you already have — useful for frames with headers, footers, or reserved slots.
+
+```typescript
+import { CStructBE, hexToBuffer } from '@mrhiden/cstruct';
+
+const frame = hexToBuffer('111111 22222222222222222222222222222222222222222222 333333');
+const cStruct = CStructBE.fromModelTypes({ error: { code: 'u16', message: 's20' } });
+
+const { buffer, offset, size } = cStruct.write(
+    frame,
+    { error: { code: 0x44, message: 'xyz' } },
+    3 // start writing at byte 3
+);
+
+console.log(buffer.toString('hex'));
+// 111111004478797a00000000000000000000000000000000333333
+console.log(offset); // 25
+console.log(size);   // 22
+```
+
+See also [`examples/write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts).
+
+### Binary buffer field (`bufN`)
+
+Use `bufN` (or `buffer`, `BUF`) for raw binary blobs with a fixed size. Values are Node `Buffer` objects.
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+const cStruct = CStructBE.fromModelTypes(`{ cnt: i16, buf: buf10 }`);
+
+const { buffer } = cStruct.make({
+    cnt: 15,
+    buf: Buffer.from('ABCD'),
+});
+
+console.log(buffer.toString('hex'));
+// 000f41424344000000000000
+
+const { struct } = cStruct.read(buffer);
+console.log(struct.buf); // <Buffer 41 42 43 44 00 00 00 00 00 00>
+```
+
+See also [`examples/with-buffer.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/with-buffer.ts).
+
+### Wide string (`wstring` / `wsN`)
+
+`wsN` stores UTF-16LE text. Each character is 2 bytes; fixed `ws5` reserves 5 code units (10 bytes). Trailing zero uses `ws[0]` or `ws0` — terminator is 16-bit `'\u0000'`.
+
+```typescript
+import { CStructLE } from '@mrhiden/cstruct';
+
+const cStruct = CStructLE.fromModelTypes({ label: 'ws5' });
+
+const { buffer } = cStruct.make({ label: 'abc' });
+console.log(buffer.toString('hex'));
+// 61006200630000000000
+
+const { struct } = cStruct.read(buffer);
+console.log(struct);
+// { label: 'abc' }
+```
+
+See also [`examples/wstring.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/wstring.ts).
 
 ### Named types (IoT-style)
 
@@ -745,7 +837,22 @@ See also [`doc/DATA_TYPES.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/
 
 ## More examples
 
-Many runnable examples live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/main/examples).
+Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/main/examples). Build first (`npm run build`), then `npx ts-node examples/<file>.ts`.
+
+| File | Topic |
+|------|-------|
+| [`simple-model.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/simple-model.ts) | Basic make/read, offset, write |
+| [`little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts) | BE vs LE side-by-side |
+| [`write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts) | `make` vs `write` with offset |
+| [`with-buffer.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/with-buffer.ts) | `bufN` binary fields |
+| [`wstring.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/wstring.ts) | UTF-16LE wide strings |
+| [`dynamic-model.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/dynamic-model.ts) | Dynamic arrays and strings |
+| [`decorators.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/decorators.ts) | Class decorators |
+| [`c-struct-types.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/c-struct-types.ts) | C `typedef struct` |
+| [`plc.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/plc.ts) | PLC aliases |
+| [`JS-from-model-types.js`](https://github.com/MrHIDEn/cstruct/blob/main/examples/JS-from-model-types.js) | JavaScript (CommonJS) |
+
+Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/examples/README.md).
 
 ## Changelog
 
