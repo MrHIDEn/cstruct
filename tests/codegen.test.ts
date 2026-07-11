@@ -106,6 +106,18 @@ describe('codegen parity', () => {
             expectCodegenParity(CStruct, model, undefined, struct);
         });
 
+        it('dynamic string s[i16] non-ascii', () => {
+            const model = { txt: 's[i16]' };
+            const struct = { txt: 'ąę' };
+            expectCodegenParity(CStruct, model, undefined, struct);
+        });
+
+        it('dynamic json j[i16]', () => {
+            const model = { any1: 'j[i16]' };
+            const struct = { any1: { a: 1, b: [2, 3] } };
+            expectCodegenParity(CStruct, model, undefined, struct);
+        });
+
         it('trailing zero s[0]', () => {
             const model = { any1: 's[0]' };
             const struct = { any1: 'abc' };
@@ -164,6 +176,23 @@ describe('codegen parity', () => {
             const writeFn = CStruct.compileWrite(model);
             const buf = Buffer.alloc(4);
             expect(() => writeFn({ r: 1 }, buf, 3)).toThrow();
+        });
+
+        it('write buffer too short does not mutate target buffer', () => {
+            const model = { r: 'u16' };
+            const writeFn = CStruct.compileWrite(model);
+            const buf = Buffer.alloc(8);
+            buf.fill(0xaa);
+            const before = Buffer.from(buf);
+            expect(() => writeFn({ r: 0x1234 }, buf, 7)).toThrow();
+            expect(buf).toEqual(before);
+        });
+
+        it('bracket notation for unusual field keys', () => {
+            const model = { '__proto__': 'u16' };
+            const struct = { '__proto__': 42 };
+            expectCodegenParity(CStruct, model, undefined, struct);
+            expect(Object.prototype).not.toHaveProperty('42');
         });
     });
 });

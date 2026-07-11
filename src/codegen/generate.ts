@@ -16,6 +16,31 @@ function push(ctx: CodegenContext, line: string) {
     ctx.lines.push(line);
 }
 
+function quotedKey(key: string): string {
+    return JSON.stringify(key);
+}
+
+function structProp(structExpr: string, key: string): string {
+    return `${structExpr}[${quotedKey(key)}]`;
+}
+
+function dynamicPayloadLengthExpr(
+    structKeyExpr: string,
+    valueExpr: string,
+    specialType: SpecialType | undefined,
+    isStatic: boolean,
+    staticSize: number,
+): string {
+    if (isStatic) return String(staticSize);
+    if (specialType === SpecialType.Json || specialType === SpecialType.String) {
+        return `(${valueExpr}).length`;
+    }
+    if (specialType === SpecialType.WString) {
+        return `(${structKeyExpr}).length`;
+    }
+    return `${structKeyExpr}.length`;
+}
+
 function readLength(ctx: CodegenContext, lengthType: string, offsetVar: string): string {
     const spec = getLengthPrefixSpec(lengthType, ctx.endian);
     const id = tmpId(ctx);
@@ -60,9 +85,9 @@ function readBuffer(ctx: CodegenContext, offsetVar: string, sizeExpr: string, ta
 function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
     if (ctx.accumulateSize) {
         if (trailing) {
-            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8') + 1;`);
+            push(ctx, `size += (${valueExpr}).length + 1;`);
         } else if (dynamic) {
-            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8');`);
+            push(ctx, `size += (${valueExpr}).length;`);
         } else {
             push(ctx, `size += ${size};`);
         }
@@ -79,9 +104,9 @@ function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: stri
         }
     } else {
         if (trailing) {
-            push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}); buf.writeUInt8(0, ${offsetVar} + _b); ${offsetVar} += _b + 1; }`);
+            push(ctx, `{ const _b = (${valueExpr}).length; buf.write(${valueExpr}, ${offsetVar}); buf.writeUInt8(0, ${offsetVar} + _b); ${offsetVar} += _b + 1; }`);
         } else if (dynamic) {
-            push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
+            push(ctx, `{ const _b = (${valueExpr}).length; buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
         } else {
             push(ctx, `buf.fill(0, ${offsetVar}, ${offsetVar} + ${size}); buf.write(${valueExpr}, ${offsetVar}, ${size}, 'utf8'); ${offsetVar} += ${size};`);
         }
@@ -378,7 +403,7 @@ function writeDynamicOrStatic(
         push(ctx, `if (${structKeyExpr}.length > ${staticSize}) throw new Error('Size of value ' + ${structKeyExpr}.length + ' is greater than ${staticSize}.');`);
     }
 
-    const sizeExpr = isStatic ? String(staticSize) : `${structKeyExpr}.length`;
+    const sizeExpr = dynamicPayloadLengthExpr(structKeyExpr, valueExpr, specialType, isStatic, staticSize);
 
     if (+sizeExpr === 0 && specialType === SpecialType.Buffer) {
         throw new Error('Buffer size can not be 0.');
@@ -543,7 +568,7 @@ function generateReadObject(ctx: CodegenContext, model: Model, offsetVar: string
                 offsetVar,
                 val,
             );
-            push(ctx, `${target}.${dynamicType} = ${val};`);
+            push(ctx, `${structProp(target, dynamicType)} = ${val};`);
             continue;
         }
 
@@ -559,14 +584,14 @@ function generateReadObject(ctx: CodegenContext, model: Model, offsetVar: string
                     offsetVar,
                     val,
                 );
-                push(ctx, `${target}.${modelKey} = ${val};`);
+                push(ctx, `${structProp(target, modelKey)} = ${val};`);
                 continue;
             }
         }
 
         const val = tmpId(ctx);
         readField(ctx, modelType, offsetVar, val);
-        push(ctx, `${target}.${modelKey} = ${val};`);
+        push(ctx, `${structProp(target, modelKey)} = ${val};`);
     }
 }
 
@@ -586,7 +611,7 @@ function generateWriteObject(ctx: CodegenContext, model: Model, offsetVar: strin
                 ctx,
                 modelType as string,
                 dynamicLength,
-                `${structExpr}.${dynamicType}`,
+                structProp(structExpr, dynamicType),
                 modelType as string,
                 offsetVar,
             );
@@ -600,7 +625,7 @@ function generateWriteObject(ctx: CodegenContext, model: Model, offsetVar: strin
                     ctx,
                     typeGroups.dynamicType,
                     typeGroups.dynamicLength,
-                    `${structExpr}.${modelKey}`,
+                    structProp(structExpr, modelKey),
                     typeGroups.dynamicType,
                     offsetVar,
                 );
@@ -608,7 +633,7 @@ function generateWriteObject(ctx: CodegenContext, model: Model, offsetVar: strin
             }
         }
 
-        writeField(ctx, modelType, offsetVar, `${structExpr}.${modelKey}`);
+        writeField(ctx, modelType, offsetVar, structProp(structExpr, modelKey));
     }
 }
 
@@ -638,18 +663,21 @@ export function generateReadBody(model: Model, endian: Endian): string {
 }
 
 export function generateWriteBody(model: Model, endian: Endian): string {
-    const ctx = createContext(endian, 'write', false);
-    push(ctx, 'off = off || 0;');
-    push(ctx, 'let o = off;');
-    if (Array.isArray(model)) {
-        generateWriteObject(ctx, model, 'o', 'struct');
-    } else {
-        generateWriteObject(ctx, model, 'o', 'struct');
-    }
-    push(ctx, 'const written = o - off;');
-    push(ctx, 'if (written > buf.length - off) throw new Error("Write buffer is too short. Needs " + (written - (buf.length - off)) + " byte/s more.");');
-    push(ctx, 'return { buffer: buf, offset: o, size: written };');
-    return ctx.lines.join('\n');
+    const sizeCtx = createContext(endian, 'write', false, true);
+    push(sizeCtx, 'let size = 0;');
+    generateWriteObject(sizeCtx, model, 'o', 'struct');
+
+    const writeCtx = createContext(endian, 'write', false, false);
+    push(writeCtx, 'let o = off;');
+    generateWriteObject(writeCtx, model, 'o', 'struct');
+
+    return [
+        'off = off || 0;',
+        ...sizeCtx.lines,
+        'if (size > buf.length - off) throw new Error("Write buffer is too short. Needs " + (size - (buf.length - off)) + " byte/s more.");',
+        ...writeCtx.lines,
+        'return { buffer: buf, offset: o, size: size };',
+    ].join('\n');
 }
 
 export function generateMakeBody(model: Model, endian: Endian, useChunks: boolean, staticSize: number): string {
