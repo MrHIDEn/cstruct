@@ -1,5 +1,9 @@
 import { Make } from "./make";
 
+/**
+ * Write encoded bytes into a pre-allocated buffer at a given offset.
+ * Encoding logic lives in Make (via recursion); this class only copies the result.
+ */
 export class Write<T> extends Make<T> {
     _buffer: Buffer;
     _offset: number;
@@ -10,6 +14,7 @@ export class Write<T> extends Make<T> {
         this._offset = offset;
     }
 
+    // Encode struct into an internal buffer, then copy into the target buffer at _offset
     toBuffer() {
         const makeBuffer = this._writer.toBuffer();
         const leftSpace = this._buffer.length - this._offset;
@@ -20,6 +25,7 @@ export class Write<T> extends Make<T> {
         return this._buffer;
     }
 
+    // Cursor position after the write (start offset + bytes written)
     get offset() {
         return this._offset + this.size;
     }
