@@ -882,6 +882,12 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.6.1
+* **Immutable schema (read path):** `read` no longer mutates the compiled model — it builds a fresh result tree via `readSchema`
+* **Cached `parsedModel`:** the compiled model is parsed once in the constructor and reused across `read`, `write`, and `make` (eliminates `JSON.parse` per operation)
+* Added getter `parsedModel` — returns the cached compiled model object
+* **`modelClone` behavior:** now returns the same cached schema reference as `parsedModel` (do not mutate in place)
+
 ### What's new in 1.6.0
 * Added `CStructBE.fromCompiled(jsonModel)` and `CStructLE.fromCompiled(jsonModel)` — load a precompiled model without running `ModelParser.parseModel`
 * Added [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) and README section [Precompiled models](#precompiled-models-fromcompiled)
