@@ -5,6 +5,17 @@ import { WriteBE } from "./write-be";
 import { ReadBE } from "./read-be";
 import { CStructMetadata } from "./decorators-metadata";
 import { Class, CStructClassOptions } from "./decorators-types";
+import {
+    compileMakeFromParsedModel,
+    compileReadFromParsedModel,
+    compileWriteFromParsedModel,
+    compileMake,
+    compileRead,
+    compileWrite,
+    CompiledMakeFn,
+    CompiledReadFn,
+    CompiledWriteFn,
+} from "./codegen";
 
 /**
  * C_Struct BE - Big Endian
@@ -75,5 +86,29 @@ export class CStructBE<T> extends CStruct<T> {
     static fromCompiled<T = any>(jsonModel: string | Model): CStructBE<T> {
         const normalized = CStruct.normalizeCompiledJsonModel(jsonModel);
         return new CStructBE<T>(undefined, undefined, normalized);
+    }
+
+    compileRead<T = any>(): CompiledReadFn<T> {
+        return compileReadFromParsedModel<T>(this.parsedModel, 'be');
+    }
+
+    compileWrite<T = any>(): CompiledWriteFn<T> {
+        return compileWriteFromParsedModel<T>(this.parsedModel, 'be');
+    }
+
+    compileMake<T = any>(): CompiledMakeFn<T> {
+        return compileMakeFromParsedModel<T>(this.parsedModel, 'be');
+    }
+
+    static compileRead<T = any>(model: Model, types?: Types): CompiledReadFn<T> {
+        return compileRead<T>(model, types, 'be');
+    }
+
+    static compileWrite<T = any>(model: Model, types?: Types): CompiledWriteFn<T> {
+        return compileWrite<T>(model, types, 'be');
+    }
+
+    static compileMake<T = any>(model: Model, types?: Types): CompiledMakeFn<T> {
+        return compileMake<T>(model, types, 'be');
     }
 }

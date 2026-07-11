@@ -11,6 +11,7 @@ If you only need to pack a plain object into a buffer — **Basic usage** is eno
 - [Basic usage](#basic-usage-objects--strings)
   - [Endianness (BE vs LE)](#endianness-be-vs-le)
   - [Precompiled models (`fromCompiled`)](#precompiled-models-fromcompiled)
+  - [Compiled functions (codegen)](#compiled-functions-codegen)
   - [Write into an existing buffer](#write-into-an-existing-buffer)
   - [Binary buffer field (`bufN`)](#binary-buffer-field-bufn)
   - [Wide string (`wstring` / `wsN`)](#wide-string-wstring--wsn)
@@ -154,6 +155,41 @@ console.log(cStruct.read(buffer).struct);
 `fromCompiled` accepts a JSON string or a parsed object/array (the same shape as `jsonModel`). See [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts).
 
 **Security note:** Treat `jsonModel` as a **trusted build-time artifact** (same trust level as your own source code). `fromCompiled` only checks that the input is valid JSON (object or array) — it does **not** re-run `ModelParser` and does **not** limit size or nesting depth. Do not load `jsonModel` from untrusted sources (user upload, arbitrary URL, unverified remote config): a malicious payload can cause high memory/CPU use (`JSON.parse` on a huge or deeply nested document). Prefer compiling with `fromModelTypes` in your build and shipping the resulting string as a constant or a file you control.
+
+### Compiled functions (codegen)
+
+For hot loops (thousands of buffers per second), compile the model once into specialized functions via `new Function`. The result matches `read` / `write` / `make`, but skips walking the model tree on every call.
+
+```typescript
+import { CStructLE } from '@mrhiden/cstruct';
+
+const model = { x: 'u16', y: 'i32', flag: 'b8' };
+
+// Compile once at startup
+const readFrame  = CStructLE.compileRead(model);
+const writeFrame = CStructLE.compileWrite(model);
+const makeFrame  = CStructLE.compileMake(model);
+
+// Use many times
+const buf = makeFrame({ x: 13, y: -7, flag: true }).buffer;
+const { struct } = readFrame(buf, 0);
+writeFrame({ x: 1, y: 2, flag: false }, buf, 0);
+```
+
+Instance methods compile from the cached `parsedModel` (no second `parseModel`):
+
+```typescript
+const cStruct = CStructLE.fromModelTypes(model);
+const readFn = cStruct.compileRead();
+```
+
+Works on `CStructBE` and `CStructLE`. For precompiled models: `CStructLE.fromCompiled(jsonModel).compileRead()`.
+
+**When to use:** high-throughput parsing/serialization with a fixed model. **When not to:** occasional calls — regular `read`/`make` is simpler.
+
+**Security note:** `compile*` uses `new Function` with a model you provide. Use only **trusted** models (your own source or build-time artifacts), not untrusted user input.
+
+See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Sample throughput on MacBook M4 Pro: [`doc/BENCHMARKS.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS.md). Run `npm run bench` locally.
 
 ### Nested types and AtomTypes
 
@@ -869,6 +905,7 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 | [`simple-model.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/simple-model.ts) | Basic make/read, offset, write |
 | [`little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts) | BE vs LE side-by-side |
 | [`from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) | Precompiled `jsonModel` / `fromCompiled` |
+| [`codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) | Compiled functions (`compileRead` / `compileWrite` / `compileMake`) |
 | [`write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts) | `make` vs `write` with offset |
 | [`with-buffer.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/with-buffer.ts) | `bufN` binary fields |
 | [`wstring.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/wstring.ts) | UTF-16LE wide strings |
@@ -881,6 +918,13 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/examples/README.md).
 
 ## Changelog
+
+### What's new in 1.7.0
+* Added `compileRead`, `compileWrite`, `compileMake` on `CStructBE` and `CStructLE` — compile a model once into specialized functions for high-throughput read/write/make
+* Instance methods `cStruct.compileRead()` / `compileWrite()` / `compileMake()` use cached `parsedModel`
+* `compileMake` uses single `allocUnsafe` for fully static models; for variable-length fields it precomputes size then allocates once (no `concat`)
+* Added [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) and README section [Compiled functions](#compiled-functions-codegen)
+* Added `npm run bench` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) with sample throughput (interpreter vs codegen)
 
 ### What's new in 1.6.2
 * Modernized dev stack: ESLint 9 (flat config), typescript-eslint 8, TypeScript 5.9, @types/node 20
