@@ -189,7 +189,7 @@ Works on `CStructBE` and `CStructLE`. For precompiled models: `CStructLE.fromCom
 
 **Security note:** `compile*` uses `new Function` with a model you provide. Use only **trusted** models (your own source or build-time artifacts), not untrusted user input.
 
-See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts).
+See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Sample throughput on MacBook M4 Pro: [`doc/BENCHMARKS.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS.md). Run `npm run bench` locally.
 
 ### Nested types and AtomTypes
 
@@ -924,6 +924,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 * Instance methods `cStruct.compileRead()` / `compileWrite()` / `compileMake()` use cached `parsedModel`
 * `compileMake` uses single `allocUnsafe` for fully static models and `chunks + concat` for variable-length fields
 * Added [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) and README section [Compiled functions](#compiled-functions-codegen)
+* Added `npm run bench` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) with sample throughput (interpreter vs codegen)
 
 ### What's new in 1.6.2
 * Modernized dev stack: ESLint 9 (flat config), typescript-eslint 8, TypeScript 5.9, @types/node 20

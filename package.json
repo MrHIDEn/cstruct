@@ -34,6 +34,7 @@
   },
   "scripts": {
     "sandbox": "ts-node-dev --transpile-only ./examples/sandbox.ts",
+    "bench": "ts-node --transpile-only ./benchmarks/codegen-bench.ts",
     "model-parser": "ts-node-dev --transpile-only ./src/model-parser.ts",
     "prepublish": "tsc",
     "build": "tsc",
