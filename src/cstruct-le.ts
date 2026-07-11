@@ -15,8 +15,8 @@ import { Class, CStructClassOptions } from "./decorators-types";
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStructLE<T> extends CStruct<T> {
-    constructor(model: Model, types?: Types) {
-        super(model, types);
+    constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
+        super(model, types, compiledJsonModel);
     }
 
     make<T = any>(struct: T): CStructWriteResult {
@@ -70,5 +70,10 @@ export class CStructLE<T> extends CStruct<T> {
 
     static fromModelTypes<T = any>(model: Model, types?: Types): CStructLE<T> {
         return new CStructLE<T>(model, types);
+    }
+
+    static fromCompiled<T = any>(jsonModel: string | Model): CStructLE<T> {
+        const normalized = CStruct.normalizeCompiledJsonModel(jsonModel);
+        return new CStructLE<T>(undefined, undefined, normalized);
     }
 }

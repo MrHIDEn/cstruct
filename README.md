@@ -10,6 +10,7 @@ If you only need to pack a plain object into a buffer — **Basic usage** is eno
 - [Concepts](#concepts)
 - [Basic usage](#basic-usage-objects--strings)
   - [Endianness (BE vs LE)](#endianness-be-vs-le)
+  - [Precompiled models (`fromCompiled`)](#precompiled-models-fromcompiled)
   - [Write into an existing buffer](#write-into-an-existing-buffer)
   - [Binary buffer field (`bufN`)](#binary-buffer-field-bufn)
   - [Wide string (`wstring` / `wsN`)](#wide-string-wstring--wsn)
@@ -88,7 +89,7 @@ The main idea: create a model of your data structure, precompile it into a `CStr
 
 Both classes share the same methods and functionality.
 
-- **Dynamic API** — Object/Array/String model and types (`fromModelTypes`)
+- **Dynamic API** — Object/Array/String model and types (`fromModelTypes`, `fromCompiled`)
 - **Static API** — TypeScript decorators on classes (`@CStructClass`, `@CStructProperty`)
 
 **MAKE** — creates a new buffer from data:<br>
@@ -129,6 +130,28 @@ console.log(leHex); // 0a00f6ff
 ```
 
 See also [`examples/little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts).
+
+### Precompiled models (`fromCompiled`)
+
+Compile a model once (e.g. at build time), save the `jsonModel` string, and load it at runtime without running `ModelParser` again:
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+// Build time: compile and persist jsonModel
+const compiled = CStructBE.fromModelTypes({ a: 'u16', b: 'i16' });
+const jsonModel = compiled.jsonModel; // e.g. save to a file or constant
+
+// Runtime: load precompiled model
+const cStruct = CStructBE.fromCompiled(jsonModel);
+
+const data = { a: 10, b: -10 };
+const buffer = cStruct.make(data).buffer;
+console.log(cStruct.read(buffer).struct);
+// { a: 10, b: -10 }
+```
+
+`fromCompiled` accepts a JSON string or a parsed object/array (the same shape as `jsonModel`). See [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts).
 
 ### Nested types and AtomTypes
 
@@ -843,6 +866,7 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 |------|-------|
 | [`simple-model.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/simple-model.ts) | Basic make/read, offset, write |
 | [`little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts) | BE vs LE side-by-side |
+| [`from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) | Precompiled `jsonModel` / `fromCompiled` |
 | [`write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts) | `make` vs `write` with offset |
 | [`with-buffer.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/with-buffer.ts) | `bufN` binary fields |
 | [`wstring.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/wstring.ts) | UTF-16LE wide strings |
@@ -855,6 +879,10 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/examples/README.md).
 
 ## Changelog
+
+### What's new in 1.6.0
+* Added `CStructBE.fromCompiled(jsonModel)` and `CStructLE.fromCompiled(jsonModel)` — load a precompiled model without running `ModelParser.parseModel`
+* Added [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) and README section [Precompiled models](#precompiled-models-fromcompiled)
 
 ### What's new in 1.5.5
 * Reorganized README into Basic / Advanced / Specialized paths with TOC and Quick start
