@@ -1,6 +1,6 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -37,7 +37,7 @@
     "bench": "ts-node --transpile-only ./benchmarks/codegen-bench.ts",
     "bench:bun": "bun ./benchmarks/codegen-bench.ts",
     "model-parser": "ts-node-dev --transpile-only ./src/model-parser.ts",
-    "prepublish": "tsc",
+    "prepublishOnly": "tsc",
     "build": "tsc",
     "test": "jest",
     "lint": "eslint .",

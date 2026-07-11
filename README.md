@@ -919,6 +919,9 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.7.2
+* Fixed publish hook: `prepublishOnly` runs `tsc` before `npm publish` (replaces deprecated `prepublish`, which no longer builds on publish)
+
 ### What's new in 1.7.1
 * Codegen fixes: correct dynamic `j[i16]` / `s[i16]` length prefixes, `compileWrite` validates buffer size before writing, bracket notation for model field access (safer `new Function` codegen)
 * Optimized dynamic `compileMake` — size precompute + single `allocUnsafe` (~×41 vs interpreter on dynamic make)
