@@ -6,25 +6,34 @@ import { ReadWriteBase } from "./read-write-base";
 export class Make<T> extends ReadWriteBase {
     protected _writer: WriteBufferLE | WriteBufferBE;
 
+    /**
+     * Walk the compiled model and struct value, writing bytes to the internal buffer.
+     * The model is never mutated — only the output buffer grows.
+     */
     recursion(model: Model, struct: T) {
         const entries: StructEntry[] = Object.entries(model);
 
         for (const [modelKey, modelType] of entries) {
-            // Catch key.length
+            // Catch dynamic key — e.g. "some.i16" or "some.5"
             const keyLengthGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
-            // Dynamic key
+            // Dynamic key: field name carries type/length, value is the item type
+            // 1 (some.i16: u8)
+            // 2 (some.5  : u8)
             if (keyLengthGroups) {
                 const {dynamicType, dynamicLength} = keyLengthGroups;
                 this.writDynamicOrStatic(struct, modelType as string, dynamicLength, dynamicType, modelType as string);
                 continue;
             }
 
-            // Dynamic type
+            // Dynamic type: type string carries length, key is the struct field name
             if (typeof modelType === 'string') {
-                // Catch dynamic type
+                // Catch dynamic type — e.g. "u8.i16" or "u8.5"
                 const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
+                // Dynamic type
+                // 1 (u8.i16) (<dynamicType>.<dynamicLength>)
+                // 2 (u8.5)   (<dynamicType>.<dynamicLength>)
                 if (typeDynamicGroups) {
                     const {dynamicType, dynamicLength} = typeDynamicGroups;
                     this.writDynamicOrStatic(struct, dynamicType, dynamicLength, modelKey, dynamicType);
@@ -32,7 +41,7 @@ export class Make<T> extends ReadWriteBase {
                 }
             }
 
-            // Static item
+            // Static field — scalar or nested struct
             this.write(model, struct, modelKey, modelType);
         }
     }
@@ -60,6 +69,7 @@ export class Make<T> extends ReadWriteBase {
             throw new Error(`Size of value ${structValues.length} is greater than ${staticSize}.`);
         }
 
+        // Size: use static length from the model, or derive from the struct value
         const size = isStatic
             ? staticSize
             : structValues.length;
@@ -68,18 +78,17 @@ export class Make<T> extends ReadWriteBase {
             throw new Error(`Buffer size can not be 0.`);
         }
 
-        // Dynamic, write size before value
+        // Dynamic length — write size prefix before the value
         if (!isStatic) {
             this._writer.write(dynamicLength, size);
         }
 
-        // Write string or buffer or json
+        // Write string, wstring, buffer, or json blob
         if (specialType) {
-            // this._writer.write(writeType, structValues, isStatic && (passSize || size === 0) ? size : undefined);
             this._writer.write(writeType, structValues, isStatic ? size : undefined);
         }
 
-        // Write array of writeType
+        // Write array of itemsType (structValues.length elements)
         else {
             this.writeArray(writeType, structValues);
         }
@@ -88,9 +97,11 @@ export class Make<T> extends ReadWriteBase {
     private write(model: Model, struct: T, modelKey: string, modelType: Type) {
         let structValues: WriterValue;
         switch (typeof modelType) {
+            // Nested struct object
             case 'object':
                 this.recursion(model[modelKey], struct[modelKey]);
                 break;
+            // Static scalar — u8, i16, j0, buf, wstring, ...
             case 'string':
                 if (modelType === 'buf0') {
                     throw new Error(`Buffer size can not be 0. (make)`);
@@ -108,11 +119,13 @@ export class Make<T> extends ReadWriteBase {
 
     private writeArray(itemsType: Type, structValues: T[]) {
         switch (typeof itemsType) {
+            // Array of nested structs — encode each element's sub-tree
             case 'object':
                 for (const structValue of structValues) {
                     this.recursion(itemsType, structValue);
                 }
                 break;
+            // Array of scalars — repeat the same type string for each element
             case 'string':
                 for (const structValue of structValues) {
                     this._writer.write(itemsType, structValue as WriterValue);
