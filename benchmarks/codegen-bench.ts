@@ -148,4 +148,5 @@ function printGroup(title: string, results: BenchResult[]) {
 }
 
 console.log('\nNote: hot-path rows measure pre-compiled *Fn() only; compile* cost is in separate sections.');
-console.log('Results vary by machine and Node version. Higher ops/s is better.');
+const runtime = typeof (globalThis as { Bun?: unknown }).Bun !== 'undefined' ? `Bun ${(process.versions as { bun?: string }).bun}` : `Node.js ${process.version}`;
+console.log(`Runtime: ${runtime}. Results vary by machine. Higher ops/s is better.`);

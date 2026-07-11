@@ -189,7 +189,7 @@ Works on `CStructBE` and `CStructLE`. For precompiled models: `CStructLE.fromCom
 
 **Security note:** `compile*` uses `new Function` with a model you provide. Use only **trusted** models (your own source or build-time artifacts), not untrusted user input.
 
-See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Sample throughput on MacBook M4 Pro: [`doc/BENCHMARKS.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS.md). Run `npm run bench` locally.
+See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Benchmarks on MacBook M4 Pro: [`doc/BENCHMARKS.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS.md) (Node), [`doc/BENCHMARKS-BUN.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-BUN.md) (Bun), [`doc/BENCHMARKS-RUNTIMES.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-RUNTIMES.md) (Node vs Bun). Run `npm run bench` or `npm run bench:bun`.
 
 ### Nested types and AtomTypes
 
@@ -919,12 +919,17 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.7.1
+* Codegen fixes: correct dynamic `j[i16]` / `s[i16]` length prefixes, `compileWrite` validates buffer size before writing, bracket notation for model field access (safer `new Function` codegen)
+* Optimized dynamic `compileMake` — size precompute + single `allocUnsafe` (~×41 vs interpreter on dynamic make)
+* Added `npm run bench:bun`, [`doc/BENCHMARKS-BUN.md`](doc/BENCHMARKS-BUN.md), [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md) (Node vs Bun comparison)
+
 ### What's new in 1.7.0
 * Added `compileRead`, `compileWrite`, `compileMake` on `CStructBE` and `CStructLE` — compile a model once into specialized functions for high-throughput read/write/make
 * Instance methods `cStruct.compileRead()` / `compileWrite()` / `compileMake()` use cached `parsedModel`
 * `compileMake` uses single `allocUnsafe` for fully static models; for variable-length fields it precomputes size then allocates once (no `concat`)
 * Added [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) and README section [Compiled functions](#compiled-functions-codegen)
-* Added `npm run bench` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) with sample throughput (interpreter vs codegen)
+* Added `npm run bench` / `npm run bench:bun` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) / [`doc/BENCHMARKS-BUN.md`](doc/BENCHMARKS-BUN.md) / [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md) with sample throughput
 
 ### What's new in 1.6.2
 * Modernized dev stack: ESLint 9 (flat config), typescript-eslint 8, TypeScript 5.9, @types/node 20
