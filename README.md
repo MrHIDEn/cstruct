@@ -153,6 +153,8 @@ console.log(cStruct.read(buffer).struct);
 
 `fromCompiled` accepts a JSON string or a parsed object/array (the same shape as `jsonModel`). See [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts).
 
+**Security note:** Treat `jsonModel` as a **trusted build-time artifact** (same trust level as your own source code). `fromCompiled` only checks that the input is valid JSON (object or array) — it does **not** re-run `ModelParser` and does **not** limit size or nesting depth. Do not load `jsonModel` from untrusted sources (user upload, arbitrary URL, unverified remote config): a malicious payload can cause high memory/CPU use (`JSON.parse` on a huge or deeply nested document). Prefer compiling with `fromModelTypes` in your build and shipping the resulting string as a constant or a file you control.
+
 ### Nested types and AtomTypes
 
 ```javascript
@@ -883,6 +885,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 ### What's new in 1.6.0
 * Added `CStructBE.fromCompiled(jsonModel)` and `CStructLE.fromCompiled(jsonModel)` — load a precompiled model without running `ModelParser.parseModel`
 * Added [`examples/from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) and README section [Precompiled models](#precompiled-models-fromcompiled)
+* Documented that `jsonModel` must be treated as a trusted build-time artifact (do not load from untrusted sources)
 
 ### What's new in 1.5.5
 * Reorganized README into Basic / Advanced / Specialized paths with TOC and Quick start

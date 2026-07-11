@@ -17,6 +17,7 @@ import { CStructBE, CStructLE } from "../src";
     fs.writeFileSync(tmpFile, jsonModel, 'utf8');
 
     // Runtime: load precompiled model without ModelParser.parseModel
+    // Only load jsonModel from a trusted source you control (not user upload / arbitrary URL).
     const loadedJsonModel = fs.readFileSync(tmpFile, 'utf8');
     const cStructBe = CStructBE.fromCompiled(loadedJsonModel);
     const cStructLe = CStructLE.fromCompiled(JSON.parse(loadedJsonModel));
