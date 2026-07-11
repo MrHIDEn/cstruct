@@ -65,6 +65,10 @@ const data = { a: 10, b: -10 };
 const buffer = cStruct.make(data).buffer;
 console.log(buffer.toString('hex'));
 // 000afff6
+
+const result = cStruct.read(buffer);
+console.log(result.struct);
+// { a: 10, b: -10 }
 ```
 
 ## Concepts
