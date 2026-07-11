@@ -1,5 +1,6 @@
 export type WriterValue = number | string | bigint | boolean | Buffer;
 export type ReaderValue = number | string | bigint | boolean | Buffer;
+export type StructValue = ReaderValue | StructValue[] | { [key: string]: StructValue };
 export type ModelValue = number | string | bigint | boolean | Buffer;
 export type WriterFunctions = (val: WriterValue, size?: number) => void;
 export type ReaderFunctions = (size?: number) => ReaderValue;

@@ -20,7 +20,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     make<T = any>(struct: T): CStructWriteResult {
-        const writer = new MakeBE<T>(this.modelClone, struct);
+        const writer = new MakeBE<T>(this.parsedModel, struct);
         return {
             buffer: writer.toBuffer(),
             offset: writer.offset,
@@ -29,7 +29,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     write<T = any>(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
-        const writer = new WriteBE<T>(this.modelClone, struct, buffer, offset);
+        const writer = new WriteBE<T>(this.parsedModel, struct, buffer, offset);
         return {
             buffer: writer.toBuffer(),
             offset: writer.offset,
@@ -38,7 +38,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     read<T = any>(buffer: Buffer, offset = 0): CStructReadResult<T> {
-        const reader = new ReadBE<T>(this.modelClone, buffer, offset);
+        const reader = new ReadBE<T>(this.parsedModel, buffer, offset);
         return {
             struct: reader.toStruct(),
             offset: reader.offset,

@@ -5,6 +5,7 @@ import { ModelParser } from "./model-parser";
 export class CStruct<T> {
     protected _jsonModel: string;
     protected _jsonTypes: Types;
+    protected _parsedModel: Model;
 
     constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
         this._jsonTypes = types;
@@ -13,6 +14,7 @@ export class CStruct<T> {
         } else {
             this._jsonModel = ModelParser.parseModel(model, types);
         }
+        this._parsedModel = JSON.parse(this._jsonModel) as Model;
     }
 
     static normalizeCompiledJsonModel(input: string | Model): string {
@@ -37,8 +39,12 @@ export class CStruct<T> {
         return this._jsonModel;
     }
 
+    get parsedModel(): Model {
+        return this._parsedModel;
+    }
+
     get modelClone(): Model {
-        return JSON.parse(this._jsonModel) as Model;
+        return this._parsedModel;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

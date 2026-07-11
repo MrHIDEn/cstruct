@@ -1,6 +1,6 @@
 import { ReadBufferBE } from "./read-buffer-be";
 import { ReadBufferLE } from "./read-buffer-le";
-import { ReaderValue, SpecialType, StructEntry, Type } from "./types";
+import { Model, SpecialType, StructValue, Type } from "./types";
 import { ReadWriteBase } from "./read-write-base";
 
 
@@ -8,53 +8,62 @@ export class Read<T> extends ReadWriteBase {
     protected _struct: T;
     protected _reader: ReadBufferLE | ReadBufferBE;
 
-    recursion(struct: T) {
-        const entries: StructEntry[] = Object.entries(struct);
+    readSchema(model: Model): StructValue {
+        if (Array.isArray(model)) {
+            const result: StructValue[] = [];
+            for (let i = 0; i < model.length; i++) {
+                result[i] = this.readField(model[i]);
+            }
+            return result;
+        }
 
-        for (const [modelKey, modelType] of entries) {
-            // Catch dynamic key
+        const result: Record<string, StructValue> = {};
+        for (const [modelKey, modelType] of Object.entries(model)) {
             const keyDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
 
-            // Dynamic key
             if (keyDynamicGroups) {
-                delete struct[modelKey];
-                const {dynamicType, dynamicLength} = keyDynamicGroups;
-                this.readDynamicOrStatic(struct, modelType as string, dynamicType, dynamicLength, modelType as string, dynamicType);
+                const { dynamicType, dynamicLength } = keyDynamicGroups;
+                result[dynamicType] = this.readDynamicOrStaticValue(
+                    modelType as string,
+                    dynamicType,
+                    dynamicLength,
+                    modelType as string,
+                );
                 continue;
             }
 
-            // Dynamic type
             if (typeof modelType === 'string') {
-                // Catch dynamic type
                 const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
 
                 if (typeDynamicGroups) {
-                    const {dynamicType, dynamicLength} = typeDynamicGroups;
-                    this.readDynamicOrStatic(struct, dynamicType, dynamicType, dynamicLength, dynamicType, modelKey);
+                    const { dynamicType, dynamicLength } = typeDynamicGroups;
+                    result[modelKey] = this.readDynamicOrStaticValue(
+                        dynamicType,
+                        dynamicType,
+                        dynamicLength,
+                        dynamicType,
+                    );
                     continue;
                 }
             }
 
-            // Static item
-            this.read(struct, modelKey, modelType);
+            result[modelKey] = this.readField(modelType);
         }
+        return result;
     }
 
-    private readDynamicOrStatic(struct: T, modelType: string, dynamicType: string, dynamicLength: string, readType: string, structKey: string) {
-        // Dynamic key
-        // 1 (some.i16: u8)
-        // 2 (some.5  : u8)
-        // Dynamic type
-        // 1 (u8.i16) (<dynamicType>.<dynamicLength>)
-        // 2 (u8.5)   (<dynamicType>.<dynamicLength>)
-
+    private readDynamicOrStaticValue(
+        modelType: string,
+        dynamicType: string,
+        dynamicLength: string,
+        readType: string,
+    ): StructValue {
         const {
             specialType,
             isStatic,
             staticSize
         } = this.extractTypeAndSize(modelType, dynamicLength);
 
-        // Size, get or read
         const size = isStatic
             ? staticSize
             : this._reader.read(dynamicLength) as number;
@@ -63,51 +72,64 @@ export class Read<T> extends ReadWriteBase {
             throw new Error(`Buffer size can not be 0.`);
         }
 
-        // Read string or wstring or buffer or json
         if (specialType) {
             const value = this._reader.read(readType, size);
-            struct[structKey] = specialType === SpecialType.Json ? JSON.parse(value as string) : value;
+            return specialType === SpecialType.Json ? JSON.parse(value as string) : value;
         }
 
-        // Read array of itemsType
-        else {
-            this.readArray(readType, struct, structKey, size);
-        }
+        return this.readArrayValue(readType, size);
     }
 
-    private read(struct: T, modelKey: string, modelType: Type) {
-        let structValues: ReaderValue;
-        switch (typeof modelType) {
-            case 'object':
-                this.recursion(struct[modelKey]);
-                break;
-            case 'string':
-                if (modelType === 'buf0') {
-                    throw new Error(`Buffer size can not be 0. (read)`);
-                }
-                structValues = this._reader.read(modelType);
-                if (modelType === 'j0') {
-                    structValues = JSON.parse(structValues as string);
-                }
-                struct[modelKey] = structValues;
-                break;
-            default:
-                throw TypeError(`Unknown type "${modelType}"`);
+    private readField(modelType: Type): StructValue {
+        if (Array.isArray(modelType)) {
+            return this.readSchema(modelType);
         }
+
+        if (typeof modelType === 'string') {
+            const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
+            if (typeDynamicGroups) {
+                const { dynamicType, dynamicLength } = typeDynamicGroups;
+                return this.readDynamicOrStaticValue(
+                    dynamicType,
+                    dynamicType,
+                    dynamicLength,
+                    dynamicType,
+                );
+            }
+
+            if (modelType === 'buf0') {
+                throw new Error(`Buffer size can not be 0. (read)`);
+            }
+            let structValues = this._reader.read(modelType);
+            if (modelType === 'j0') {
+                structValues = JSON.parse(structValues as string);
+            }
+            return structValues;
+        }
+
+        if (typeof modelType === 'object') {
+            return this.readSchema(modelType as Model);
+        }
+
+        throw TypeError(`Unknown type "${modelType}"`);
     }
 
-    private readArray(itemsType: Type, struct: T, dynamicKey: string, size: number) {
+    private readArrayValue(itemsType: Type, size: number): StructValue {
         switch (typeof itemsType) {
             case 'object': {
-                const json = JSON.stringify(itemsType);
-                struct[dynamicKey] = Array(size).fill(0).map(() => JSON.parse(json));
-                this.recursion(struct[dynamicKey]);
-                break;
+                const result: StructValue[] = [];
+                for (let i = 0; i < size; i++) {
+                    result[i] = this.readSchema(itemsType as Model);
+                }
+                return result;
             }
-            case 'string':
-                struct[dynamicKey] = Array(size).fill(itemsType);
-                this.recursion(struct[dynamicKey]);
-                break;
+            case 'string': {
+                const result: StructValue[] = [];
+                for (let i = 0; i < size; i++) {
+                    result[i] = this.readField(itemsType);
+                }
+                return result;
+            }
             default:
                 throw TypeError(`Unknown type "${itemsType}"`);
         }
