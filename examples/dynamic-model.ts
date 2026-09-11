@@ -76,8 +76,8 @@ import { CStructBE } from "../src";
 
     const data = {
         ab: [
-            {a: '-1', b: '+1'},
-            {a: '-2', b: '+2'},
+            {a: -1, b: +1},
+            {a: -2, b: +2},
         ]
     };
     const {buffer} = cStruct.make(data);
