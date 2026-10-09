@@ -1,4 +1,4 @@
-import { Model, ModelValue, SpecialType, Type } from '../types';
+import { EnumModel, Model, ModelValue, SpecialType, Type } from '../types';
 import { getAtomSpec, getLengthPrefixSpec } from './atom-spec';
 import {
     extractTypeAndSize,
@@ -34,7 +34,7 @@ function dynamicPayloadLengthExpr(
 ): string {
     if (isStatic) return String(staticSize);
     if (specialType === SpecialType.Json || specialType === SpecialType.String) {
-        return `(${valueExpr}).length`;
+        return `Buffer.byteLength(${valueExpr}, 'utf8')`;
     }
     if (specialType === SpecialType.WString) {
         return `(${structKeyExpr}).length`;
@@ -86,9 +86,9 @@ function readBuffer(ctx: CodegenContext, offsetVar: string, sizeExpr: string, ta
 function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
     if (ctx.accumulateSize) {
         if (trailing) {
-            push(ctx, `size += (${valueExpr}).length + 1;`);
+            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8') + 1;`);
         } else if (dynamic) {
-            push(ctx, `size += (${valueExpr}).length;`);
+            push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8');`);
         } else {
             push(ctx, `size += ${size};`);
         }
@@ -105,9 +105,9 @@ function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: stri
         }
     } else {
         if (trailing) {
-            push(ctx, `{ const _b = (${valueExpr}).length; buf.write(${valueExpr}, ${offsetVar}); buf.writeUInt8(0, ${offsetVar} + _b); ${offsetVar} += _b + 1; }`);
+            push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}); buf.writeUInt8(0, ${offsetVar} + _b); ${offsetVar} += _b + 1; }`);
         } else if (dynamic) {
-            push(ctx, `{ const _b = (${valueExpr}).length; buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
+            push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
         } else {
             push(ctx, `buf.fill(0, ${offsetVar}, ${offsetVar} + ${size}); buf.write(${valueExpr}, ${offsetVar}, ${size}, 'utf8'); ${offsetVar} += ${size};`);
         }
@@ -280,10 +280,16 @@ function readArrayItems(
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${sizeExpr}; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
-        const elem = tmpId(ctx);
-        push(ctx, `const ${elem} = {};`);
-        generateReadObject(ctx, itemsType as Model, offsetVar, elem);
-        push(ctx, `${target}[${i}] = ${elem};`);
+        if (isEnumModel(itemsType)) {
+            const elem = tmpId(ctx);
+            readEnum(ctx, itemsType, offsetVar, elem);
+            push(ctx, `${target}[${i}] = ${elem};`);
+        } else {
+            const elem = tmpId(ctx);
+            push(ctx, `const ${elem} = {};`);
+            generateReadObject(ctx, itemsType as Model, offsetVar, elem);
+            push(ctx, `${target}[${i}] = ${elem};`);
+        }
     } else if (typeof itemsType === 'string') {
         const elem = tmpId(ctx);
         readField(ctx, itemsType, offsetVar, elem);
@@ -316,7 +322,11 @@ function writeArrayItems(
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${structArrayExpr}.length; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
-        generateWriteObject(ctx, itemsType as Model, offsetVar, `${structArrayExpr}[${i}]`);
+        if (isEnumModel(itemsType)) {
+            writeEnum(ctx, itemsType, offsetVar, `${structArrayExpr}[${i}]`);
+        } else {
+            generateWriteObject(ctx, itemsType as Model, offsetVar, `${structArrayExpr}[${i}]`);
+        }
     } else if (typeof itemsType === 'string') {
         writeField(ctx, itemsType, offsetVar, `${structArrayExpr}[${i}]`);
     } else {
@@ -397,7 +407,9 @@ function writeDynamicOrStatic(
 
     let valueExpr = structKeyExpr;
     if (specialType === SpecialType.Json) {
-        valueExpr = `JSON.stringify(${structKeyExpr})`;
+        const jsonId = tmpId(ctx);
+        push(ctx, `const ${jsonId} = JSON.stringify(${structKeyExpr});`);
+        valueExpr = jsonId;
     }
 
     if (isStatic && staticSize !== 0 && specialType !== SpecialType.String) {
@@ -466,6 +478,36 @@ function writeDynamicOrStatic(
     writeArrayItems(ctx, writeType, structKeyExpr, offsetVar);
 }
 
+function readEnum(ctx: CodegenContext, enumModel: EnumModel, offsetVar: string, target: string) {
+    const spec = getAtomSpec(enumModel.type, ctx.endian);
+    if (!spec) throw new Error(`Unknown type ${enumModel.type}`);
+    const raw = tmpId(ctx);
+    const table = JSON.stringify(enumModel.enum);
+    push(ctx, `{ const ${raw} = ${spec.readExpr(offsetVar)}; ${offsetVar} += ${spec.size}; ${target} = ${table}[String(${raw})] ?? ${raw}; }`);
+}
+
+function writeEnum(ctx: CodegenContext, enumModel: EnumModel, offsetVar: string, valueExpr: string) {
+    const spec = getAtomSpec(enumModel.type, ctx.endian);
+    if (!spec) throw new Error(`Unknown type ${enumModel.type}`);
+    if (ctx.accumulateSize) {
+        push(ctx, `size += ${spec.size};`);
+        return;
+    }
+    const nameToRaw: Record<string, number | string> = {};
+    for (const [rawKey, name] of Object.entries(enumModel.enum)) {
+        nameToRaw[name] = Number.isNaN(+rawKey) ? rawKey : +rawKey;
+    }
+    const table = JSON.stringify(nameToRaw);
+    const v = tmpId(ctx);
+    push(ctx, `let ${v} = ${valueExpr}; if (typeof ${v} === 'string') { ${v} = ${table}[${v}]; if (${v} === undefined) throw new Error('Unknown enum value "' + ${valueExpr} + '".'); }`);
+    if (isChunkMake(ctx)) {
+        const b = tmpId(ctx);
+        push(ctx, `{ const ${b} = Buffer.allocUnsafe(${spec.size}); ${spec.writeExpr(b, '0', v)}; chunks.push(${b}); }`);
+    } else {
+        push(ctx, `${spec.writeExpr('buf', offsetVar, v)}; ${offsetVar} += ${spec.size};`);
+    }
+}
+
 function readField(ctx: CodegenContext, modelType: Type, offsetVar: string, target: string) {
     if (Array.isArray(modelType)) {
         push(ctx, `${target} = [];`);
@@ -492,7 +534,8 @@ function readField(ctx: CodegenContext, modelType: Type, offsetVar: string, targ
 
     if (typeof modelType === 'object') {
         if (isEnumModel(modelType)) {
-            throw new TypeError(`Enum model type is not supported in compiled functions (read). Use fromModelTypes().read() instead.`);
+            readEnum(ctx, modelType, offsetVar, target);
+            return;
         }
         push(ctx, `${target} = {};`);
         generateReadObject(ctx, modelType as Model, offsetVar, target);
@@ -512,7 +555,8 @@ function writeField(ctx: CodegenContext, modelType: Type, offsetVar: string, val
 
     if (typeof modelType === 'object' && !Array.isArray(modelType)) {
         if (isEnumModel(modelType)) {
-            throw new TypeError(`Enum model type is not supported in compiled functions (write). Use fromModelTypes().make()/write() instead.`);
+            writeEnum(ctx, modelType, offsetVar, valueExpr);
+            return;
         }
         generateWriteObject(ctx, modelType as Model, offsetVar, valueExpr);
         return;
@@ -675,6 +719,7 @@ export function generateWriteBody(model: Model, endian: Endian): string {
     generateWriteObject(sizeCtx, model, 'o', 'struct');
 
     const writeCtx = createContext(endian, 'write', false, false);
+    writeCtx.counter = sizeCtx.counter;
     push(writeCtx, 'let o = off;');
     generateWriteObject(writeCtx, model, 'o', 'struct');
 
@@ -694,6 +739,7 @@ export function generateMakeBody(model: Model, endian: Endian, useChunks: boolea
         generateWriteObject(sizeCtx, model, 'o', 'struct');
 
         const writeCtx = createContext(endian, 'make', false, false);
+        writeCtx.counter = sizeCtx.counter;
         push(writeCtx, 'let o = 0;');
         generateWriteObject(writeCtx, model, 'o', 'struct');
 

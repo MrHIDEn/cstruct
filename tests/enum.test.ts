@@ -121,18 +121,32 @@ describe('enum - mapped values', () => {
     });
 
     describe('compiled functions', () => {
-        it('read should throw a clear error', () => {
+        it('read should map raw value to name', () => {
             const model = { b: enumModel };
             const cStruct = CStructBE.fromModelTypes(model);
-            expect(() => cStruct.compileRead())
-                .toThrow('Enum model type is not supported in compiled functions');
+            const readFn = cStruct.compileRead();
+
+            const result = readFn(Buffer.from([0x02]));
+            expect(result.struct.b).toBe('BAR');
         });
 
-        it('make should throw a clear error', () => {
+        it('make should map name to raw value', () => {
             const model = { b: enumModel };
             const cStruct = CStructBE.fromModelTypes(model);
-            expect(() => cStruct.compileMake())
-                .toThrow('Enum model type is not supported in compiled functions');
+            const makeFn = cStruct.compileMake();
+
+            const result = makeFn({ b: 'BAZ' });
+            expect(result.buffer).toEqual(Buffer.from([0x03]));
+        });
+
+        it('write should map name to raw value', () => {
+            const model = { b: enumModel };
+            const cStruct = CStructBE.fromModelTypes(model);
+            const writeFn = cStruct.compileWrite();
+            const target = Buffer.alloc(2);
+
+            writeFn({ b: 'FOO' }, target, 0);
+            expect(target[0]).toBe(0x01);
         });
     });
 });

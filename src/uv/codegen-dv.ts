@@ -1,4 +1,4 @@
-import { Model, ModelValue, SpecialType, Type } from '../types';
+import { EnumModel, Model, ModelValue, SpecialType, Type } from '../types';
 import { resolveAtomType, getAtomSize } from '../codegen/atom-spec';
 import {
     extractTypeAndSize,
@@ -7,7 +7,7 @@ import {
     parseSizedAtom,
 } from '../codegen/type-utils';
 import { isEnumModel } from '../enum';
-import { readUtf8, readUtf16, writeUtf8 } from './utf';
+import { readUtf8, readUtf16, writeUtf8, utf8Length } from './utf';
 
 /**
  * Variant B codegen — same model walker as the Buffer codegen, but the generated
@@ -20,6 +20,7 @@ export interface DvHelpers {
     readUtf8(bytes: Uint8Array, start: number, end: number): string;
     readUtf16(bytes: Uint8Array, start: number, end: number): string;
     writeUtf8(bytes: Uint8Array, start: number, str: string, maxBytes: number): number;
+    utf8Length(str: string): number;
     /** Shared scratch DataView for float/double/bigint byte conversion (no per-call alloc). */
     dv: DataView;
     readF(bytes: Uint8Array, o: number, le: boolean): number;
@@ -35,6 +36,7 @@ export const DV_HELPERS: DvHelpers = {
     readUtf8,
     readUtf16,
     writeUtf8,
+    utf8Length,
     dv: SCRATCH,
     readF(bytes: Uint8Array, o: number, le: boolean): number {
         SCRATCH.setUint8(0, bytes[o]);
@@ -203,18 +205,18 @@ function readBufferDv(ctx: DvCtx, o: string, sizeExpr: string, target: string) {
 function writeStringUtf8Dv(ctx: DvCtx, o: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
     if (ctx.phase === 'size') {
         if (trailing) {
-            push(ctx, `size += (${valueExpr}).length + 1;`);
+            push(ctx, `size += _h.utf8Length(${valueExpr}) + 1;`);
         } else if (dynamic) {
-            push(ctx, `size += (${valueExpr}).length;`);
+            push(ctx, `size += _h.utf8Length(${valueExpr});`);
         } else {
             push(ctx, `size += ${size};`);
         }
         return;
     }
     if (trailing) {
-        push(ctx, `{ const _b = (${valueExpr}).length; _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); bytes[${o} + _b] = 0; ${o} += _b + 1; }`);
+        push(ctx, `{ const _b = _h.utf8Length(${valueExpr}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); bytes[${o} + _b] = 0; ${o} += _b + 1; }`);
     } else if (dynamic) {
-        push(ctx, `{ const _b = (${valueExpr}).length; _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); ${o} += _b; }`);
+        push(ctx, `{ const _b = _h.utf8Length(${valueExpr}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); ${o} += _b; }`);
     } else {
         push(ctx, `bytes.fill(0, ${o}, ${o} + ${size}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, ${size}); ${o} += ${size};`);
     }
@@ -382,7 +384,7 @@ function dynamicPayloadLengthExprDv(
 ): string {
     if (isStatic) return String(staticSize);
     if (specialType === SpecialType.Json || specialType === SpecialType.String) {
-        return `(${valueExpr}).length`;
+        return `_h.utf8Length(${valueExpr})`;
     }
     if (specialType === SpecialType.WString) {
         return `(${structKeyExpr}).length`;
@@ -419,10 +421,16 @@ function readArrayItemsDv(ctx: DvCtx, itemsType: Type, sizeExpr: string, o: stri
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${sizeExpr}; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
-        const elem = tmpId(ctx);
-        push(ctx, `const ${elem} = {};`);
-        generateReadObjectDv(ctx, itemsType as Model, o, elem);
-        push(ctx, `${target}[${i}] = ${elem};`);
+        if (isEnumModel(itemsType)) {
+            const elem = tmpId(ctx);
+            readEnumDv(ctx, itemsType, o, elem);
+            push(ctx, `${target}[${i}] = ${elem};`);
+        } else {
+            const elem = tmpId(ctx);
+            push(ctx, `const ${elem} = {};`);
+            generateReadObjectDv(ctx, itemsType as Model, o, elem);
+            push(ctx, `${target}[${i}] = ${elem};`);
+        }
     } else if (typeof itemsType === 'string') {
         const elem = tmpId(ctx);
         readFieldDv(ctx, itemsType, o, elem);
@@ -450,7 +458,11 @@ function writeArrayItemsDv(ctx: DvCtx, itemsType: Type, structArrayExpr: string,
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${structArrayExpr}.length; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
-        generateWriteObjectDv(ctx, itemsType as Model, o, `${structArrayExpr}[${i}]`);
+        if (isEnumModel(itemsType)) {
+            writeEnumDv(ctx, itemsType, o, `${structArrayExpr}[${i}]`);
+        } else {
+            generateWriteObjectDv(ctx, itemsType as Model, o, `${structArrayExpr}[${i}]`);
+        }
     } else if (typeof itemsType === 'string') {
         writeFieldDv(ctx, itemsType, o, `${structArrayExpr}[${i}]`);
     } else {
@@ -529,7 +541,9 @@ function writeDynamicOrStaticDv(
 
     let valueExpr = structKeyExpr;
     if (specialType === SpecialType.Json) {
-        valueExpr = `JSON.stringify(${structKeyExpr})`;
+        const jsonId = tmpId(ctx);
+        push(ctx, `const ${jsonId} = JSON.stringify(${structKeyExpr});`);
+        valueExpr = jsonId;
     }
 
     if (isStatic && staticSize !== 0 && specialType !== SpecialType.String && ctx.phase === 'write') {
@@ -590,6 +604,34 @@ function writeDynamicOrStaticDv(
     writeArrayItemsDv(ctx, writeType, structKeyExpr, o);
 }
 
+function readEnumDv(ctx: DvCtx, enumModel: EnumModel, o: string, target: string) {
+    const expr = atomReadExpr(enumModel.type, ctx, o);
+    const size = getAtomSize(enumModel.type);
+    if (!expr || !size) throw new Error(`Unknown type ${enumModel.type}`);
+    const raw = tmpId(ctx);
+    const table = JSON.stringify(enumModel.enum);
+    push(ctx, `{ const ${raw} = ${expr}; ${o} += ${size}; ${target} = ${table}[String(${raw})] ?? ${raw}; }`);
+}
+
+function writeEnumDv(ctx: DvCtx, enumModel: EnumModel, o: string, valueExpr: string) {
+    const size = getAtomSize(enumModel.type);
+    if (!size) throw new Error(`Unknown type ${enumModel.type}`);
+    if (ctx.phase === 'size') {
+        push(ctx, `size += ${size};`);
+        return;
+    }
+    const nameToRaw: Record<string, number | string> = {};
+    for (const [rawKey, name] of Object.entries(enumModel.enum)) {
+        nameToRaw[name] = Number.isNaN(+rawKey) ? rawKey : +rawKey;
+    }
+    const table = JSON.stringify(nameToRaw);
+    const v = tmpId(ctx);
+    push(ctx, `let ${v} = ${valueExpr}; if (typeof ${v} === 'string') { ${v} = ${table}[${v}]; if (${v} === undefined) throw new Error('Unknown enum value "' + ${valueExpr} + '".'); }`);
+    const stmt = atomWriteStmt(enumModel.type, ctx, o, v);
+    if (!stmt) throw new Error(`Unknown type ${enumModel.type}`);
+    push(ctx, stmt);
+}
+
 function readFieldDv(ctx: DvCtx, modelType: Type, o: string, target: string) {
     if (Array.isArray(modelType)) {
         push(ctx, `${target} = [];`);
@@ -616,7 +658,8 @@ function readFieldDv(ctx: DvCtx, modelType: Type, o: string, target: string) {
 
     if (typeof modelType === 'object') {
         if (isEnumModel(modelType)) {
-            throw new TypeError(`Enum model type is not supported in compiled functions (read). Use .read() instead.`);
+            readEnumDv(ctx, modelType, o, target);
+            return;
         }
         push(ctx, `${target} = {};`);
         generateReadObjectDv(ctx, modelType as Model, o, target);
@@ -636,7 +679,8 @@ function writeFieldDv(ctx: DvCtx, modelType: Type, o: string, valueExpr: string)
 
     if (typeof modelType === 'object' && !Array.isArray(modelType)) {
         if (isEnumModel(modelType)) {
-            throw new TypeError(`Enum model type is not supported in compiled functions (write). Use .make()/.write() instead.`);
+            writeEnumDv(ctx, modelType, o, valueExpr);
+            return;
         }
         generateWriteObjectDv(ctx, modelType as Model, o, valueExpr);
         return;
@@ -757,7 +801,7 @@ export function generateWriteBodyDv(model: Model, le: boolean): string {
     push(sizeCtx, 'let size = 0;');
     generateWriteObjectDv(sizeCtx, model, 'o', 'struct');
 
-    const writeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'write' };
+    const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write' };
     push(writeCtx, 'let o = off;');
     generateWriteObjectDv(writeCtx, model, 'o', 'struct');
 
@@ -775,7 +819,7 @@ export function generateMakeBodyDv(model: Model, le: boolean, hasVariableLength:
     push(sizeCtx, 'let size = 0;');
     generateWriteObjectDv(sizeCtx, model, 'o', 'struct');
 
-    const writeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'write' };
+    const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write' };
     push(writeCtx, 'let o = 0;');
     generateWriteObjectDv(writeCtx, model, 'o', 'struct');
 
