@@ -2,7 +2,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules/', 'lib/', 'sbox-*.ts', '**/*.js'] },
+  { ignores: ['node_modules/', 'lib/', 'sbox-*.ts', '**/*.js', 'benchmarks/browser/**'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

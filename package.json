@@ -37,6 +37,7 @@
     "bench:node": "ts-node --transpile-only ./benchmarks/codegen-bench.ts",
     "bench:bun": "bun ./benchmarks/codegen-bench.ts",
     "bench:deno": "deno run -A --no-check --sloppy-imports ./benchmarks/codegen-bench.ts",
+    "bench:browser": "node benchmarks/browser/run.cjs",
     "model-parser": "ts-node-dev --transpile-only ./src/model-parser.ts",
     "prepublishOnly": "tsc",
     "build": "tsc",

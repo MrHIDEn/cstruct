@@ -30,11 +30,11 @@ Same model and data — only the endian class changes the wire format:
 ```typescript
 import { CStructBE, CStructLE } from '@mrhiden/cstruct';
 
-const model = { a: 'u16', b: 'i16' };
+const pairModel = { a: 'u16', b: 'i16' };
 const data = { a: 10, b: -10 };
 
-const beHex = CStructBE.fromModelTypes(model).make(data).buffer.toString('hex');
-const leHex = CStructLE.fromModelTypes(model).make(data).buffer.toString('hex');
+const beHex = CStructBE.fromModelTypes(pairModel).make(data).buffer.toString('hex');
+const leHex = CStructLE.fromModelTypes(pairModel).make(data).buffer.toString('hex');
 
 console.log(beHex); // 000afff6
 console.log(leHex); // 0a00f6ff
@@ -91,12 +91,12 @@ For hot loops (thousands of buffers per second), compile the model once into spe
 ```typescript
 import { CStructLE } from '@mrhiden/cstruct';
 
-const model = { x: 'u16', y: 'i32', flag: 'b8' };
+const pointModel = { x: 'u16', y: 'i32', flag: 'b8' };
 
 // Compile once at startup
-const readFrame  = CStructLE.compileRead(model);
-const writeFrame = CStructLE.compileWrite(model);
-const makeFrame  = CStructLE.compileMake(model);
+const readFrame  = CStructLE.compileRead(pointModel);
+const writeFrame = CStructLE.compileWrite(pointModel);
+const makeFrame  = CStructLE.compileMake(pointModel);
 
 // Use many times
 const buf = makeFrame({ x: 13, y: -7, flag: true }).buffer;
@@ -107,7 +107,7 @@ writeFrame({ x: 1, y: 2, flag: false }, buf, 0);
 Instance methods compile from the cached `parsedModel` (no second `parseModel`):
 
 ```typescript
-const cStruct = CStructLE.fromModelTypes(model);
+const cStruct = CStructLE.fromModelTypes(pointModel);
 const readFn = cStruct.compileRead();
 ```
 
@@ -128,11 +128,11 @@ const { U16, I16, STRING } = AtomTypes;
 const types = {
     Sensor: { id: U16, value: I16 },
 };
-const model = {
+const iotModel = {
     iotName: STRING(0), // 's0'
     sensors: 'Sensor[2]',
 };
-const cStruct = CStructBE.fromModelTypes(model, types);
+const cStruct = CStructBE.fromModelTypes(iotModel, types);
 
 const data = {
     iotName: 'iot-1',
@@ -383,9 +383,9 @@ Length can come from the data itself — a length prefix is read from (or writte
 
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = { ab: "Ab[i16]" };
+const batchModel = { ab: "Ab[i16]" };
 const types = { Ab: { a: 'i8', b: 'i8' } };
-const cStruct = CStructBE.fromModelTypes(model, types);
+const cStruct = CStructBE.fromModelTypes(batchModel, types);
 
 console.log(cStruct.modelClone);
 // { 'ab.i16': { a: 'i8', b: 'i8' } }
@@ -420,11 +420,11 @@ Model: { ab: "Ab[i16]" }   Ab = { a: i8, b: i8 }   data: 2 elements
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = {
+const stringsModel = {
     txt1: "s[i16]",
     txt2: "string[i16]",
 };
-const cStruct = CStructBE.fromModelTypes(model);
+const cStruct = CStructBE.fromModelTypes(stringsModel);
 
 const data = { txt1: "ABCDE", txt2: "AB" };
 const { buffer } = cStruct.make(data);
@@ -443,11 +443,11 @@ For `"string"`, `"wstring"` and `"json"` types you can use trailing zero: data i
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = {
+const trailingZeroModel = {
     any1: 'j[0]', // or 'json[0]' / 'any[0]'
     any2: 's[0]', // or 'string[0]'
 };
-const cStruct = CStructBE.fromModelTypes(model);
+const cStruct = CStructBE.fromModelTypes(trailingZeroModel);
 
 const data = { any1: [1, 2, 3], any2: 'abc' };
 const buffer = cStruct.make(data).buffer;
@@ -649,8 +649,8 @@ Niche and longer examples. Expand only what you need.
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = { b: 'BYTE', w: 'WORD', f: 'BOOL' };
-const cStruct = CStructBE.fromModelTypes(model);
+const plcModel = { b: 'BYTE', w: 'WORD', f: 'BOOL' };
+const cStruct = CStructBE.fromModelTypes(plcModel);
 
 const struct = { b: 0x12, w: 0x3456, f: true };
 const { buffer } = cStruct.make(struct);
@@ -670,8 +670,8 @@ console.log(extractedData);
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = `{u8 a,b;}`;
-const cStruct = CStructBE.fromModelTypes(model);
+const pairModel = `{u8 a,b;}`;
+const cStruct = CStructBE.fromModelTypes(pairModel);
 
 const makeStruct = { a: 1, b: 2 };
 const { buffer: structBuffer } = cStruct.make(makeStruct);
@@ -691,7 +691,7 @@ console.log(readStruct);
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = { xyzs: "Xyx[2]" };
+const structArrayModel = { xyzs: "Xyx[2]" };
 const types = `{
     typedef struct {
         uint8_t x;
@@ -700,7 +700,7 @@ const types = `{
     } Xyx;
 }`;
 
-const cStruct = CStructBE.fromModelTypes(model, types);
+const cStruct = CStructBE.fromModelTypes(structArrayModel, types);
 const data = {
     xyzs: [
         { x: 1, y: 2, z: 3 },
@@ -730,12 +730,12 @@ const types = `{
         i8 x,y;
     };
 }`;
-const model = `{
+const typedefModel = `{
     ab: Ab,
     xyz: Xyz,
 }`;
 
-const cStruct = CStructBE.fromModelTypes(model, types);
+const cStruct = CStructBE.fromModelTypes(typedefModel, types);
 const data = {
     ab: { x: -2, y: -1 },
     xyz: { x: 0, y: 1, z: 2 }
@@ -748,13 +748,13 @@ console.log(makeBuffer.toString('hex'));
 ```typescript
 import { CStructBE } from '@mrhiden/cstruct';
 
-const model = `[
+const arrayModel = `[
     i8,         // 1 byte
     i8[2],      // 2 bytes static array
     i8[i16]     // dynamic array
 ]`;
 
-const cStruct = CStructBE.fromModelTypes(model);
+const cStruct = CStructBE.fromModelTypes(arrayModel);
 console.log(cStruct.jsonModel);
 // ["i8","i8.2","i8.i16"]
 

@@ -57,8 +57,8 @@ Precompile a model once, then `make` and `read` as many times as you need:
 const { CStruct, AtomTypes } = require('@mrhiden/cstruct');
 const { U16, I16 } = AtomTypes; // or use 'u16', 'i16' as strings
 
-const model = { a: U16, b: I16 }; // = { a: 'u16', b: 'i16' }
-const cStruct = new CStruct(model); // default: little endian
+const pairModel = { a: U16, b: I16 }; // = { a: 'u16', b: 'i16' }
+const cStruct = new CStruct(pairModel); // default: little endian
 
 const data = { a: 10, b: -10 };
 const buffer = cStruct.make(data).buffer;
@@ -75,8 +75,8 @@ Same cycle in TypeScript with string atom types:
 ```typescript
 import { CStruct } from '@mrhiden/cstruct';
 
-const model = { a: 'u16', b: 'i16' };
-const cStruct = new CStruct(model); // default: little endian
+const pairModel = { a: 'u16', b: 'i16' };
+const cStruct = new CStruct(pairModel); // default: little endian
 
 const data = { a: 10, b: -10 };
 const buffer = cStruct.make(data).buffer;
@@ -233,7 +233,7 @@ All examples above pass options to `CStruct` — by default it is **little endia
 ```typescript
 import { CStruct } from '@mrhiden/cstruct';
 
-const cStruct = new CStruct(model, { endian: 'be' }); // or CStruct.fromModelTypes(model, types, { endian: 'be' })
+const cStruct = new CStruct(pairModel, { endian: 'be' }); // or CStruct.fromModelTypes(pairModel, types, { endian: 'be' })
 ```
 
 If you prefer explicit classes, `CStructLE` and `CStructBE` take the same `{ endian }`-free API — pick the class instead of the option. Precompiled models: `CStruct.fromCompiled(jsonModel, { endian: 'be' })`.
@@ -242,13 +242,13 @@ More examples — write into an existing buffer, codegen, decorators, PLC aliase
 
 ## Browser & Deno (`CStructUint8Array`)
 
-`CStruct` / `CStructLE` / `CStructBE` are built on Node's `Buffer`. If you need the library in a **browser**, **Deno** or anywhere without `Buffer`, use `CStructUint8Array` — same model syntax, same API shape, but it works on plain `Uint8Array`/`DataView` and returns plain `Uint8Array` (no `Buffer`):
+The package **runs in browsers** (and Deno / Bun / Web Workers). `CStruct` / `CStructLE` / `CStructBE` are built on Node's `Buffer`; `CStructUint8Array` is the portable twin — same model syntax, same API shape, but it reads/writes plain `Uint8Array` via `DataView` and returns a plain `Uint8Array` (no `Buffer`):
 
 ```javascript
 const { CStructUint8Array } = require('@mrhiden/cstruct');
 
-const model = { a: 'u16', b: 'i16' };
-const cStruct = new CStructUint8Array(model); // default: little endian
+const pairModel = { a: 'u16', b: 'i16' };
+const cStruct = new CStructUint8Array(pairModel); // default: little endian
 
 const data = { a: 10, b: -10 };
 const { bytes } = cStruct.make(data);
@@ -262,7 +262,7 @@ Write into an existing `Uint8Array`, choose endianness and compile for throughpu
 
 ```javascript
 // big endian wire format
-const cStructBE = new CStructUint8Array(model, { endian: 'be' });
+const cStructBE = new CStructUint8Array(pairModel, { endian: 'be' });
 
 // write into an existing Uint8Array at offset
 cStruct.write(bytes, data, 0);
@@ -275,6 +275,41 @@ const struct = readFn(bytes).struct;
 Available factories mirror the `Buffer` classes: `CStructUint8Array.fromModelTypes(model, types, options)`, `CStructUint8Array.fromCompiled(jsonModel, options)` and static `CStructUint8Array.compileRead/compileWrite/compileMake(model, types, options)`.
 
 Performance note: the `Uint8Array`/`DataView` codegen is somewhat slower than the Node-only `Buffer` codegen (~x1.6–3.0, see [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md)) — that is the price of portability.
+
+### How it works
+
+The browser path swaps every Node `Buffer` primitive for a standard web API, with
+**no Node core-module imports** (so it has zero runtime dependencies and works in
+any JS host):
+
+| What | `CStruct` (Node) | `CStructUint8Array` (browser/Deno) |
+|---|---|---|
+| Number atoms | `Buffer.readInt16LE` / `writeUInt32BE` | `DataView.getInt16` / `setUint32` with endianness passed as a boolean flag |
+| Strings (utf8) | `Buffer.toString('utf8')` / `Buffer.write` | `TextDecoder('utf-8')` / `TextEncoder` |
+| Wide strings (utf16le) | `Buffer.toString('utf16le')` / `Buffer.write` | `TextDecoder('utf-16le')` + a manual char-code loop |
+| Binary blobs (`bufN`) | `Buffer.slice` / `Buffer.alloc` | `Uint8Array.subarray` / `slice` |
+| `make()` output | `Buffer` (grown with `Buffer.concat`) | plain `Uint8Array` (chunks joined with `set`) |
+
+The wire format is **byte-for-byte identical** to the `Buffer` path for the same
+model and endianness, so the two variants interoperate (e.g. encode in Node,
+decode in the browser). Endianness is a single boolean (`littleEndian`) baked
+into the reader/writer.
+
+The published package is CommonJS (`main: lib/index.js`), so in the browser you
+consume it through your usual bundler (webpack / Vite / esbuild / Rollup) or a
+CDN ESM build.
+
+### Browser test
+
+A 31-assertion smoke test runs the whole `CStructUint8Array` surface (scalars,
+endianness, strings, buffers, enum, JSON, aliases, codegen) in real headless
+Chrome — opt-in, not on CI:
+
+```bash
+npm run bench:browser   # needs a local Chrome/Chromium; override with CHROME_BIN
+```
+
+See [`benchmarks/BROWSER-TEST.md`](benchmarks/BROWSER-TEST.md).
 
 ## Data types reference
 
