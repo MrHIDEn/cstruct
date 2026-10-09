@@ -1,7 +1,7 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "1.7.2",
-  "description": "For packing and unpacking bytes (C like structures) in/from Buffer based on Object/Array type for parsing.",
+  "version": "1.7.3",
+  "description": "Pack and unpack binary data (C-like structs) between Buffer and JS/TS objects and arrays: big/little endian, typedef, PLC types, wstring, bufN.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -72,7 +72,20 @@
     "javascript",
     "ts",
     "typescript",
-    "json"
+    "json",
+    "binary",
+    "serialization",
+    "deserialization",
+    "binary-parser",
+    "binary-protocol",
+    "packing",
+    "endianness",
+    "big-endian",
+    "little-endian",
+    "packet",
+    "frame",
+    "iot",
+    "plc"
   ],
   "author": {
     "name": "Marek Krzyżowski",
