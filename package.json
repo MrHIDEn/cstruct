@@ -1,6 +1,6 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "Pack and unpack binary data (C-like structs) between Buffer and JS/TS objects and arrays: big/little endian, typedef, PLC types, wstring, bufN.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
