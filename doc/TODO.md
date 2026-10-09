@@ -9,6 +9,6 @@
 | todo     | another way to make tangled size and array/buffer/string                                |
 | =======  |                                                                                         |
 | consider | default values? `=123`                                                                  |
-| consider | add types as enum - need it?                                                            |
+| done     | add types as enum - `{ b: { type: 'u8', enum: { 1: 'FOO' } } }`                         |
 | consider | are fields "ab cd" allowed? rather no                                                   |
 

@@ -8,6 +8,14 @@ export type ReaderFunctions = (size?: number) => ReaderValue;
 export type Model = object | ModelValue[] | string;
 export type Types = object | string;
 export type Type = object | string;
+
+/** Enum model type — raw (wire) atom type plus a mapping of raw values to names. */
+export interface EnumModel {
+    /** Wire atom type, e.g. 'u8', 'i16', 'u32' */
+    type: string;
+    /** Mapping of raw (wire) values to names, e.g. { 1: 'FOO', 2: 'BAR' } */
+    enum: { [rawValue: string]: string };
+}
 export type StructEntry = [key: string, type: Type];
 export type Alias = string[]; // [type: string, ...aliases: string[]]
 

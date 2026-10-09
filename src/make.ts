@@ -2,6 +2,7 @@ import { Model, SpecialType, StructEntry, Type, WriterValue } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 import { ReadWriteBase } from "./read-write-base";
+import { enumNameToRaw, isEnumModel } from "./enum";
 
 export class Make<T> extends ReadWriteBase {
     protected _writer: WriteBufferLE | WriteBufferBE;
@@ -99,6 +100,12 @@ export class Make<T> extends ReadWriteBase {
         switch (typeof modelType) {
             // Nested struct object
             case 'object':
+                // Enum model — map a name (or raw value) back to the raw (wire) value
+                if (isEnumModel(modelType)) {
+                    structValues = struct[modelKey];
+                    this._writer.write(modelType.type, enumNameToRaw(modelType, structValues));
+                    break;
+                }
                 this.recursion(model[modelKey], struct[modelKey]);
                 break;
             // Static scalar — u8, i16, j0, buf, wstring, ...
@@ -121,6 +128,13 @@ export class Make<T> extends ReadWriteBase {
         switch (typeof itemsType) {
             // Array of nested structs — encode each element's sub-tree
             case 'object':
+                // Array of enum items — map each name (or raw value) back to the raw (wire) value
+                if (isEnumModel(itemsType)) {
+                    for (const structValue of structValues) {
+                        this._writer.write(itemsType.type, enumNameToRaw(itemsType, structValue as WriterValue));
+                    }
+                    break;
+                }
                 for (const structValue of structValues) {
                     this.recursion(itemsType, structValue);
                 }
