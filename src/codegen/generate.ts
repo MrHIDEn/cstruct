@@ -7,6 +7,7 @@ import {
     parseSizedAtom,
 } from './type-utils';
 import { CodegenContext, CodegenMode, Endian } from './types';
+import { isEnumModel } from '../enum';
 
 function tmpId(ctx: CodegenContext): string {
     return `_t${ctx.counter++}`;
@@ -490,6 +491,9 @@ function readField(ctx: CodegenContext, modelType: Type, offsetVar: string, targ
     }
 
     if (typeof modelType === 'object') {
+        if (isEnumModel(modelType)) {
+            throw new TypeError(`Enum model type is not supported in compiled functions (read). Use fromModelTypes().read() instead.`);
+        }
         push(ctx, `${target} = {};`);
         generateReadObject(ctx, modelType as Model, offsetVar, target);
         return;
@@ -507,6 +511,9 @@ function writeField(ctx: CodegenContext, modelType: Type, offsetVar: string, val
     }
 
     if (typeof modelType === 'object' && !Array.isArray(modelType)) {
+        if (isEnumModel(modelType)) {
+            throw new TypeError(`Enum model type is not supported in compiled functions (write). Use fromModelTypes().make()/write() instead.`);
+        }
         generateWriteObject(ctx, modelType as Model, offsetVar, valueExpr);
         return;
     }

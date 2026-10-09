@@ -2,6 +2,7 @@ import { ReadBufferBE } from "./read-buffer-be";
 import { ReadBufferLE } from "./read-buffer-le";
 import { Model, SpecialType, StructValue, Type } from "./types";
 import { ReadWriteBase } from "./read-write-base";
+import { enumRawToName, isEnumModel } from "./enum";
 
 
 export class Read<T> extends ReadWriteBase {
@@ -130,6 +131,11 @@ export class Read<T> extends ReadWriteBase {
 
         // Nested struct object
         if (typeof modelType === 'object') {
+            // Enum model — read the raw atom value and map it to its name
+            if (isEnumModel(modelType)) {
+                const raw = this._reader.read(modelType.type);
+                return enumRawToName(modelType, raw);
+            }
             return this.readSchema(modelType as Model);
         }
 
@@ -140,6 +146,14 @@ export class Read<T> extends ReadWriteBase {
         switch (typeof itemsType) {
             // Array of nested structs — each element gets its own sub-tree
             case 'object': {
+                // Array of enum items — map each raw value to its name
+                if (isEnumModel(itemsType)) {
+                    const result: StructValue[] = [];
+                    for (let i = 0; i < size; i++) {
+                        result[i] = this.readField(itemsType);
+                    }
+                    return result;
+                }
                 const result: StructValue[] = [];
                 for (let i = 0; i < size; i++) {
                     result[i] = this.readSchema(itemsType as Model);

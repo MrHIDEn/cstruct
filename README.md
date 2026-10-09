@@ -13,6 +13,7 @@ If you only need to pack a plain object into a buffer — **Basic usage** is eno
   - [Precompiled models (`fromCompiled`)](#precompiled-models-fromcompiled)
   - [Compiled functions (codegen)](#compiled-functions-codegen)
   - [Write into an existing buffer](#write-into-an-existing-buffer)
+  - [Enum values (`{ type, enum }`)](#enum-values-type-enum)
   - [Binary buffer field (`bufN`)](#binary-buffer-field-bufn)
   - [Wide string (`wstring` / `wsN`)](#wide-string-wstring--wsn)
 - [Advanced usage](#advanced-usage-classes--decorators)
@@ -528,6 +529,41 @@ any1 = JSON "[1,2,3]" + \0 (8 bytes)   any2 = "abc" + \0 (4 bytes)
   5B 31 2C 32 2C 33 5D 00 | 61 62 63 00
   [  1  ,  2  ,  3  ]  \0  | a  b  c  \0
 ```
+
+---
+
+### Enum values (`{ type, enum }`)
+
+Raw wire values can be mapped to names with an enum model — an object with `type` (the wire atom type) and `enum` (raw value → name). On `read` you get names, on `make`/`write` you can pass a name or a raw value. Raw values not present in the map pass through unchanged.
+
+```typescript
+// struct {
+//   uint8_t a;
+//   enum { FOO = 1, BAR = 2, BAZ = 3 } b;
+// } = { 1, 2 };
+
+import { CStructBE } from '@mrhiden/cstruct';
+
+const cStruct = CStructBE.fromModelTypes({
+    a: 'u8',
+    b: { type: 'u8', enum: { 1: 'FOO', 2: 'BAR', 3: 'BAZ' } },
+});
+
+const { buffer } = cStruct.make({ a: 1, b: 'BAR' });
+console.log(buffer.toString('hex'));
+// 0102
+
+const { struct } = cStruct.read(buffer);
+console.log(struct);
+// { a: 1, b: 'BAR' }
+
+// Raw values work too, and unknown ones pass through:
+const { struct: raw } = cStruct.read(Buffer.from([0x01, 0x2a]));
+console.log(raw);
+// { a: 1, b: 42 }
+```
+
+Enums work in nested structs, static and dynamic arrays of enums (`{ 'list.u8': { type: 'u8', enum: {...} } }`). They are **not yet supported in compiled functions** (`compileRead` / `compileWrite` / `compileMake`) — those throw a clear error; use `read` / `make` instead.
 
 ---
 
