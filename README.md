@@ -359,6 +359,15 @@ console.log(struct);
 
 See also [`examples/wstring.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/wstring.ts).
 
+```text
+Model: { label: 'ws5' } (CStructLE)   data: 'abc'   total: 5 units = 10 bytes
+
+  char:     a         b         c       zero      zero
+  bytes:  61 00     62 00     63 00     00 00     00 00
+
+  each unit = 2 bytes, low byte first: 'a' = U+0061 -> 61 00
+```
+
 ### Named types (IoT-style)
 
 ```typescript
@@ -456,6 +465,18 @@ console.log(buffer.toString('hex'));
 const { struct: extractedData } = cStruct.read(buffer);
 console.log(extractedData);
 // { ab: [ { a: -1, b: 1 }, { a: -2, b: 2 } ] }
+```
+
+```text
+Model: { ab: "Ab[i16]" }   Ab = { a: i8, b: i8 }   data: 2 elements
+
+  byte:    0    1    2    3    4    5
+         ┌────┬────┬────┬────┬────┬────┐
+  bytes: │ 00 │ 02 │ FF │ 01 │ FE │ 02 │
+         └────┴────┴────┴────┴────┴────┘
+         ├ length  ┤├ ab[0] ┤ ├ ab[1] ┤
+
+  length = i16 2 (BE)   ab[0] = { a: -1, b: 1 }   ab[1] = { a: -2, b: 2 }
 ```
 
 ```typescript
@@ -970,7 +991,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 ## Changelog
 
 ### What's new in 1.7.3
-* README: text diagrams for endianness (BE vs LE), data flow (`make` / `write` / `read`), `write` with offset and trailing zero (`s[0]`, `j[0]`)
+* README: text diagrams for endianness (BE vs LE), data flow (`make` / `write` / `read`), `write` with offset, trailing zero (`s[0]`, `j[0]`), dynamic length (`Ab[i16]`) and wstring (UTF-16LE)
 * `package.json`: extended `keywords` and `description` to make the package easier to find on npm (no runtime changes)
 
 ### What's new in 1.7.2
