@@ -83,8 +83,14 @@ function compileScalar(type: string): CompiledScalar {
     if (type === 'buf0') return { t: 0, type: 'buf', size: 0, json: false, buf0: true };
     if (type === 'j0') return { t: 0, type: 'j', size: 0, json: true, buf0: false };
     const m = SIZED_ATOM.exec(type);
-    if (m) return { t: 0, type: resolveAtom(m[1]), size: +m[2], json: false, buf0: false };
-    return { t: 0, type: resolveAtom(type), size: undefined, json: false, buf0: false };
+    const base = m ? m[1] : type;
+    return {
+        t: 0,
+        type: resolveAtom(base),
+        size: m ? +m[2] : undefined,
+        json: SPECIAL_MAP[base] === SpecialType.Json,
+        buf0: false,
+    };
 }
 
 function compileDynamic(type: Type, lengthType: string): CompiledDynamic {

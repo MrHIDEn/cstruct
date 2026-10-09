@@ -83,6 +83,20 @@ describe('j - json - any - JSON', () => {
                 expect(result.size).toBe(20);
             });
         });
+
+        describe(`static sized-atom (j20, json20, any20)`, () => {
+            for (const t of ['j20', 'json20', 'any20']) {
+                it(`should make and read ${t}`, () => {
+                    const model = {any1: t};
+                    const cStruct = CStructBE.fromModelTypes(model);
+                    const struct = {any1: {a:1,b:[2,3]}};
+
+                    const made = cStruct.make(struct);
+                    expect(made.size).toBe(20);
+                    expect(cStruct.read(made.buffer).struct).toEqual(struct);
+                });
+            }
+        });
         
         describe(`write dynamic with offset 2`, () => {
             it(`should write buffer from j[i16]`, () => {
