@@ -11,6 +11,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
 - [Examples](#examples)
   - [Dynamic array (length on the wire)](#dynamic-array-length-on-the-wire)
   - [Enum values (named states)](#enum-values-named-states)
+  - [Straight from C (`typedef struct`)](#straight-from-c-typedef-struct)
 - [Data types reference](#data-types-reference)
 - [More examples](#more-examples)
 - [Changelog](#changelog)
@@ -182,6 +183,40 @@ console.log(struct);
 // Unknown raw values pass through unchanged — like C enums:
 console.log(cStruct.read(Buffer.from('112a', 'hex')).struct);
 // { device_id: 17, state: 42 }
+```
+
+### Straight from C (`typedef struct`)
+
+You can paste a C declaration as-is — the parser understands `typedef struct`, C-kind fields (`u8 a,b;`), and comments:
+
+```c
+// typedef struct {
+//   uint8_t x;
+//   uint8_t y;
+//   uint8_t z;
+// } Vec3;   ← this exact text can be your `types`
+```
+
+```typescript
+import { CStructBE } from '@mrhiden/cstruct';
+
+const types = `{
+    typedef struct {
+        uint8_t x;
+        uint8_t y;
+        uint8_t z;
+    } Vec3;
+}`;
+
+const cStruct = CStructBE.fromModelTypes({ point: 'Vec3' }, types);
+
+const { buffer } = cStruct.make({ point: { x: 1, y: 2, z: 3 } });
+console.log(buffer.toString('hex'));
+// 010203
+
+const { struct } = cStruct.read(buffer);
+console.log(struct);
+// { point: { x: 1, y: 2, z: 3 } }
 ```
 
 ## Data types reference
