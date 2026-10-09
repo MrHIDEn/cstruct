@@ -151,6 +151,17 @@ function writeBufferField(ctx: CodegenContext, offsetVar: string, valueExpr: str
     }
 }
 
+function writeBufferDynamic(ctx: CodegenContext, offsetVar: string, valueExpr: string) {
+    if (ctx.accumulateSize) {
+        push(ctx, `size += (${valueExpr}).length;`);
+    } else if (isChunkMake(ctx)) {
+        const b = tmpId(ctx);
+        push(ctx, `{ const ${b} = Buffer.alloc((${valueExpr}).length); (${valueExpr}).copy(${b}); chunks.push(${b}); }`);
+    } else {
+        push(ctx, `(${valueExpr}).copy(buf, ${offsetVar}); ${offsetVar} += (${valueExpr}).length;`);
+    }
+}
+
 function writeAtom(ctx: CodegenContext, type: string, offsetVar: string, valueExpr: string) {
     const spec = getAtomSpec(type, ctx.endian);
     if (!spec) throw new Error(`Unknown type ${type}`);
@@ -459,7 +470,7 @@ function writeDynamicOrStatic(
             if (isStatic) {
                 writeBufferField(ctx, offsetVar, structKeyExpr, staticSize);
             } else {
-                throw new Error('Dynamic buffer without static size is not supported in write path.');
+                writeBufferDynamic(ctx, offsetVar, structKeyExpr);
             }
             return;
         }
