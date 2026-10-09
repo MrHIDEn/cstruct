@@ -32,13 +32,13 @@ Source: [`benchmarks/codegen-bench.ts`](../benchmarks/codegen-bench.ts)
 | Machine | MacBook **M4 Pro** |
 | OS | macOS 26.6.2 |
 | Node.js | v24.21.0 (LTS Krypton, via nvm) |
-| Library | `@mrhiden/cstruct` 1.7.3 |
+| Library | `@mrhiden/cstruct` 1.8.0 |
 | Endian | Little-endian (`CStructLE` / `CStructUint8Array` default LE) |
 | Bench duration | ~700 ms per case (default `BENCH_MS`) |
 
 Results are **indicative only**. Absolute numbers vary by CPU load, Node version, and model shape. Relative speedups between interpreter and codegen on the same machine are more meaningful than cross-machine comparisons.
 
-Since 1.7.3 the interpreter reuses reader/writer instances (atom maps, aliases
+Since 1.8.0 the interpreter reuses reader/writer instances (atom maps, aliases
 and text decoders are built once per `CStruct` instance, not per call) — the
 interpreter is ~x5–13 faster than in 1.7.1, so codegen speedups below are
 correspondingly smaller than in older docs.

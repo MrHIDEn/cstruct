@@ -289,6 +289,11 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.8.0
+* Performance: interpreter (`read` / `write` / `make`) reuses reader/writer instances per `CStruct` (new `reset()` / `run()` on reader/writer classes) — ~15× faster interpreter (up to 2–3.5M ops/s)
+* Benchmarks: full audit of `doc/BENCHMARKS-*.md` — all tables re-measured in one parallel Node/Bun/Deno session; added `CStruct (Buffer codegen)` column; `npm run bench:node` / `bench:bun` / `bench:deno`
+* New [`doc/BENCHMARKS-DENO.md`](doc/BENCHMARKS-DENO.md)
+
 ### What's new in 1.7.3
 * README: text diagrams for endianness (BE vs LE), data flow (`make` / `write` / `read`), `write` with offset, trailing zero (`s[0]`, `j[0]`), dynamic length (`Ab[i16]`) and wstring (UTF-16LE)
 * `package.json`: extended `keywords` and `description` to make the package easier to find on npm (no runtime changes)

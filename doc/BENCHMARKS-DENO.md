@@ -25,7 +25,7 @@ Source: [`benchmarks/codegen-bench.ts`](../benchmarks/codegen-bench.ts)
 | OS | macOS 26.6.2 |
 | **Deno** | **2.9.7** (V8 **15.0.245**, TypeScript 6.0.3) |
 | Node.js (comparison) | v24.21.0 (LTS Krypton, V8 13.6) |
-| Library | `@mrhiden/cstruct` 1.7.3 |
+| Library | `@mrhiden/cstruct` 1.8.0 |
 | Endian | Little-endian (`CStructLE` / `CStructUint8Array` default LE) |
 | Bench duration | ~700 ms per case (default `BENCH_MS`) |
 
