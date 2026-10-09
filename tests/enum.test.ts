@@ -77,6 +77,15 @@ describe('enum - mapped values', () => {
 
                 expect(() => cStruct.make({ b: 'UNKNOWN' })).toThrow('Unknown enum value "UNKNOWN"');
             });
+
+            it('should make dynamic array of enums', () => {
+                const model = { 'list.u8': enumModel };
+                const cStruct = CStructBE.fromModelTypes(model);
+
+                const result = cStruct.make({ list: ['BAR', 'FOO'] });
+                expect(result.buffer).toEqual(Buffer.from([0x02, 0x02, 0x01]));
+                expect(result.size).toBe(3);
+            });
         });
 
         describe('write', () => {
