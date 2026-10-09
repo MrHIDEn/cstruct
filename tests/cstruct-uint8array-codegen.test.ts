@@ -128,11 +128,15 @@ describe('CStructUint8Array codegen (DataView) — parity with interpreter and B
         expect(CStructUint8Array.compileRead<any>(model)(ref.length ? CStructUint8Array.compileMake(model)(data).bytes : new Uint8Array()).struct).toEqual(data);
     });
 
-    it('enum model in compiled functions throws (documented limitation)', () => {
+    it('enum model works in compiled functions', () => {
         const uv = CStructUint8Array.fromModelTypes({
-            state: { type: 'u8', enum: { 1: 'IDLE' } },
+            state: { type: 'u8', enum: { 1: 'IDLE', 2: 'RUN' } },
         });
-        expect(() => uv.compileMake()({ state: 'IDLE' })).toThrow(/Enum model type is not supported/);
-        expect(() => uv.compileRead()(new Uint8Array([1]))).toThrow(/Enum model type is not supported/);
+        const makeFn = uv.compileMake();
+        const readFn = uv.compileRead();
+
+        const made = makeFn({ state: 'RUN' });
+        expect(hex(made.bytes)).toBe('02');
+        expect(readFn(made.bytes).struct).toEqual({ state: 'RUN' });
     });
 });

@@ -1,6 +1,6 @@
 import { WriterFunctions, WriterValue } from "../types";
 import { BaseBuffer } from "../base-buffer";
-import { writeUtf8 } from "./utf";
+import { writeUtf8, utf8Length } from "./utf";
 
 /**
  * Variant B (browser-ready): DataView-based writer into a single growing
@@ -190,14 +190,18 @@ export class DvWriter extends BaseBuffer {
             throw new Error(`Invalid string value ${val}`);
         }
         if (size === undefined) {
-            size = val.length;
-        } else {
-            if (size < 0) {
-                throw new Error(`Invalid string size ${size}`);
-            }
-            if (size === 0) {
-                size = val.length + 1;
-            }
+            // dynamic: write the whole UTF-8 string
+            size = utf8Length(val);
+            this.ensure(size);
+            writeUtf8(this._bytes, this._offset, val, size);
+            this._offset += size;
+            return;
+        }
+        if (size < 0) {
+            throw new Error(`Invalid string size ${size}`);
+        }
+        if (size === 0) {
+            size = utf8Length(val) + 1; // trailing zero (null terminator)
         }
         this.ensure(size);
         this._bytes.fill(0, this._offset, this._offset + size);

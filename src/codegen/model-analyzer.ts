@@ -2,6 +2,7 @@ import { Model, Type } from '../types';
 import { getAtomSize } from './atom-spec';
 import { extractTypeAndSize, getDotGroups, getSpecialType, isVariableField, parseSizedAtom } from './type-utils';
 import { ModelAnalysis } from './types';
+import { isEnumModel } from '../enum';
 
 function fieldStaticSize(modelKey: string, modelType: Type): number | undefined {
     const keyGroups = getDotGroups(modelKey);
@@ -39,6 +40,9 @@ function fieldStaticSize(modelKey: string, modelType: Type): number | undefined 
 
 function fieldSizeFromType(modelType: Type): number | undefined {
     if (typeof modelType === 'object' && !Array.isArray(modelType)) {
+        if (isEnumModel(modelType)) {
+            return getAtomSize(modelType.type);
+        }
         let total = 0;
         for (const [k, t] of Object.entries(modelType)) {
             const s = fieldStaticSize(k, t);

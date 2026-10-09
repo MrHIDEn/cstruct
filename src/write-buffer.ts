@@ -1,5 +1,6 @@
 import { WriterFunctions, WriterValue } from "./types";
 import { BaseBuffer } from "./base-buffer";
+import { utf8Length } from "./uv/utf";
 
 export abstract class WriteBuffer extends BaseBuffer {
     protected _buffer: Buffer;
@@ -43,14 +44,19 @@ export abstract class WriteBuffer extends BaseBuffer {
         }
 
         if (size === undefined) {
-            size = val.length;
-        } else {
-            if (size < 0) {
-                throw new Error(`Invalid string size ${size}`);
-            }
-            if (size === 0) {
-                size = val.length + 1;
-            }
+            // dynamic: write the whole UTF-8 string
+            size = utf8Length(val);
+            this.ensure(size);
+            this._buffer.write(val, this._offset, size, 'utf8');
+            this._offset += size;
+            return;
+        }
+
+        if (size < 0) {
+            throw new Error(`Invalid string size ${size}`);
+        }
+        if (size === 0) {
+            size = utf8Length(val) + 1; // trailing zero (null terminator)
         }
 
         this.ensure(size);

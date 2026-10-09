@@ -3,6 +3,7 @@ import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
 import { enumNameToRaw } from "./enum";
 import { CompiledNode, CompiledDynamic, compiledModel } from "./compiled-model";
+import { utf8Length } from "./uv/utf";
 
 export class Make<T> {
     protected _writer: WriteBufferLE | WriteBufferBE;
@@ -61,7 +62,10 @@ export class Make<T> {
             throw new Error(`Size of value ${structValues.length} is greater than ${node.staticSize}.`);
         }
 
-        const size = node.isStatic ? node.staticSize : structValues.length;
+        const isUtf8 = node.special === SpecialType.String || node.special === SpecialType.Json;
+        const size = node.isStatic
+            ? node.staticSize
+            : (isUtf8 ? utf8Length(structValues) : structValues.length);
 
         if (size === 0 && node.special === SpecialType.Buffer) {
             throw new Error(`Buffer size can not be 0.`);

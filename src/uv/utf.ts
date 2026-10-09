@@ -67,12 +67,16 @@ export function writeUtf8(bytes: Uint8Array, start: number, str: string, maxByte
     for (let i = 0; i < str.length && o < end; i++) {
         let cp = str.charCodeAt(i);
         // astral char (surrogate pair)
-        if (cp >= 0xd800 && cp <= 0xdbff && i + 1 < str.length) {
+        if (cp >= 0xd800 && cp <= 0xdbff) {
             const lo = str.charCodeAt(i + 1);
             if (lo >= 0xdc00 && lo <= 0xdfff) {
                 cp = ((cp - 0xd800) << 10) + (lo - 0xdc00) + 0x10000;
                 i++;
+            } else {
+                cp = 0xfffd; // lone high surrogate -> U+FFFD (matches Buffer/TextEncoder)
             }
+        } else if (cp >= 0xdc00 && cp <= 0xdfff) {
+            cp = 0xfffd; // lone low surrogate -> U+FFFD
         }
         let n: number;
         if (cp < 0x80) n = 1;
@@ -97,4 +101,30 @@ export function writeUtf8(bytes: Uint8Array, start: number, str: string, maxByte
         }
     }
     return o - start;
+}
+
+/** UTF-8 byte length of `str` (matches `Buffer.byteLength(str, 'utf8')` / `TextEncoder`). */
+export function utf8Length(str: string): number {
+    let n = 0;
+    for (let i = 0; i < str.length; i++) {
+        const c = str.charCodeAt(i);
+        if (c < 0x80) {
+            n += 1;
+        } else if (c < 0x800) {
+            n += 2;
+        } else if (c >= 0xd800 && c <= 0xdbff) {
+            const lo = str.charCodeAt(i + 1);
+            if (lo >= 0xdc00 && lo <= 0xdfff) {
+                n += 4; // astral char (surrogate pair)
+                i++;
+            } else {
+                n += 3; // lone high surrogate -> U+FFFD
+            }
+        } else if (c >= 0xdc00 && c <= 0xdfff) {
+            n += 3; // lone low surrogate -> U+FFFD
+        } else {
+            n += 3;
+        }
+    }
+    return n;
 }
