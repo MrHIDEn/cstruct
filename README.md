@@ -13,6 +13,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
   - [Enum values (named states)](#enum-values-named-states)
   - [Straight from C (`typedef struct`)](#straight-from-c-typedef-struct)
 - [Endianness & more](#endianness--more)
+- [Browser & Deno (`CStructUint8Array`)](#browser--deno-cstructuint8array)
 - [Data types reference](#data-types-reference)
 - [More examples](#more-examples)
 - [Changelog](#changelog)
@@ -28,6 +29,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
 * Little endian - LE
 * Big endian - BE
 * TypeScript's decorators for classes and properties
+* **Browser-ready path**: `CStructUint8Array` — `Uint8Array`/`DataView` instead of Node `Buffer` (works in browsers, Deno, Bun, Node)
 
 ## Install
 ```bash
@@ -233,6 +235,42 @@ If you prefer explicit classes, `CStructLE` and `CStructBE` take the same `{ end
 
 More examples — write into an existing buffer, codegen, decorators, PLC aliases, strings, buffers, dynamic length — live in [`doc/EXAMPLES.md`](doc/EXAMPLES.md).
 
+## Browser & Deno (`CStructUint8Array`)
+
+`CStruct` / `CStructLE` / `CStructBE` are built on Node's `Buffer`. If you need the library in a **browser**, **Deno** or anywhere without `Buffer`, use `CStructUint8Array` — same model syntax, same API shape, but it works on plain `Uint8Array`/`DataView` and returns plain `Uint8Array` (no `Buffer`):
+
+```javascript
+const { CStructUint8Array } = require('@mrhiden/cstruct');
+
+const model = { a: 'u16', b: 'i16' };
+const cStruct = new CStructUint8Array(model); // default: little endian
+
+const data = { a: 10, b: -10 };
+const { bytes } = cStruct.make(data);
+console.log(bytes); // Uint8Array(4) [10, 0, 246, 255]
+
+const result = cStruct.read(bytes);
+console.log(result.struct); // { a: 10, b: -10 }
+```
+
+Write into an existing `Uint8Array`, choose endianness and compile for throughput:
+
+```javascript
+// big endian wire format
+const cStructBE = new CStructUint8Array(model, { endian: 'be' });
+
+// write into an existing Uint8Array at offset
+cStruct.write(bytes, data, 0);
+
+// precompiled, hot path
+const readFn = cStruct.compileRead();
+const struct = readFn(bytes).struct;
+```
+
+Available factories mirror the `Buffer` classes: `CStructUint8Array.fromModelTypes(model, types, options)`, `CStructUint8Array.fromCompiled(jsonModel, options)` and static `CStructUint8Array.compileRead/compileWrite/compileMake(model, types, options)`.
+
+Performance note: the `Uint8Array`/`DataView` codegen is somewhat slower than the Node-only `Buffer` codegen (~x1.6–3.0, see [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md)) — that is the price of portability.
+
 ## Data types reference
 
 <details>
@@ -290,6 +328,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 ## Changelog
 
 ### What's new in 1.8.0
+* Added `CStructUint8Array` — browser-ready serialization on `Uint8Array`/`DataView` (no Node `Buffer`): same model syntax, `read`/`write`/`make`, `compileRead`/`compileWrite`/`compileMake`, `fromModelTypes`/`fromCompiled` and `{ endian: 'be' }` option
 * Performance: interpreter (`read` / `write` / `make`) reuses reader/writer instances per `CStruct` (new `reset()` / `run()` on reader/writer classes) — ~15× faster interpreter (up to 2–3.5M ops/s)
 * Benchmarks: full audit of `doc/BENCHMARKS-*.md` — all tables re-measured in one parallel Node/Bun/Deno session; added `CStruct (Buffer codegen)` column; `npm run bench:node` / `bench:bun` / `bench:deno`
 * New [`doc/BENCHMARKS-DENO.md`](doc/BENCHMARKS-DENO.md)
