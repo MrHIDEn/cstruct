@@ -306,7 +306,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 * Instance methods `cStruct.compileRead()` / `compileWrite()` / `compileMake()` use cached `parsedModel`
 * `compileMake` uses single `allocUnsafe` for fully static models; for variable-length fields it precomputes size then allocates once (no `concat`)
 * Added [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) and README section [Compiled functions](#compiled-functions-codegen)
-* Added `npm run bench` / `npm run bench:bun` and [`doc/BENCHMARKS.md`](doc/BENCHMARKS.md) / [`doc/BENCHMARKS-BUN.md`](doc/BENCHMARKS-BUN.md) / [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md) with sample throughput
+* Added `npm run bench` / `npm run bench:bun` and [`doc/BENCHMARKS-NODE.md`](doc/BENCHMARKS-NODE.md) / [`doc/BENCHMARKS-BUN.md`](doc/BENCHMARKS-BUN.md) / [`doc/BENCHMARKS-RUNTIMES.md`](doc/BENCHMARKS-RUNTIMES.md) with sample throughput
 
 ### What's new in 1.6.2
 * Modernized dev stack: ESLint 9 (flat config), typescript-eslint 8, TypeScript 5.9, @types/node 20

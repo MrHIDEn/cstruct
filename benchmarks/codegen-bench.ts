@@ -1,11 +1,13 @@
 import { performance } from 'perf_hooks';
-import { CStructLE } from '../src';
+import { CStructLE, CStructUint8Array } from '../src';
 
 /**
  * Zero-dependency micro-benchmark comparing the interpreter path
- * (read/write/make) against the codegen path (compileRead/Write/Make).
+ * (read/write/make) against the codegen path (compileRead/Write/Make),
+ * for both implementations: Buffer (CStructLE) and Uint8Array/DataView
+ * (CStructUint8Array, browser-ready).
  *
- * Run: npm run bench
+ * Run: npm run bench:node  (Node.js)  /  npm run bench:bun (Bun)
  */
 
 interface BenchResult {
@@ -102,6 +104,56 @@ function printGroup(title: string, results: BenchResult[]) {
     printGroup('Dynamic model — read (hot path)', [
         bench('interpreter read()', () => { cStruct.read(buffer); }),
         bench('readFn() pre-compiled', () => { readFn(buffer, 0); }),
+    ]);
+}
+
+// --- Variant B (Uint8Array/DataView, browser-ready) — static model ---
+{
+    const model = { x: 'u16', y: 'i32', z: 'u32', flag: 'b8', d: 'd' };
+    const data = { x: 0x1234, y: -7, z: 42, flag: true, d: 123.456 };
+
+    const uv = CStructUint8Array.fromModelTypes(model);
+    const bytes = uv.make(data).bytes;
+
+    const uvMakeFn = uv.compileMake();
+    const uvReadFn = uv.compileRead();
+    const uvWriteFn = uv.compileWrite();
+
+    printGroup('Variant B static — make (hot path)', [
+        bench('interpreter make()', () => { uv.make(data); }),
+        bench('makeFn() pre-compiled', () => { uvMakeFn(data); }),
+    ]);
+
+    printGroup('Variant B static — read (hot path)', [
+        bench('interpreter read()', () => { uv.read(bytes); }),
+        bench('readFn() pre-compiled', () => { uvReadFn(bytes); }),
+    ]);
+
+    printGroup('Variant B static — write (hot path)', [
+        bench('interpreter write()', () => { uv.write(bytes, data); }),
+        bench('writeFn() pre-compiled', () => { uvWriteFn(data, bytes); }),
+    ]);
+}
+
+// --- Variant B (Uint8Array/DataView) — dynamic model ---
+{
+    const model = { name: 's[i16]', items: 'u32[i16]' };
+    const data = { name: 'sensor-01', items: [1, 2, 3, 4, 5, 6, 7, 8] };
+
+    const uv = CStructUint8Array.fromModelTypes(model);
+    const bytes = uv.make(data).bytes;
+
+    const uvMakeFn = uv.compileMake();
+    const uvReadFn = uv.compileRead();
+
+    printGroup('Variant B dynamic — make (hot path)', [
+        bench('interpreter make()', () => { uv.make(data); }),
+        bench('makeFn() pre-compiled', () => { uvMakeFn(data); }),
+    ]);
+
+    printGroup('Variant B dynamic — read (hot path)', [
+        bench('interpreter read()', () => { uv.read(bytes); }),
+        bench('readFn() pre-compiled', () => { uvReadFn(bytes); }),
     ]);
 }
 

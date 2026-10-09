@@ -117,7 +117,7 @@ Works on `CStructBE` and `CStructLE`. For precompiled models: `CStructLE.fromCom
 
 **Security note:** `compile*` uses `new Function` with a model you provide. Use only **trusted** models (your own source or build-time artifacts), not untrusted user input.
 
-See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Benchmarks on MacBook M4 Pro: [`doc/BENCHMARKS.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS.md) (Node), [`doc/BENCHMARKS-BUN.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-BUN.md) (Bun), [`doc/BENCHMARKS-RUNTIMES.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-RUNTIMES.md) (Node vs Bun). Run `npm run bench` or `npm run bench:bun`.
+See [`examples/codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts). Benchmarks on MacBook M4 Pro: [`doc/BENCHMARKS-NODE.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-NODE.md) (Node), [`doc/BENCHMARKS-BUN.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-BUN.md) (Bun), [`doc/BENCHMARKS-RUNTIMES.md`](https://github.com/MrHIDEn/cstruct/blob/main/doc/BENCHMARKS-RUNTIMES.md) (Node vs Bun). Run `npm run bench:node` or `npm run bench:bun`.
 
 ### Nested types and AtomTypes
 

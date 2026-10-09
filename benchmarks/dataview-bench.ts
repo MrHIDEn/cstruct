@@ -78,6 +78,9 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
+    const bufReadFn = bufCStruct.compileRead();
+    const bufWriteFn = bufCStruct.compileWrite();
+    const bufMakeFn = bufCStruct.compileMake();
     const uvReadFn = uvCStruct.compileRead();
     const uvWriteFn = uvCStruct.compileWrite();
     const uvMakeFn = uvCStruct.compileMake();
@@ -92,12 +95,15 @@ function printGroup(title: string, results: BenchResult[]) {
 
     printGroup('basic { u8, i16, f } (LE) — Buffer vs DataView vs tcs vs tstruct', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
+        bench('cstruct read (Buffer, codegen)', () => bufReadFn(buf, 0)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
         bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
+        bench('cstruct make (Buffer, codegen)', () => bufMakeFn(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
         bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('cstruct write (Buffer)', () => bufCStruct.write(buf, data)),
+        bench('cstruct write (Buffer, codegen)', () => bufWriteFn(data, buf, 0)),
         bench('cstruct write (DataView)', () => uvCStruct.write(bytes, data)),
         bench('cstruct write (DataView, codegen)', () => uvWriteFn(data, bytes)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
@@ -130,14 +136,18 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
+    const bufReadFn = bufCStruct.compileRead();
+    const bufMakeFn = bufCStruct.compileMake();
     const uvReadFn = uvCStruct.compileRead();
     const uvMakeFn = uvCStruct.compileMake();
 
     printGroup('array { u8, i16[3] } (BE) — Buffer vs DataView vs tcs', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
+        bench('cstruct read (Buffer, codegen)', () => bufReadFn(buf, 0)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
         bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
+        bench('cstruct make (Buffer, codegen)', () => bufMakeFn(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
         bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
@@ -161,6 +171,8 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
+    const bufReadFn = bufCStruct.compileRead();
+    const bufMakeFn = bufCStruct.compileMake();
     const uvReadFn = uvCStruct.compileRead();
     const uvMakeFn = uvCStruct.compileMake();
 
@@ -177,9 +189,11 @@ function printGroup(title: string, results: BenchResult[]) {
 
     printGroup('nested { u8, { i16, f } } (BE) — Buffer vs DataView vs tcs vs tstruct', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
+        bench('cstruct read (Buffer, codegen)', () => bufReadFn(buf, 0)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
         bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
+        bench('cstruct make (Buffer, codegen)', () => bufMakeFn(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
         bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
