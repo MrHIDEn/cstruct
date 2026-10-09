@@ -327,7 +327,7 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
-### What's new in 1.8.0
+### What's new in 1.8.1
 * Added `CStructUint8Array` — browser-ready serialization on `Uint8Array`/`DataView` (no Node `Buffer`): same model syntax, `read`/`write`/`make`, `compileRead`/`compileWrite`/`compileMake`, `fromModelTypes`/`fromCompiled` and `{ endian: 'be' }` option
 * Performance: interpreter (`read` / `write` / `make`) reuses reader/writer instances per `CStruct` (new `reset()` / `run()` on reader/writer classes) — ~15× faster interpreter (up to 2–3.5M ops/s)
 * Benchmarks: full audit of `doc/BENCHMARKS-*.md` — all tables re-measured in one parallel Node/Bun/Deno session; added `CStruct (Buffer codegen)` column; `npm run bench:node` / `bench:bun` / `bench:deno`
