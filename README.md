@@ -35,6 +35,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
 * Big endian - BE
 * TypeScript's decorators for classes and properties
 * **Browser-ready path**: `CStructUint8Array` — `Uint8Array`/`DataView` instead of Node `Buffer` (works in browsers, Deno, Bun, Node)
+* **Fast compiled path**: `compileRead`/`compileMake`/`compileWrite` compile a model once into specialized functions — ~5.9× faster encode and ~3.1× faster decode than `protobufjs` on the fixed-size benchmark (and beats `JSON`). See [`benchmarks/FORMATS-RESULTS.md`](benchmarks/FORMATS-RESULTS.md)
 
 ## Install
 ```bash
