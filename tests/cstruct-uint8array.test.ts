@@ -165,4 +165,13 @@ describe('CStructUint8Array (variant B, DataView) — parity with Buffer variant
         expect(() => CStructUint8Array.fromModelTypes({ a: 'u8' }, undefined, { endian: 'xx' as any }))
             .toThrow(/Invalid endian/);
     });
+
+    it('aliases parity with Buffer variant (uint8, BOOL, INT, float, string4)', () => {
+        const model = { a: 'uint8', flag: 'BOOL', b: 'INT', c: 'float', name: 'string4' } as any;
+        const data = { a: 1, flag: true, b: -2, c: 1.5, name: 'ab' };
+        const ref = CStructLE.fromModelTypes(model).make(data).buffer;
+        const uv = CStructUint8Array.fromModelTypes(model);
+        expect(hex(uv.make(data).bytes)).toBe(ref.toString('hex'));
+        expect(uv.read(ref).struct).toEqual(uv.read(uv.make(data).bytes).struct);
+    });
 });

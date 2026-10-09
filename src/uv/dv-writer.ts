@@ -41,6 +41,7 @@ export class DvWriter extends BaseBuffer {
             ['buf', (val, size) => this.buf(val as Uint8Array, size)],
             ['j', (val, size) => this.s(val as string, size)],
         ]);
+        this.addPredefinedAliases();
     }
 
     write(type: string, val: WriterValue, size?: number) {
