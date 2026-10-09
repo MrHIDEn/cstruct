@@ -12,6 +12,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
   - [Dynamic array (length on the wire)](#dynamic-array-length-on-the-wire)
   - [Enum values (named states)](#enum-values-named-states)
   - [Straight from C (`typedef struct`)](#straight-from-c-typedef-struct)
+  - [One class, endian option (`CStruct`)](#one-class-endian-option-cstruct)
 - [Data types reference](#data-types-reference)
 - [More examples](#more-examples)
 - [Changelog](#changelog)
@@ -219,6 +220,25 @@ console.log(struct);
 // { point: { x: 1, y: 2, z: 3 } }
 ```
 
+### One class, endian option (`CStruct`)
+
+Prefer a single class? `CStruct` defaults to little endian and takes an options object — pass `{ endian: 'be' }` when your protocol is big endian:
+
+```typescript
+import { CStruct } from '@mrhiden/cstruct';
+
+const model = { a: 'u16', b: 'i16' };
+const data = { a: 10, b: -10 };
+
+new CStruct(model).make(data).buffer.toString('hex');
+// 0a00f6ff  — default is LE
+
+new CStruct(model, { endian: 'be' }).make(data).buffer.toString('hex');
+// 000afff6
+```
+
+Same API as `CStructLE` / `CStructBE`: `read`, `write` (with offset), `make`, `compile*`. With user types: `CStruct.fromModelTypes(model, types, { endian: 'be' })`; precompiled: `CStruct.fromCompiled(jsonModel, { endian: 'be' })`. See [`examples/cstruct-default.ts`](examples/cstruct-default.ts).
+
 ## Data types reference
 
 <details>
@@ -259,6 +279,7 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 |------|-------|
 | [`simple-model.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/simple-model.ts) | Basic make/read, offset, write |
 | [`little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts) | BE vs LE side-by-side |
+| [`cstruct-default.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/cstruct-default.ts) | `CStruct` class with `{ endian }` option |
 | [`from-compiled.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/from-compiled.ts) | Precompiled `jsonModel` / `fromCompiled` |
 | [`codegen.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/codegen.ts) | Compiled functions (`compileRead` / `compileWrite` / `compileMake`) |
 | [`write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts) | `make` vs `write` with offset |
