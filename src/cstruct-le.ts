@@ -1,4 +1,4 @@
-import { CStruct } from "./cstruct";
+import { CStructBase } from "./cstruct-base";
 import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeLE } from "./make-le";
 import { WriteLE } from "./write-le";
@@ -25,7 +25,7 @@ import {
  * Parse TYPES,
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
-export class CStructLE<T> extends CStruct<T> {
+export class CStructLE<T> extends CStructBase<T> {
     constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
         super(model, types, compiledJsonModel);
     }
@@ -84,7 +84,7 @@ export class CStructLE<T> extends CStruct<T> {
     }
 
     static fromCompiled<T = any>(jsonModel: string | Model): CStructLE<T> {
-        const normalized = CStruct.normalizeCompiledJsonModel(jsonModel);
+        const normalized = CStructBase.normalizeCompiledJsonModel(jsonModel);
         return new CStructLE<T>(undefined, undefined, normalized);
     }
 

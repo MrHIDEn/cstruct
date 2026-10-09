@@ -1,4 +1,4 @@
-import { CStruct } from "./cstruct";
+import { CStructBase } from "./cstruct-base";
 import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
 import { MakeBE } from "./make-be";
 import { WriteBE } from "./write-be";
@@ -25,7 +25,7 @@ import {
  * Parse TYPES,
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
-export class CStructBE<T> extends CStruct<T> {
+export class CStructBE<T> extends CStructBase<T> {
     private constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
         super(model, types, compiledJsonModel);
     }
@@ -84,7 +84,7 @@ export class CStructBE<T> extends CStruct<T> {
     }
 
     static fromCompiled<T = any>(jsonModel: string | Model): CStructBE<T> {
-        const normalized = CStruct.normalizeCompiledJsonModel(jsonModel);
+        const normalized = CStructBase.normalizeCompiledJsonModel(jsonModel);
         return new CStructBE<T>(undefined, undefined, normalized);
     }
 

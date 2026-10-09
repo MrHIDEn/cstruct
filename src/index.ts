@@ -1,6 +1,7 @@
 export * from './functions.utils';
 export * from './types';
 export * from './enum';
+export * from './cstruct';
 export * from './cstruct-be';
 export * from './cstruct-le';
 export * from './decorators';

@@ -1,64 +1,108 @@
-import { Model, Types } from "./types";
-import { ModelParser } from "./model-parser";
+import { CStructReadResult, CStructWriteResult, Model, Types } from "./types";
+import { CStructBE } from "./cstruct-be";
+import { CStructLE } from "./cstruct-le";
+import { CompiledMakeFn, CompiledReadFn, CompiledWriteFn } from "./codegen";
 
+export type CStructEndian = 'le' | 'be';
 
-export class CStruct<T> {
-    protected _jsonModel: string;
-    protected _jsonTypes: Types;
-    protected _parsedModel: Model;
+export interface CStructOptions {
+    /** Wire byte order. Default: 'le' (little endian). */
+    endian?: CStructEndian;
+}
 
-    constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
-        this._jsonTypes = types;
-        if (compiledJsonModel !== undefined) {
-            this._jsonModel = CStruct.normalizeCompiledJsonModel(compiledJsonModel);
-        } else {
-            this._jsonModel = ModelParser.parseModel(model, types);
+function normalizeEndian(options?: CStructOptions): CStructEndian {
+    const endian = options?.endian?.toLowerCase() as CStructEndian | undefined;
+    if (endian !== undefined && endian !== 'le' && endian !== 'be') {
+        throw new Error(`Invalid endian "${options.endian}". Use 'le' or 'be'.`);
+    }
+    return endian ?? 'le';
+}
+
+/**
+ * C_Struct — default class with configurable byte order.
+ *
+ * Defaults to little endian (`CStructLE`); pass `{ endian: 'be' }` for big endian.
+ * Both styles work:
+ * - `new CStruct(model, { endian: 'be' })`
+ * - `CStruct.fromModelTypes(model, types, { endian: 'be' })`
+ */
+export class CStruct<T = any> {
+    private readonly _impl: CStructLE<T> | CStructBE<T>;
+
+    /**
+     * @param model   model (object/array/string) or, with `compiledJsonModel`, nothing
+     * @param types   user types (or an options object — `new CStruct(model, { endian: 'be' })`)
+     * @param options `{ endian: 'le' | 'be' }` — default 'le'
+     * @param compiledJsonModel precompiled `jsonModel` (see `CStruct.fromCompiled`)
+     */
+    constructor(model?: Model, types?: Types, options?: CStructOptions, compiledJsonModel?: string | Model) {
+        // Allow `new CStruct(model, { endian: 'be' })` — shift options to the right slot
+        if (isOptions(types)) {
+            options = types;
+            types = undefined;
         }
-        this._parsedModel = JSON.parse(this._jsonModel) as Model;
+        const endian = normalizeEndian(options);
+        this._impl = compiledJsonModel !== undefined
+            ? (endian === 'be' ? CStructBE.fromCompiled<T>(compiledJsonModel) : CStructLE.fromCompiled<T>(compiledJsonModel))
+            : (endian === 'be' ? CStructBE.fromModelTypes<T>(model, types) : CStructLE.fromModelTypes<T>(model, types));
     }
 
-    static normalizeCompiledJsonModel(input: string | Model): string {
-        const json = typeof input === 'string' ? input : JSON.stringify(input);
-        let parsed: unknown;
-        try {
-            parsed = JSON.parse(json);
-        } catch {
-            throw new Error('Compiled model must be valid JSON.');
-        }
-        if (parsed === null || typeof parsed !== 'object') {
-            throw new Error('Compiled model must be a JSON object or array.');
-        }
-        return json;
+    static fromModelTypes<T = any>(model: Model, types?: Types, options?: CStructOptions): CStruct<T> {
+        return new CStruct<T>(model, types, options);
+    }
+
+    static fromCompiled<T = any>(jsonModel: string | Model, options?: CStructOptions): CStruct<T> {
+        return new CStruct<T>(undefined, undefined, options, jsonModel);
+    }
+
+    make(struct: T): CStructWriteResult {
+        return this._impl.make<T>(struct);
+    }
+
+    write(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
+        return this._impl.write<T>(buffer, struct, offset);
+    }
+
+    read(buffer: Buffer, offset = 0): CStructReadResult<T> {
+        return this._impl.read<T>(buffer, offset);
+    }
+
+    compileRead(): CompiledReadFn<T> {
+        return this._impl.compileRead<T>();
+    }
+
+    compileWrite(): CompiledWriteFn<T> {
+        return this._impl.compileWrite<T>();
+    }
+
+    compileMake(): CompiledMakeFn<T> {
+        return this._impl.compileMake<T>();
     }
 
     get jsonTypes(): string {
-        return this._jsonTypes ? ModelParser.parseModel(this._jsonTypes) : undefined;
+        return this._impl.jsonTypes;
     }
 
     get jsonModel(): string {
-        return this._jsonModel;
+        return this._impl.jsonModel;
     }
 
     get parsedModel(): Model {
-        return this._parsedModel;
+        return this._impl.parsedModel;
     }
 
     get modelClone(): Model {
-        return this._parsedModel;
+        return this._impl.modelClone;
     }
+}
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    read(buffer: Buffer, offset = 0) {
-        throw Error("This is abstract class");
+function isOptions(value: unknown): value is CStructOptions {
+    // Deliberately narrow: only a valid `endian` value counts as an options
+    // object, so a user-types map that happens to have an `endian` key
+    // (e.g. `{ endian: 'u8' }`) is never mistaken for options.
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return false;
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    write(buffer: Buffer, struct: T, offset = 0) {
-        throw Error("This is abstract class");
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    make(struct: T) {
-        throw Error("This is abstract class");
-    }
+    const endian = (value as CStructOptions).endian;
+    return typeof endian === 'string' && (endian.toLowerCase() === 'le' || endian.toLowerCase() === 'be');
 }
