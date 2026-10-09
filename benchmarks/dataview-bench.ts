@@ -1,13 +1,19 @@
 import { performance } from 'perf_hooks';
 import { CStruct, CStructBE, CStructUint8Array } from '../src';
 import { Struct, u8, i16, f32, sizedArray } from 'typed-cstruct';
+import { Struct as TStruct } from 'typed-struct';
 
 /**
- * Variant B comparison: Buffer interpreter (CStruct) vs DataView interpreter
- * (CStructUint8Array) vs typed-cstruct, on the same struct layouts:
+ * Comparison: Buffer interpreter (CStruct) vs DataView interpreter
+ * (CStructUint8Array) vs typed-cstruct vs typed-struct, on the same
+ * struct layouts:
  *   basic:   { uint8_t a; int16_t b; float c; }            (LE)
  *   array:   { uint8_t a; int16_t b[3]; }                  (BE)
  *   nested:  { uint8_t a; struct { int16_t b; float c; } } (BE)
+ *
+ * Note: typed-struct has no big-endian variant for typed-array fields
+ * (e.g. Int16Array is native-endian only), so it is benchmarked on the
+ * basic (LE) and nested (BE) layouts only.
  *
  * Run: npx ts-node --transpile-only benchmarks/dataview-bench.ts
  */
@@ -72,15 +78,39 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
-    printGroup('basic { u8, i16, f } (LE) — Buffer vs DataView vs tcs', [
+    const uvReadFn = uvCStruct.compileRead();
+    const uvWriteFn = uvCStruct.compileWrite();
+    const uvMakeFn = uvCStruct.compileMake();
+
+    const tsBasic = new TStruct('Basic')
+        .UInt8('a')
+        .Int16LE('b')
+        .Float32LE('c')
+        .compile();
+    const tsBuf = Buffer.alloc(tsBasic.baseSize);
+    const tsItem = new tsBasic(tsBuf);
+
+    printGroup('basic { u8, i16, f } (LE) — Buffer vs DataView vs tcs vs tstruct', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
+        bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
+        bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('cstruct write (Buffer)', () => bufCStruct.write(buf, data)),
         bench('cstruct write (DataView)', () => uvCStruct.write(bytes, data)),
+        bench('cstruct write (DataView, codegen)', () => uvWriteFn(data, bytes)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
         bench('tcs write', () => tStruct.write(data, { buf: tScratch })),
+        bench('tstruct read (instance + props)', () => {
+            const it = new tsBasic(tsBuf);
+            return it.a + it.b + it.c;
+        }),
+        bench('tstruct write (props)', () => {
+            tsItem.a = 1;
+            tsItem.b = 0x0302;
+            tsItem.c = 1.0;
+        }),
     ]);
 }
 
@@ -100,11 +130,16 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
+    const uvReadFn = uvCStruct.compileRead();
+    const uvMakeFn = uvCStruct.compileMake();
+
     printGroup('array { u8, i16[3] } (BE) — Buffer vs DataView vs tcs', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
+        bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
+        bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
         bench('tcs write', () => tStruct.write(data, { buf: tScratch })),
     ]);
@@ -126,12 +161,37 @@ function printGroup(title: string, results: BenchResult[]) {
     tStruct.write(data, { buf: tBuf });
     const tScratch = new Uint8Array(tStruct.size);
 
-    printGroup('nested { u8, { i16, f } } (BE) — Buffer vs DataView vs tcs', [
+    const uvReadFn = uvCStruct.compileRead();
+    const uvMakeFn = uvCStruct.compileMake();
+
+    const tsSub = new TStruct('Sub')
+        .Int16BE('b')
+        .Float32BE('c')
+        .compile();
+    const tsNested = new TStruct('Nested')
+        .UInt8('a')
+        .Struct('d', tsSub)
+        .compile();
+    const tsBuf = Buffer.alloc(tsNested.baseSize); // no C alignment: 7 bytes, same as ours
+    const tsItem = new tsNested(tsBuf);
+
+    printGroup('nested { u8, { i16, f } } (BE) — Buffer vs DataView vs tcs vs tstruct', [
         bench('cstruct read (Buffer)', () => bufCStruct.read(buf)),
         bench('cstruct read (DataView)', () => uvCStruct.read(bytes)),
+        bench('cstruct read (DataView, codegen)', () => uvReadFn(bytes)),
         bench('cstruct make (Buffer)', () => bufCStruct.make(data)),
         bench('cstruct make (DataView)', () => uvCStruct.make(data)),
+        bench('cstruct make (DataView, codegen)', () => uvMakeFn(data)),
         bench('tcs read', () => tStruct.read({ buf: tBuf })),
         bench('tcs write', () => tStruct.write(data, { buf: tScratch })),
+        bench('tstruct read (instance + props)', () => {
+            const it = new tsNested(tsBuf);
+            return it.a + it.d.b + it.d.c;
+        }),
+        bench('tstruct write (props)', () => {
+            tsItem.a = 1;
+            tsItem.d.b = 0x0203;
+            tsItem.d.c = 1.0;
+        }),
     ]);
 }

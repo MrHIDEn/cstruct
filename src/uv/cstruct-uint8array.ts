@@ -3,6 +3,19 @@ import { CStructReadResult, Model, Types } from "../types";
 import { MakeUv } from "./make-uv";
 import { ReadUv } from "./read-uv";
 import { WriteUv } from "./write-uv";
+import {
+    CompiledMakeUvFn,
+    CompiledReadUvFn,
+    CompiledWriteUvFn,
+} from "./codegen-dv";
+import {
+    compileMakeUv,
+    compileMakeUvFromParsed,
+    compileReadUv,
+    compileReadUvFromParsed,
+    compileWriteUv,
+    compileWriteUvFromParsed,
+} from "./compile-dv";
 
 export type CStructUvEndian = 'le' | 'be';
 
@@ -47,7 +60,9 @@ function isOptions(value: unknown): value is CStructUvOptions {
  * Accepts any Uint8Array view (including Buffer and byteOffset slices);
  * `make()` returns a plain Uint8Array.
  *
- * Note: codegen (compileRead/Write/Make) is not available in this variant yet.
+ * Codegen (`compileRead/compileWrite/compileMake`) emits DataView-based code —
+ * also browser-ready. Note: enum models are not supported in compiled functions
+ * (same limitation as the Buffer codegen).
  *
  * Both styles work:
  * - `new CStructUint8Array(model, { endian: 'be' })`
@@ -111,5 +126,29 @@ export class CStructUint8Array<T = any> extends CStructBase<T> {
             offset: reader.offset,
             size: reader.size,
         };
+    }
+
+    compileRead<T = any>(): CompiledReadUvFn<T> {
+        return compileReadUvFromParsed<T>(this.parsedModel, this._littleEndian);
+    }
+
+    compileWrite<T = any>(): CompiledWriteUvFn<T> {
+        return compileWriteUvFromParsed<T>(this.parsedModel, this._littleEndian);
+    }
+
+    compileMake<T = any>(): CompiledMakeUvFn<T> {
+        return compileMakeUvFromParsed<T>(this.parsedModel, this._littleEndian);
+    }
+
+    static compileRead<T = any>(model: Model, types?: Types, options?: CStructUvOptions): CompiledReadUvFn<T> {
+        return compileReadUv<T>(model, types, normalizeEndian(options) === 'le');
+    }
+
+    static compileWrite<T = any>(model: Model, types?: Types, options?: CStructUvOptions): CompiledWriteUvFn<T> {
+        return compileWriteUv<T>(model, types, normalizeEndian(options) === 'le');
+    }
+
+    static compileMake<T = any>(model: Model, types?: Types, options?: CStructUvOptions): CompiledMakeUvFn<T> {
+        return compileMakeUv<T>(model, types, normalizeEndian(options) === 'le');
     }
 }
