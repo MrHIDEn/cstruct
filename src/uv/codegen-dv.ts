@@ -202,7 +202,7 @@ function readBufferDv(ctx: DvCtx, o: string, sizeExpr: string, target: string) {
     push(ctx, `${target} = bytes.slice(${o}, ${o} + ${sizeExpr}); ${o} += ${sizeExpr};`);
 }
 
-function writeStringUtf8Dv(ctx: DvCtx, o: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
+function writeStringUtf8Dv(ctx: DvCtx, o: string, valueExpr: string, size: number | string, trailing = false, dynamic = false, lenExpr?: string) {
     if (ctx.phase === 'size') {
         if (trailing) {
             push(ctx, `size += _h.utf8Length(${valueExpr}) + 1;`);
@@ -216,7 +216,11 @@ function writeStringUtf8Dv(ctx: DvCtx, o: string, valueExpr: string, size: numbe
     if (trailing) {
         push(ctx, `{ const _b = _h.utf8Length(${valueExpr}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); bytes[${o} + _b] = 0; ${o} += _b + 1; }`);
     } else if (dynamic) {
-        push(ctx, `{ const _b = _h.utf8Length(${valueExpr}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); ${o} += _b; }`);
+        if (lenExpr) {
+            push(ctx, `_h.writeUtf8(bytes, ${o}, ${valueExpr}, ${lenExpr}); ${o} += ${lenExpr};`);
+        } else {
+            push(ctx, `{ const _b = _h.utf8Length(${valueExpr}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); ${o} += _b; }`);
+        }
     } else {
         push(ctx, `bytes.fill(0, ${o}, ${o} + ${size}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, ${size}); ${o} += ${size};`);
     }
@@ -558,7 +562,15 @@ function writeDynamicOrStaticDv(
         push(ctx, `if (${structKeyExpr}.length > ${staticSize}) throw new Error('Size of value ' + ${structKeyExpr}.length + ' is greater than ${staticSize}.');`);
     }
 
-    const sizeExpr = dynamicPayloadLengthExprDv(structKeyExpr, valueExpr, specialType, isStatic, staticSize);
+    // For a dynamic string/json, compute the UTF-8 byte length once (write phase)
+    // and reuse it for both the length prefix and the string write.
+    let lenExpr: string | undefined;
+    if (!isStatic && (specialType === SpecialType.String || specialType === SpecialType.Json) && ctx.phase === 'write') {
+        lenExpr = tmpId(ctx);
+        push(ctx, `const ${lenExpr} = _h.utf8Length(${valueExpr});`);
+    }
+
+    const sizeExpr = lenExpr ?? dynamicPayloadLengthExprDv(structKeyExpr, valueExpr, specialType, isStatic, staticSize);
 
     if (+sizeExpr === 0 && specialType === SpecialType.Buffer) {
         throw new Error('Buffer size can not be 0.');
@@ -573,7 +585,7 @@ function writeDynamicOrStaticDv(
             if (isStatic && staticSize === 0) {
                 writeStringUtf8Dv(ctx, o, structKeyExpr, 0, true);
             } else if (!isStatic) {
-                writeStringUtf8Dv(ctx, o, structKeyExpr, 0, false, true);
+                writeStringUtf8Dv(ctx, o, structKeyExpr, 0, false, true, lenExpr);
             } else {
                 writeStringUtf8Dv(ctx, o, structKeyExpr, staticSize);
             }
@@ -601,7 +613,7 @@ function writeDynamicOrStaticDv(
             if (isStatic && staticSize === 0) {
                 writeStringUtf8Dv(ctx, o, valueExpr, 0, true);
             } else if (!isStatic) {
-                writeStringUtf8Dv(ctx, o, valueExpr, 0, false, true);
+                writeStringUtf8Dv(ctx, o, valueExpr, 0, false, true, lenExpr);
             } else {
                 writeStringUtf8Dv(ctx, o, valueExpr, staticSize);
             }
