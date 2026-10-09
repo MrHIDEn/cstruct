@@ -107,6 +107,20 @@ Both classes share the same methods and functionality.
 **DECORATORS** — `@CStructClass` defines model/types for a class; `@CStructProperty` defines a property type.<br>
 When `@CStructClass` is used with `{ model: ... }` it can override `@CStructProperty` decorators.
 
+```text
+  model + types ──► fromModelTypes() / fromCompiled(jsonModel)
+                              │
+                              ▼
+                     CStruct instance (parsedModel cached)
+                              │
+          ┌───────────────────┼────────────────────┐
+          ▼                   ▼                    ▼
+   make(data)          write(buf, data, off)   read(buf, off)
+   data ─► new Buffer  data ─► existing Buffer  Buffer ─► data
+          │                   │                    ▲
+          └───────────────────┴──── bytes ─────────┘
+```
+
 ---
 
 ## Basic usage (objects & strings)
@@ -128,6 +142,24 @@ const leHex = CStructLE.fromModelTypes(model).make(data).buffer.toString('hex');
 
 console.log(beHex); // 000afff6
 console.log(leHex); // 0a00f6ff
+```
+
+```text
+Model: { a: 'u16', b: 'i16' }   data: { a: 10, b: -10 }
+
+CStructBE (big endian, MSB first)
+  byte:   0    1    2    3
+        ┌────┬────┬────┬────┐
+        │ 00 │ 0A │ FF │ F6 │
+        └────┴────┴────┴────┘
+          a = 10    b = -10
+
+CStructLE (little endian, LSB first)
+  byte:   0    1    2    3
+        ┌────┬────┬────┬────┐
+        │ 0A │ 00 │ F6 │ FF │
+        └────┴────┴────┴────┘
+          a = 10    b = -10
 ```
 
 See also [`examples/little-endian.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/little-endian.ts).
@@ -273,6 +305,16 @@ console.log(size);   // 22
 ```
 
 See also [`examples/write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts).
+
+```text
+frame (28 bytes)          written by write(frame, data, 3)  (22 bytes)
+ offset  0..2    3 .................. 24       25 .. 27
+        ┌─────────┬────────────────────────────┬─────────┐
+        │ 11 11 11│ 00 44 78 79 7A 00 ... 00   │ 33 33 33│
+        └─────────┴────────────────────────────┴─────────┘
+          header    code=0x44  message="xyz"     footer
+          (kept)    (u16 + s20, overwritten)      (kept)
+```
 
 ### Binary buffer field (`bufN`)
 
@@ -456,6 +498,14 @@ console.log(buffer.toString('hex'));
 const extractedData = cStruct.read(buffer).struct;
 console.log(extractedData);
 // { any1: [ 1, 2, 3 ], any2: 'abc' }
+```
+
+```text
+Buffer for { any1: 'j[0]', any2: 's[0]' }  (12 bytes)
+any1 = JSON "[1,2,3]" + \0 (8 bytes)   any2 = "abc" + \0 (4 bytes)
+
+  5B 31 2C 32 2C 33 5D 00 | 61 62 63 00
+  [  1  ,  2  ,  3  ]  \0  | a  b  c  \0
 ```
 
 ---
@@ -918,6 +968,10 @@ Runnable scripts live in [`/examples`](https://github.com/MrHIDEn/cstruct/tree/m
 Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/examples/README.md).
 
 ## Changelog
+
+### What's new in 1.7.3
+* README: text diagrams for endianness (BE vs LE), data flow (`make` / `write` / `read`), `write` with offset and trailing zero (`s[0]`, `j[0]`)
+* `package.json`: extended `keywords` and `description` to make the package easier to find on npm (no runtime changes)
 
 ### What's new in 1.7.2
 * Fixed publish hook: `prepublishOnly` runs `tsc` before `npm publish` (replaces deprecated `prepublish`, which no longer builds on publish)
