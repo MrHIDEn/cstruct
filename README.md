@@ -12,7 +12,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
   - [Dynamic array (length on the wire)](#dynamic-array-length-on-the-wire)
   - [Enum values (named states)](#enum-values-named-states)
   - [Straight from C (`typedef struct`)](#straight-from-c-typedef-struct)
-  - [One class, endian option (`CStruct`)](#one-class-endian-option-cstruct)
+- [Endianness & more](#endianness--more)
 - [Data types reference](#data-types-reference)
 - [More examples](#more-examples)
 - [Changelog](#changelog)
@@ -47,16 +47,16 @@ Precompile a model once, then `make` and `read` as many times as you need:
 ```
 
 ```javascript
-const { CStructBE, AtomTypes } = require('@mrhiden/cstruct');
+const { CStruct, AtomTypes } = require('@mrhiden/cstruct');
 const { U16, I16 } = AtomTypes; // or use 'u16', 'i16' as strings
 
 const model = { a: U16, b: I16 }; // = { a: 'u16', b: 'i16' }
-const cStruct = CStructBE.fromModelTypes(model);
+const cStruct = new CStruct(model); // default: little endian
 
 const data = { a: 10, b: -10 };
 const buffer = cStruct.make(data).buffer;
 console.log(buffer.toString('hex'));
-// 000afff6
+// 0a00f6ff
 
 const result = cStruct.read(buffer);
 console.log(result.struct);
@@ -66,33 +66,32 @@ console.log(result.struct);
 Same cycle in TypeScript with string atom types:
 
 ```typescript
-import { CStructBE } from '@mrhiden/cstruct';
+import { CStruct } from '@mrhiden/cstruct';
 
 const model = { a: 'u16', b: 'i16' };
-const cStruct = CStructBE.fromModelTypes(model);
+const cStruct = new CStruct(model); // default: little endian
 
 const data = { a: 10, b: -10 };
 const buffer = cStruct.make(data).buffer;
 console.log(buffer.toString('hex'));
-// 000afff6
+// 0a00f6ff
 
 const result = cStruct.read(buffer);
 console.log(result.struct);
 // { a: 10, b: -10 }
 ```
 
-Use `CStructLE` instead of `CStructBE` when your protocol is little-endian — same API, different byte order (see [Endianness](doc/EXAMPLES.md#endianness-be-vs-le)).
-
 ## Concepts
 
-The main idea: create a model of your data structure, precompile it into a `CStructBE` or `CStructLE` object, then use that object to read from and write to buffers.
+The main idea: create a model of your data structure, precompile it into a `CStruct` object, then use that object to read from and write to buffers.
 
 | Class | Endianness |
 |-------|------------|
-| `CStructBE` | Big Endian |
-| `CStructLE` | Little Endian |
+| `CStruct` | **default** — little endian, option `{ endian: 'be' }` for big endian |
+| `CStructLE` | Little Endian (explicit) |
+| `CStructBE` | Big Endian (explicit) |
 
-Both classes share the same methods and functionality.
+All three share the same methods and functionality.
 
 - **Dynamic API** — Object/Array/String model and types (`fromModelTypes`, `fromCompiled`)
 - **Static API** — TypeScript decorators on classes (`@CStructClass`, `@CStructProperty`)
@@ -112,7 +111,7 @@ Both classes share the same methods and functionality.
 When `@CStructClass` is used with `{ model: ... }` it can override `@CStructProperty` decorators.
 
 ```text
-  model + types ──► fromModelTypes() / fromCompiled(jsonModel)
+  model + types ──► new CStruct(model, types, { endian })   /  CStruct.fromCompiled(jsonModel)
                               │
                               ▼
                      CStruct instance (parsedModel cached)
@@ -142,9 +141,9 @@ The wire format is described by a **model** — a plain object. Each example bel
 ```
 
 ```typescript
-import { CStructBE } from '@mrhiden/cstruct';
+import { CStruct } from '@mrhiden/cstruct';
 
-const cStruct = CStructBE.fromModelTypes({ 'samples.u8': 'u16' });
+const cStruct = new CStruct({ 'samples.u8': 'u16' }, { endian: 'be' });
 
 const { buffer } = cStruct.make({ samples: [0x0a, 0x0b] });
 console.log(buffer.toString('hex'));
@@ -166,12 +165,12 @@ console.log(struct);
 ```
 
 ```typescript
-import { CStructBE } from '@mrhiden/cstruct';
+import { CStruct } from '@mrhiden/cstruct';
 
-const cStruct = CStructBE.fromModelTypes({
+const cStruct = new CStruct({
     device_id: 'u8',
     state: { type: 'u8', enum: { 1: 'IDLE', 2: 'RUNNING', 3: 'FAULT' } },
-});
+}, { endian: 'be' });
 
 const { buffer } = cStruct.make({ device_id: 0x11, state: 'RUNNING' });
 console.log(buffer.toString('hex'));
@@ -199,7 +198,7 @@ You can paste a C declaration as-is — the parser understands `typedef struct`,
 ```
 
 ```typescript
-import { CStructBE } from '@mrhiden/cstruct';
+import { CStruct } from '@mrhiden/cstruct';
 
 const types = `{
     typedef struct {
@@ -209,7 +208,7 @@ const types = `{
     } Vec3;
 }`;
 
-const cStruct = CStructBE.fromModelTypes({ point: 'Vec3' }, types);
+const cStruct = new CStruct({ point: 'Vec3' }, types);
 
 const { buffer } = cStruct.make({ point: { x: 1, y: 2, z: 3 } });
 console.log(buffer.toString('hex'));
@@ -220,24 +219,19 @@ console.log(struct);
 // { point: { x: 1, y: 2, z: 3 } }
 ```
 
-### One class, endian option (`CStruct`)
+## Endianness & more
 
-Prefer a single class? `CStruct` defaults to little endian and takes an options object — pass `{ endian: 'be' }` when your protocol is big endian:
+All examples above pass options to `CStruct` — by default it is **little endian**; when your protocol is big endian, pass `{ endian: 'be' }`:
 
 ```typescript
 import { CStruct } from '@mrhiden/cstruct';
 
-const model = { a: 'u16', b: 'i16' };
-const data = { a: 10, b: -10 };
-
-new CStruct(model).make(data).buffer.toString('hex');
-// 0a00f6ff  — default is LE
-
-new CStruct(model, { endian: 'be' }).make(data).buffer.toString('hex');
-// 000afff6
+const cStruct = new CStruct(model, { endian: 'be' }); // or CStruct.fromModelTypes(model, types, { endian: 'be' })
 ```
 
-Same API as `CStructLE` / `CStructBE`: `read`, `write` (with offset), `make`, `compile*`. With user types: `CStruct.fromModelTypes(model, types, { endian: 'be' })`; precompiled: `CStruct.fromCompiled(jsonModel, { endian: 'be' })`. See [`examples/cstruct-default.ts`](examples/cstruct-default.ts).
+If you prefer explicit classes, `CStructLE` and `CStructBE` take the same `{ endian }`-free API — pick the class instead of the option. Precompiled models: `CStruct.fromCompiled(jsonModel, { endian: 'be' })`.
+
+More examples — write into an existing buffer, codegen, decorators, PLC aliases, strings, buffers, dynamic length — live in [`doc/EXAMPLES.md`](doc/EXAMPLES.md).
 
 ## Data types reference
 
