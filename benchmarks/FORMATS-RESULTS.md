@@ -25,23 +25,27 @@ and **Google Protocol Buffers** ([`protobufjs`](https://www.npmjs.com/package/pr
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 1 628 406 | 614.1 | 2 175 534 | 459.7 | **19** |
-| cstruct (DataView, interpreted) | 1 657 311 | 603.4 | 2 080 458 | 480.7 | **19** |
-| cstruct (codegen) | **36 143 199** | **27.7** | **69 781 075** | **14.3** | **19** |
-| JSON | 6 527 933 | 153.2 | 5 523 033 | 181.1 | 47 |
-| protobuf (protobufjs) | 6 203 178 | 161.2 | 21 760 282 | 46.0 | 31 |
+| cstruct (Buffer, interpreted) | 7 214 644 | 138.6 | 11 047 830 | 90.5 | **19** |
+| cstruct (DataView, interpreted) | 10 359 201 | 96.5 | 7 743 686 | 129.1 | **19** |
+| cstruct (codegen) | **36 666 866** | **27.3** | **68 342 662** | **14.6** | **19** |
+| JSON | 6 462 171 | 154.7 | 5 549 531 | 180.2 | 47 |
+| protobuf (protobufjs) | 6 214 073 | 160.9 | 21 924 785 | 45.6 | 31 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **Encode** — `cstruct` codegen dominates (~36.1M, ~5.8× faster than protobuf
-  `encode` and ~5.5× faster than `JSON.stringify`), because it writes integers
+* **Encode** — `cstruct` codegen dominates (~36.7M, ~5.9× faster than protobuf
+  `encode` and ~5.7× faster than `JSON.stringify`), because it writes integers
   directly to the `Uint8Array` (no per-call `DataView`) and uses a fast UTF-8
-  writer. The interpreter paths (~1.63–1.66M) pay for runtime model walking.
-* **Decode** — `cstruct` codegen (~69.8M) is ~3.2× faster than protobuf `decode`
-  (~21.8M) and ~12.6× faster than `JSON.parse`, for the same reason: direct byte
-  reads instead of per-call `DataView`. The interpreters read at ~2.08–2.18M.
+  writer. After the interpreter was compiled to a pre-resolved model and switched
+  to switch-dispatch + a single growing buffer, the interpreters now encode at
+  ~7.2M (Buffer) / ~10.4M (DataView) — *faster than both `JSON.stringify` and
+  protobuf `encode`*.
+* **Decode** — `cstruct` codegen (~68.3M) is ~3.1× faster than protobuf `decode`
+  (~21.9M) and ~12.3× faster than `JSON.parse`, for the same reason: direct byte
+  reads instead of per-call `DataView`. The Buffer interpreter (~11.0M) is ~2×
+  faster than `JSON.parse`; the DataView interpreter reads at ~7.7M.
 * **Wire size** — `cstruct` is the smallest and fixed (19 B). protobuf is 31 B
   (an `int32` negative value encodes as a 10-byte varint); JSON is 47 B of UTF-8
   text (~2.5× larger) and carries no type information.

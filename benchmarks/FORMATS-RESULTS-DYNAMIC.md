@@ -34,19 +34,19 @@ on **variable-length data**: a length-prefixed string + a length-prefixed array.
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 546 888 | 1 828.5 | 880 092 | 1 136.2 | **53** |
-| cstruct (DataView, interpreted) | 518 057 | 1 930.3 | 899 353 | 1 111.9 | **53** |
-| cstruct (codegen) | **19 205 393** | **52.1** | **8 534 018** | **117.2** | **53** |
-| JSON | 5 805 771 | 172.2 | 3 481 588 | 287.2 | 129 |
-| protobuf (protobufjs) | 8 523 462 | 117.3 | 6 637 559 | 150.7 | 56 |
+| cstruct (Buffer, interpreted) | 3 000 936 | 333.2 | 2 983 041 | 335.2 | **53** |
+| cstruct (DataView, interpreted) | 3 900 536 | 256.4 | 2 836 052 | 352.6 | **53** |
+| cstruct (codegen) | **11 235 922** | **89.0** | **8 147 070** | **122.7** | **53** |
+| JSON | 5 721 072 | 174.8 | 3 590 606 | 278.5 | 129 |
+| protobuf (protobufjs) | 8 415 422 | 118.8 | 7 154 260 | 139.8 | 56 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **`cstruct` codegen leads on encode and decode** — encode ~19.2M (~2.3× faster
-  than protobuf `encode` and ~3.3× faster than `JSON.stringify`), decode ~8.53M
-  (~1.3× faster than protobuf `decode` and ~2.5× faster than `JSON.parse`) —
+* **`cstruct` codegen leads on encode and decode** — encode ~11.2M (~1.3× faster
+  than protobuf `encode` and ~2.0× faster than `JSON.stringify`), decode ~8.15M
+  (~1.14× faster than protobuf `decode` and ~2.3× faster than `JSON.parse`) —
   because it reads/writes integers directly to the `Uint8Array` (no per-call
   `DataView`) and uses fast UTF-8 codecs.
 * **`cstruct` wins wire size** — 53 B vs protobuf 56 B vs JSON 129 B. With a
@@ -56,8 +56,9 @@ Higher ops/s is better; lower ns/op and wire bytes is better.
   all-small values (`[1..20]`) protobuf was 33 B vs cstruct 53 B; with this
   mixed spread it flips to 56 B vs 53 B. cstruct is constant/predictable,
   protobuf adapts (smaller for small ints, larger for big ints).
-* **Interpreters** (~0.52–0.55M encode, ~0.88–0.90M decode) — same model-walk
-  cost as the other messages.
+* **Interpreters** (~3.0M encode / ~2.98M decode on Buffer, ~3.9M / ~2.84M on
+  DataView) — same model-walk cost as the other messages; both now out-encode
+  `JSON.stringify` on this message.
 
 ## How varint works
 
