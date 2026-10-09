@@ -3,51 +3,51 @@ import { WriterFunctions } from "./types";
 
 export class WriteBufferBE extends WriteBuffer {
     u16(val = 0) {
-        const buffer = Buffer.allocUnsafe(2);
-        buffer.writeUInt16BE(val);
-        this.moveOffset(buffer);
+        this.ensure(2);
+        this._buffer.writeUInt16BE(val, this._offset);
+        this._offset += 2;
     }
 
     i16(val = 0) {
-        const buffer = Buffer.allocUnsafe(2);
-        buffer.writeInt16BE(val);
-        this.moveOffset(buffer);
+        this.ensure(2);
+        this._buffer.writeInt16BE(val, this._offset);
+        this._offset += 2;
     }
 
     u32(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeUInt32BE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeUInt32BE(val, this._offset);
+        this._offset += 4;
     }
 
     i32(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeInt32BE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeInt32BE(val, this._offset);
+        this._offset += 4;
     }
 
     u64(val = 0n) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeBigUInt64BE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeBigUInt64BE(val, this._offset);
+        this._offset += 8;
     }
 
     i64(val = 0n) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeBigInt64BE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeBigInt64BE(val, this._offset);
+        this._offset += 8;
     }
 
     f(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeFloatBE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeFloatBE(val, this._offset);
+        this._offset += 4;
     }
 
     d(val = 0) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeDoubleBE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeDoubleBE(val, this._offset);
+        this._offset += 8;
     }
 
     constructor() {

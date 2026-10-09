@@ -3,51 +3,51 @@ import { WriterFunctions } from "./types";
 
 export class WriteBufferLE extends WriteBuffer {
     u16(val = 0) {
-        const buffer = Buffer.allocUnsafe(2);
-        buffer.writeUInt16LE(val);
-        this.moveOffset(buffer);
+        this.ensure(2);
+        this._buffer.writeUInt16LE(val, this._offset);
+        this._offset += 2;
     }
 
     i16(val = 0) {
-        const buffer = Buffer.allocUnsafe(2);
-        buffer.writeInt16LE(val);
-        this.moveOffset(buffer);
+        this.ensure(2);
+        this._buffer.writeInt16LE(val, this._offset);
+        this._offset += 2;
     }
 
     u32(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeUInt32LE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeUInt32LE(val, this._offset);
+        this._offset += 4;
     }
 
     i32(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeInt32LE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeInt32LE(val, this._offset);
+        this._offset += 4;
     }
 
     u64(val = 0n) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeBigUInt64LE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeBigUInt64LE(val, this._offset);
+        this._offset += 8;
     }
 
     i64(val = 0n) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeBigInt64LE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeBigInt64LE(val, this._offset);
+        this._offset += 8;
     }
 
     f(val = 0) {
-        const buffer = Buffer.allocUnsafe(4);
-        buffer.writeFloatLE(val);
-        this.moveOffset(buffer);
+        this.ensure(4);
+        this._buffer.writeFloatLE(val, this._offset);
+        this._offset += 4;
     }
 
     d(val = 0) {
-        const buffer = Buffer.allocUnsafe(8);
-        buffer.writeDoubleLE(val);
-        this.moveOffset(buffer);
+        this.ensure(8);
+        this._buffer.writeDoubleLE(val, this._offset);
+        this._offset += 8;
     }
 
     constructor() {

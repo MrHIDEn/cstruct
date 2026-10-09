@@ -1,5 +1,6 @@
 import { EnumModel, Model, SpecialType, Type } from './types';
 import { isEnumModel } from './enum';
+import { buildAliasMap } from './base-buffer';
 
 /**
  * Compile the parsed model into a flat, pre-resolved tree once, so the hot
@@ -68,6 +69,12 @@ const SPECIAL_MAP: Record<string, SpecialType> = {
 const SIZED_ATOM = /^(s|string|ws|wstring|buf|buffer|j|json|any)([0-9]+)$/;
 const DYNAMIC = /^(\w+)\.(\w+)$/;
 
+const ATOM_ALIAS = buildAliasMap();
+
+function resolveAtom(type: string): string {
+    return ATOM_ALIAS[type] ?? type;
+}
+
 function isStaticLength(len: string): boolean {
     return !Number.isNaN(+len);
 }
@@ -76,19 +83,19 @@ function compileScalar(type: string): CompiledScalar {
     if (type === 'buf0') return { t: 0, type: 'buf', size: 0, json: false, buf0: true };
     if (type === 'j0') return { t: 0, type: 'j', size: 0, json: true, buf0: false };
     const m = SIZED_ATOM.exec(type);
-    if (m) return { t: 0, type: m[1], size: +m[2], json: false, buf0: false };
-    return { t: 0, type, size: undefined, json: false, buf0: false };
+    if (m) return { t: 0, type: resolveAtom(m[1]), size: +m[2], json: false, buf0: false };
+    return { t: 0, type: resolveAtom(type), size: undefined, json: false, buf0: false };
 }
 
 function compileDynamic(type: Type, lengthType: string): CompiledDynamic {
     const special = typeof type === 'string' ? SPECIAL_MAP[type] : undefined;
     return {
         t: 2,
-        lengthType,
+        lengthType: resolveAtom(lengthType),
         isStatic: isStaticLength(lengthType),
         staticSize: +lengthType,
         special: special ?? 0,
-        type: typeof type === 'string' ? type : '',
+        type: typeof type === 'string' ? resolveAtom(type) : '',
         items: special ? null : compileType(type),
     };
 }
