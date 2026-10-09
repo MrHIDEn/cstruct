@@ -1,6 +1,8 @@
-name: Lint + Test - Manual Trigger
+name: Lint + Test
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
