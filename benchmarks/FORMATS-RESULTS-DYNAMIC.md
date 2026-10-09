@@ -34,22 +34,21 @@ on **variable-length data**: a length-prefixed string + a length-prefixed array.
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 539 134 | 1 854.8 | 843 729 | 1 185.2 | **53** |
-| cstruct (DataView, interpreted) | 515 827 | 1 938.6 | 861 604 | 1 160.6 | **53** |
-| cstruct (codegen) | **19 009 561** | **52.6** | 6 330 982 | 158.0 | **53** |
-| JSON | 5 656 128 | 176.8 | 3 470 967 | 288.1 | 129 |
-| protobuf (protobufjs) | 8 583 140 | 116.5 | **7 349 831** | **136.1** | 56 |
+| cstruct (Buffer, interpreted) | 546 888 | 1 828.5 | 880 092 | 1 136.2 | **53** |
+| cstruct (DataView, interpreted) | 518 057 | 1 930.3 | 899 353 | 1 111.9 | **53** |
+| cstruct (codegen) | **19 205 393** | **52.1** | **8 534 018** | **117.2** | **53** |
+| JSON | 5 805 771 | 172.2 | 3 481 588 | 287.2 | 129 |
+| protobuf (protobufjs) | 8 523 462 | 117.3 | 6 637 559 | 150.7 | 56 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **`cstruct` codegen leads on encode** — ~19.0M, ~2.2× faster than protobuf
-  `encode` (~8.58M) and ~3.4× faster than `JSON.stringify` (~5.66M) — because it
-  writes integers directly to the `Uint8Array` (no per-call `DataView`) and uses
-  a fast UTF-8 writer.
-* **protobuf leads on decode** (~7.35M) and `cstruct` codegen is close (~6.33M,
-  within ~14%); `JSON.parse` is ~3.47M. The interpreters read at ~0.84–0.86M.
+* **`cstruct` codegen leads on encode and decode** — encode ~19.2M (~2.3× faster
+  than protobuf `encode` and ~3.3× faster than `JSON.stringify`), decode ~8.53M
+  (~1.3× faster than protobuf `decode` and ~2.5× faster than `JSON.parse`) —
+  because it reads/writes integers directly to the `Uint8Array` (no per-call
+  `DataView`) and uses fast UTF-8 codecs.
 * **`cstruct` wins wire size** — 53 B vs protobuf 56 B vs JSON 129 B. With a
   spread of magnitudes the fixed 2-byte `u16` beats varint: varint costs 3 bytes
   for values > 16 383, while `u16` stays at 2.
@@ -57,7 +56,7 @@ Higher ops/s is better; lower ns/op and wire bytes is better.
   all-small values (`[1..20]`) protobuf was 33 B vs cstruct 53 B; with this
   mixed spread it flips to 56 B vs 53 B. cstruct is constant/predictable,
   protobuf adapts (smaller for small ints, larger for big ints).
-* **Interpreters** (~0.52–0.54M encode, ~0.84–0.86M decode) — same model-walk
+* **Interpreters** (~0.52–0.55M encode, ~0.88–0.90M decode) — same model-walk
   cost as the other messages.
 
 ## How varint works

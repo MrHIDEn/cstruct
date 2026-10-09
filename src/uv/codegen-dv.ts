@@ -22,14 +22,39 @@ export interface DvHelpers {
     writeUtf8(bytes: Uint8Array, start: number, str: string, maxBytes: number): number;
     /** Shared scratch DataView for float/double/bigint byte conversion (no per-call alloc). */
     dv: DataView;
+    readF(bytes: Uint8Array, o: number, le: boolean): number;
+    readD(bytes: Uint8Array, o: number, le: boolean): number;
+    readU64(bytes: Uint8Array, o: number, le: boolean): bigint;
+    readI64(bytes: Uint8Array, o: number, le: boolean): bigint;
     w16(target: Uint8Array, start: number, str: string, maxBytes: number): void;
 }
+
+const SCRATCH = new DataView(new ArrayBuffer(8));
 
 export const DV_HELPERS: DvHelpers = {
     readUtf8,
     readUtf16,
     writeUtf8,
-    dv: new DataView(new ArrayBuffer(8)),
+    dv: SCRATCH,
+    readF(bytes: Uint8Array, o: number, le: boolean): number {
+        SCRATCH.setUint8(0, bytes[o]);
+        SCRATCH.setUint8(1, bytes[o + 1]);
+        SCRATCH.setUint8(2, bytes[o + 2]);
+        SCRATCH.setUint8(3, bytes[o + 3]);
+        return SCRATCH.getFloat32(0, le);
+    },
+    readD(bytes: Uint8Array, o: number, le: boolean): number {
+        for (let i = 0; i < 8; i++) SCRATCH.setUint8(i, bytes[o + i]);
+        return SCRATCH.getFloat64(0, le);
+    },
+    readU64(bytes: Uint8Array, o: number, le: boolean): bigint {
+        for (let i = 0; i < 8; i++) SCRATCH.setUint8(i, bytes[o + i]);
+        return SCRATCH.getBigUint64(0, le);
+    },
+    readI64(bytes: Uint8Array, o: number, le: boolean): bigint {
+        for (let i = 0; i < 8; i++) SCRATCH.setUint8(i, bytes[o + i]);
+        return SCRATCH.getBigInt64(0, le);
+    },
     w16(target: Uint8Array, start: number, str: string, maxBytes: number) {
         const n = Math.min(str.length, maxBytes >> 1);
         for (let i = 0; i < n; i++) {
@@ -80,30 +105,27 @@ function structProp(structExpr: string, key: string): string {
     return `${structExpr}[${quotedKey(key)}]`;
 }
 
-function LE(ctx: DvCtx): string {
-    return ctx.le ? 'true' : 'false';
-}
-
-// --- atom read/write expressions (DataView) ---
+// --- atom read/write expressions (direct byte access, no per-call DataView) ---
 
 function atomReadExpr(type: string, ctx: DvCtx, offset: string): string {
     type = resolveAtomType(type);
-    const le = LE(ctx);
+    const le = ctx.le;
+    const b = (i: number) => `bytes[${offset} + ${i}]`;
     switch (type) {
-        case 'b8': return `Boolean(dv.getInt8(${offset}))`;
-        case 'u8': return `dv.getUint8(${offset})`;
-        case 'i8': return `dv.getInt8(${offset})`;
-        case 'b16': return `Boolean(dv.getInt16(${offset}, ${le}))`;
-        case 'u16': return `dv.getUint16(${offset}, ${le})`;
-        case 'i16': return `dv.getInt16(${offset}, ${le})`;
-        case 'b32': return `Boolean(dv.getInt32(${offset}, ${le}))`;
-        case 'u32': return `dv.getUint32(${offset}, ${le})`;
-        case 'i32': return `dv.getInt32(${offset}, ${le})`;
-        case 'b64': return `Boolean(dv.getBigInt64(${offset}, ${le}))`;
-        case 'u64': return `dv.getBigUint64(${offset}, ${le})`;
-        case 'i64': return `dv.getBigInt64(${offset}, ${le})`;
-        case 'f': return `dv.getFloat32(${offset}, ${le})`;
-        case 'd': return `dv.getFloat64(${offset}, ${le})`;
+        case 'u8': return `${b(0)}`;
+        case 'i8': return `(${b(0)} << 24) >> 24`;
+        case 'b8': return `Boolean((${b(0)} << 24) >> 24)`;
+        case 'u16': return le ? `${b(0)} | (${b(1)} << 8)` : `(${b(0)} << 8) | ${b(1)}`;
+        case 'i16': return le ? `(${b(0)} | (${b(1)} << 8)) << 16 >> 16` : `((${b(0)} << 8) | ${b(1)}) << 16 >> 16`;
+        case 'b16': return le ? `Boolean((${b(0)} | (${b(1)} << 8)) << 16 >> 16)` : `Boolean(((${b(0)} << 8) | ${b(1)}) << 16 >> 16)`;
+        case 'u32': return le ? `(${b(0)} | (${b(1)} << 8) | (${b(2)} << 16) | (${b(3)} << 24)) >>> 0` : `((${b(0)} << 24) | (${b(1)} << 16) | (${b(2)} << 8) | ${b(3)}) >>> 0`;
+        case 'i32': return le ? `${b(0)} | (${b(1)} << 8) | (${b(2)} << 16) | (${b(3)} << 24)` : `(${b(0)} << 24) | (${b(1)} << 16) | (${b(2)} << 8) | ${b(3)}`;
+        case 'b32': return le ? `Boolean(${b(0)} | (${b(1)} << 8) | (${b(2)} << 16) | (${b(3)} << 24))` : `Boolean((${b(0)} << 24) | (${b(1)} << 16) | (${b(2)} << 8) | ${b(3)})`;
+        case 'u64': return `_h.readU64(bytes, ${offset}, ${le})`;
+        case 'i64': return `_h.readI64(bytes, ${offset}, ${le})`;
+        case 'b64': return `Boolean(_h.readI64(bytes, ${offset}, ${le}))`;
+        case 'f': return `_h.readF(bytes, ${offset}, ${le})`;
+        case 'd': return `_h.readD(bytes, ${offset}, ${le})`;
         default: return '';
     }
 }
@@ -718,7 +740,6 @@ export function generateReadBodyDv(model: Model, le: boolean): string {
     const ctx: DvCtx = { le, lines: [], counter: 0, phase: 'write' };
     push(ctx, 'off = off || 0;');
     push(ctx, 'let o = off;');
-    push(ctx, 'const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);');
     const root = tmpId(ctx);
     if (Array.isArray(model)) {
         push(ctx, `const ${root} = [];`);
