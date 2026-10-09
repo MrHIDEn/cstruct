@@ -67,9 +67,11 @@ function printGroup(title: string, results: BenchResult[]) {
 
 // Dynamic string + dynamic array (length prefix on the wire).
 const model = { name: 's[i16]', samples: 'u16[i16]' };
+// Spread of magnitudes across the full u16 range (0..65535), so the varint
+// comparison is not skewed toward 1-byte values.
 const data = {
     name: 'sensor-01',
-    samples: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    samples: [0, 1, 10, 100, 127, 128, 200, 500, 1000, 5000, 10000, 16383, 16384, 20000, 30000, 40000, 50000, 60000, 65000, 65535],
 };
 
 // cstruct — Buffer interpreter
@@ -103,7 +105,7 @@ console.log('Wire size for the same variable-length message:');
 console.log(`  cstruct (binary, i16 length prefixes)  ${buf.length} bytes`);
 console.log(`  protobuf (binary, varint length)        ${pbBuf.length} bytes`);
 console.log(`  JSON (UTF-8 text)                      ${Buffer.byteLength(jsonStr)} bytes`);
-console.log(`\nData: name="sensor-01", samples=[1..20] (20 elements)`);
+console.log(`\nData: name="sensor-01", samples=20 values spanning 0..65535 (mixed 1/2/3-byte varints)`);
 
 // ---------------------------------------------------------------- encode
 

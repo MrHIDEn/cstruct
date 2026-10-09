@@ -17,7 +17,9 @@ on **variable-length data**: a length-prefixed string + a length-prefixed array.
   // protobuf equivalent
   //   message Dyn { string name = 1; repeated uint32 samples = 2; }
   //
-  // data = { name: "sensor-01", samples: [1..20] }   (20 elements)
+  // data = { name: "sensor-01",
+  //          samples: 20 values spanning 0..65535 }  (mixed 1/2/3-byte varints,
+  //                   so not skewed toward small ints)
   ```
 
   | Variant | What it is |
@@ -32,27 +34,70 @@ on **variable-length data**: a length-prefixed string + a length-prefixed array.
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 538 676 | 1 856.4 | 824 811 | 1 212.4 | 53 |
-| cstruct (DataView, interpreted) | 512 048 | 1 952.9 | 854 723 | 1 170.0 | 53 |
-| cstruct (codegen) | 4 483 094 | 223.1 | 6 181 768 | 161.8 | 53 |
-| JSON | 7 938 292 | 126.0 | 3 751 543 | 266.6 | 83 |
-| protobuf (protobufjs) | **9 485 580** | **105.4** | **12 701 006** | **78.7** | **33** |
+| cstruct (Buffer, interpreted) | 535 946 | 1 865.9 | 851 006 | 1 175.1 | **53** |
+| cstruct (DataView, interpreted) | 512 776 | 1 950.2 | 888 978 | 1 124.9 | **53** |
+| cstruct (codegen) | 4 548 784 | 219.8 | 6 447 260 | 155.1 | **53** |
+| JSON | 5 872 674 | 170.3 | 3 687 286 | 271.2 | 129 |
+| protobuf (protobufjs) | **8 696 495** | **115.0** | **7 243 886** | **138.0** | 56 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **protobuf wins this round** on encode, decode **and** wire size. Two reasons:
-  it packs `repeated` scalar fields (one tag + one length for the whole array,
-  ~1 byte/value for small ints) and its `decode` is a tightly-tuned runtime.
-* **`cstruct` codegen** is solidly second on decode (~6.18M) — within ~2× of
-  protobuf — and on encode (~4.48M) it trails `JSON.stringify` (~7.94M).
-* **Wire size** — protobuf 33 B (packed varint), `cstruct` 53 B (each element is
-  a fixed 2-byte `u16` + an `i16` length prefix), JSON 83 B (text).
-  For small-magnitude arrays protobuf's varint packing is the most compact;
-  `cstruct`'s fixed-width arrays are predictable but not always the smallest.
-* **Interpreters** (~0.51–0.54M encode, ~0.82–0.85M decode) — same model-walk
+* **protobuf leads on speed** — encode ~8.70M, decode ~7.24M — thanks to its
+  tightly-tuned runtime; `cstruct` codegen is close on decode (~6.45M, within
+  ~12%) and on encode (~4.55M) it trails `JSON.stringify` (~5.87M).
+* **`cstruct` wins wire size** — 53 B vs protobuf 56 B vs JSON 129 B. With a
+  spread of magnitudes the fixed 2-byte `u16` beats varint: varint costs 3 bytes
+  for values > 16 383, while `u16` stays at 2.
+* **Wire size depends on value magnitude for protobuf, not for cstruct.** With
+  all-small values (`[1..20]`) protobuf was 33 B vs cstruct 53 B; with this
+  mixed spread it flips to 56 B vs 53 B. cstruct is constant/predictable,
+  protobuf adapts (smaller for small ints, larger for big ints).
+* **Interpreters** (~0.51–0.54M encode, ~0.85–0.89M decode) — same model-walk
   cost as the other messages.
+
+## How varint works
+
+protobuf's variable wire size here comes from **varint** (LEB128 / Base-128): an
+integer encoding whose length is not declared anywhere — it's written into
+every byte.
+
+Each varint byte carries **7 bits of data + 1 "more?" flag** in the top bit
+(MSB): `0` = "this number ends here", `1` = "one more byte follows". The decoder
+just reads byte-by-byte until it sees an MSB of `0`; the 7-bit groups are
+assembled least-significant-first.
+
+| value (`uint32`) | bytes | MSB flags |
+|---|---:|---|
+| 1 | `01` | `01` = 0 (end) |
+| 20 | `14` | `14` = 0 (end) |
+| 127 | `7f` | `7f` = 0 (end) |
+| 128 | `80 01` | `80` = 1 (more), `01` = 0 (end) |
+| 300 | `ac 02` | `ac` = 1 (more), `02` = 0 (end) |
+| 65535 | `ff ff 03` | `ff` = 1, `ff` = 1, `03` = 0 |
+| 1000000 | `c0 84 3d` | `c0` = 1, `84` = 1, `3d` = 0 |
+
+Worked example — `300` (binary `1 0010 1100`, 9 bits, so it does not fit in 7):
+
+```text
+300 = 1 0010 1100  ->  split into 7-bit groups, least-significant first
+        │  └───┬───┘
+        │   010 1100    (low 7 bits = 44)
+        └─ 10           (remaining high bits = 2)
+
+byte 1:  "more"(1) + 010 1100  =  1010 1100  =  ac
+byte 2:  "end"(0)  + 0000 010  =  0000 0010  =  02
+```
+
+The decoder reverses it: `ac` (MSB=1 → keep `0101100`), `02` (MSB=0 → append
+`0000010`), then reassembles `0000010 0101100` = `1 0010 1100` = **300**.
+
+So varint is not general-purpose compression — it's a bet that integers are
+small. It is **smaller than a fixed `u32` for values < ~268M** (1–4 bytes) but
+**larger (5 bytes) for the top 1/16 of the range**. Negatives are the trap:
+plain `int32` encodes them as 10-byte varints; protobuf's `sint32`/`sint64` fix
+this with zigzag encoding (which interleaves ± so small negatives stay 1 byte).
 
 ## Notes
 
