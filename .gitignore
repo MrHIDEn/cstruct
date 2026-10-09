@@ -2,8 +2,10 @@
 /.idea/
 
 # Local notes / scratch files (prefix --): never commit
-/--*/
+--*/
 --*.*
+.tmp*/
+.tmp*.*
 
 node_modules/
 lib/

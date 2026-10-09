@@ -7,7 +7,7 @@ import { BaseBuffer } from "../base-buffer";
  * No Buffer usage — strings via TextEncoder (utf8) / manual utf16le, numerics via DataView.
  */
 export class DvWriter extends BaseBuffer {
-    private readonly _chunks: Uint8Array[] = [];
+    private _chunks: Uint8Array[] = [];
     private _offset = 0;
     private readonly _le: boolean;
     private readonly _scratch = new ArrayBuffer(8);
@@ -42,6 +42,12 @@ export class DvWriter extends BaseBuffer {
             ['j', (val, size) => this.s(val as string, size)],
         ]);
         this.addPredefinedAliases();
+    }
+
+    /** Reset accumulated chunks so this writer can be reused across calls. */
+    reset() {
+        this._chunks = [];
+        this._offset = 0;
     }
 
     write(type: string, val: WriterValue, size?: number) {

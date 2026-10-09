@@ -26,34 +26,41 @@ import {
  * Uses Object, JSON, C_Struct lang (kind of C)
  */
 export class CStructBE<T> extends CStructBase<T> {
+    private _makeWriter?: MakeBE<any>;
+    private _writeWriter?: WriteBE<any>;
+    private _reader?: ReadBE<any>;
+
     private constructor(model?: Model, types?: Types, compiledJsonModel?: string) {
         super(model, types, compiledJsonModel);
     }
 
     make<T = any>(struct: T): CStructWriteResult {
-        const writer = new MakeBE<T>(this.parsedModel, struct);
+        if (!this._makeWriter) this._makeWriter = new MakeBE();
+        this._makeWriter.run(this.parsedModel, struct);
         return {
-            buffer: writer.toBuffer(),
-            offset: writer.offset,
-            size: writer.size
+            buffer: this._makeWriter.toBuffer(),
+            offset: this._makeWriter.offset,
+            size: this._makeWriter.size
         }
     }
 
     write<T = any>(buffer: Buffer, struct: T, offset = 0): CStructWriteResult {
-        const writer = new WriteBE<T>(this.parsedModel, struct, buffer, offset);
+        if (!this._writeWriter) this._writeWriter = new WriteBE();
+        this._writeWriter.run(this.parsedModel, struct, buffer, offset);
         return {
-            buffer: writer.toBuffer(),
-            offset: writer.offset,
-            size: writer.size
+            buffer: this._writeWriter.toBuffer(),
+            offset: this._writeWriter.offset,
+            size: this._writeWriter.size
         }
     }
 
     read<T = any>(buffer: Buffer, offset = 0): CStructReadResult<T> {
-        const reader = new ReadBE<T>(this.parsedModel, buffer, offset);
+        if (!this._reader) this._reader = new ReadBE();
+        const struct = this._reader.read(this.parsedModel, buffer, offset);
         return {
-            struct: reader.toStruct(),
-            offset: reader.offset,
-            size: reader.size
+            struct: struct as T,
+            offset: this._reader.offset,
+            size: this._reader.size
         };
     }
 

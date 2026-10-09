@@ -1,6 +1,6 @@
 {
   "name": "@mrhiden/cstruct",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "Pack and unpack binary data (C-like structs) between Buffer and JS/TS objects and arrays: big/little endian, typedef, PLC types, wstring, bufN.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -34,8 +34,9 @@
   },
   "scripts": {
     "sandbox": "ts-node-dev --transpile-only ./examples/sandbox.ts",
-    "bench": "ts-node --transpile-only ./benchmarks/codegen-bench.ts",
+    "bench:node": "ts-node --transpile-only ./benchmarks/codegen-bench.ts",
     "bench:bun": "bun ./benchmarks/codegen-bench.ts",
+    "bench:deno": "deno run -A --no-check --sloppy-imports ./benchmarks/codegen-bench.ts",
     "model-parser": "ts-node-dev --transpile-only ./src/model-parser.ts",
     "prepublishOnly": "tsc",
     "build": "tsc",
