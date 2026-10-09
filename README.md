@@ -1,5 +1,15 @@
 # @mrhiden/cstruct
+[![NPM version](https://img.shields.io/npm/v/@mrhiden/cstruct.svg)](https://www.npmjs.com/package/@mrhiden/cstruct)
+[![NPM downloads](https://img.shields.io/npm/dm/@mrhiden/cstruct.svg)](https://www.npmjs.com/package/@mrhiden/cstruct)
+[![License](https://img.shields.io/npm/l/@mrhiden/cstruct.svg)](https://github.com/MrHIDEn/cstruct/blob/main/LICENSE)
+[![build](https://github.com/MrHIDEn/cstruct/actions/workflows/lint-test.yml/badge.svg)](https://github.com/MrHIDEn/cstruct/actions/workflows/lint-test.yml)
+
 *'C like structures'* — TypeScript library for packing and unpacking binary data (`Buffer` ⇔ Object/Array).
+
+[![NPM version](https://img.shields.io/npm/v/typed-struct.svg)](https://www.npmjs.com/package/@mrhiden/cstruct)
+[![NPM version](https://img.shields.io/npm/dm/@mrhiden/cstruct.svg)](https://www.npmjs.com/package/@mrhiden/cstruct)
+[![codecov](https://codecov.io/gh/sarakusha/@mrhiden/cstruct/branch/main/graph/badge.svg?token=6F26I7FO73)](https://codecov.io/gh/sarakusha/@mrhiden/cstruct)
+[![CircleCI](https://circleci.com/gh/sarakusha/@mrhiden/cstruct.svg?style=shield)](https://circleci.com/gh/sarakusha/@mrhiden/cstruct)
 
 If you only need to pack a plain object into a buffer — **Quick start** is enough. Dynamic arrays, enums, decorators, PLC aliases, and C-struct parsing are optional paths in [Examples](doc/EXAMPLES.md).
 
