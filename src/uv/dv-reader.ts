@@ -1,10 +1,12 @@
 import { ReaderFunctions, ReaderValue } from "../types";
 import { BaseBuffer } from "../base-buffer";
+import { readUtf8, readUtf16 } from "./utf";
 
 /**
  * Variant B (browser-ready): DataView-based reader working on any Uint8Array view.
  * Mirrors the low-level reader surface used by the walkers: `read(type, size?)`, `size`, `offset`.
- * No Buffer usage — strings via TextDecoder, numerics via DataView (endianness as a flag).
+ * No Buffer usage — strings via a fast single-pass UTF-8/UTF-16 decoder,
+ * numerics via DataView (endianness as a flag).
  */
 export class DvReader extends BaseBuffer {
     private _bytes: Uint8Array;
@@ -12,8 +14,6 @@ export class DvReader extends BaseBuffer {
     private readonly _le: boolean;
     private _offset: number;
     private _beginOffset: number;
-    private readonly _utf8Decoder = new TextDecoder('utf-8');
-    private readonly _utf16Decoder = new TextDecoder('utf-16le');
 
     constructor(bytes: Uint8Array, offset = 0, littleEndian = true) {
         super();
@@ -153,9 +153,7 @@ export class DvReader extends BaseBuffer {
             const found = this.findZeroByte(this._offset);
             size = found === -1 ? this._bytes.length - this._offset : found - this._offset + 1;
         }
-        const val = this._utf8Decoder
-            .decode(this._bytes.subarray(this._offset, this._offset + size))
-            .split('\0', 1).pop(); // remove all trailing null bytes
+        const val = readUtf8(this._bytes, this._offset, this._offset + size);
         this.move(size);
         return val;
     }
@@ -171,9 +169,7 @@ export class DvReader extends BaseBuffer {
         } else {
             size *= 2; // utf16le: 2 bytes per character
         }
-        const val = this._utf16Decoder
-            .decode(this._bytes.subarray(this._offset, this._offset + size))
-            .split('\u0000', 1).pop(); // remove all trailing null bytes
+        const val = readUtf16(this._bytes, this._offset, this._offset + size);
         this.move(size);
         return val;
     }

@@ -34,21 +34,23 @@ on a **complex, realistic message**: nested struct + fixed array + string.
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 530 611 | 1 884.6 | 687 691 | 1 454.1 | **49** |
-| cstruct (DataView, interpreted) | 531 232 | 1 882.4 | 668 024 | 1 497.0 | **49** |
-| cstruct (codegen) | **4 444 006** | **225.0** | 4 000 268 | 250.0 | **49** |
-| JSON | 3 756 250 | 266.2 | 2 540 878 | 393.6 | 125 |
-| protobuf (protobufjs) | 4 001 333 | 249.9 | **8 229 951** | **121.5** | 61 |
+| cstruct (Buffer, interpreted) | 531 053 | 1 883.0 | 679 658 | 1 471.3 | **49** |
+| cstruct (DataView, interpreted) | 513 112 | 1 948.9 | 701 069 | 1 426.4 | **49** |
+| cstruct (codegen) | **4 546 284** | **220.0** | 7 672 153 | 130.3 | **49** |
+| JSON | 3 834 032 | 260.8 | 2 328 012 | 429.6 | 125 |
+| protobuf (protobufjs) | 3 948 321 | 253.3 | **8 199 883** | **122.0** | 61 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **Encode** — `cstruct` codegen leads (~4.44M), ahead of protobuf `encode`
-  (~4.00M) and `JSON.stringify` (~3.76M). The interpreter paths (~0.53M) pay for
-  runtime model walking over a 7-field message.
-* **Decode** — protobuf `decode` leads (~8.23M); `cstruct` codegen is ~4.00M and
-  `JSON.parse` ~2.54M. The interpreters read at ~0.67–0.69M.
+* **Encode** — `cstruct` codegen leads (~4.55M), ahead of protobuf `encode`
+  (~3.95M) and `JSON.stringify` (~3.83M). The interpreter paths (~0.51–0.53M) pay
+  for runtime model walking over a 7-field message.
+* **Decode** — protobuf `decode` leads (~8.20M) and `cstruct` codegen is now on
+  par (~7.67M, within ~7%), after replacing the per-call `TextDecoder` +
+  `.split('\0')` with a fast single-pass UTF-8 decoder (`src/uv/utf.ts`).
+  `JSON.parse` is ~2.33M; the interpreters read at ~0.68–0.70M.
 * **Wire size** — `cstruct` is the smallest and fixed (49 B). protobuf is 61 B
   (varint overhead on `int32` negatives: `x=-10`/`z=-30` → 10-byte varints).
   JSON is 125 B of UTF-8 text (~2.5× larger).

@@ -7,6 +7,7 @@ import {
     parseSizedAtom,
 } from '../codegen/type-utils';
 import { isEnumModel } from '../enum';
+import { readUtf8, readUtf16 } from './utf';
 
 /**
  * Variant B codegen — same model walker as the Buffer codegen, but the generated
@@ -16,15 +17,15 @@ import { isEnumModel } from '../enum';
  */
 
 export interface DvHelpers {
-    td: InstanceType<typeof TextDecoder>;
-    td16: InstanceType<typeof TextDecoder>;
+    readUtf8(bytes: Uint8Array, start: number, end: number): string;
+    readUtf16(bytes: Uint8Array, start: number, end: number): string;
     te: InstanceType<typeof TextEncoder>;
     w16(target: Uint8Array, start: number, str: string, maxBytes: number): void;
 }
 
 export const DV_HELPERS: DvHelpers = {
-    td: new TextDecoder('utf-8'),
-    td16: new TextDecoder('utf-16le'),
+    readUtf8,
+    readUtf16,
     te: new TextEncoder(),
     w16(target: Uint8Array, start: number, str: string, maxBytes: number) {
         const n = Math.min(str.length, maxBytes >> 1);
@@ -129,19 +130,19 @@ function atomWriteStmt(type: string, ctx: DvCtx, offset: string, value: string):
 // --- string/buffer emits ---
 
 function readStringUtf8Dv(ctx: DvCtx, o: string, sizeExpr: string, target: string) {
-    push(ctx, `${target} = _h.td.decode(bytes.subarray(${o}, ${o} + ${sizeExpr})).split('\\0')[0]; ${o} += ${sizeExpr};`);
+    push(ctx, `${target} = _h.readUtf8(bytes, ${o}, ${o} + ${sizeExpr}); ${o} += ${sizeExpr};`);
 }
 
 function readStringUtf8TrailingDv(ctx: DvCtx, o: string, target: string) {
-    push(ctx, `{ let _e = ${o}; while (_e < bytes.length && bytes[_e] !== 0) _e++; const _s = (_e < bytes.length ? _e - ${o} + 1 : bytes.length - ${o}); ${target} = _h.td.decode(bytes.subarray(${o}, ${o} + _s)).split('\\0')[0]; ${o} += _s; }`);
+    push(ctx, `{ let _e = ${o}; while (_e < bytes.length && bytes[_e] !== 0) _e++; const _s = (_e < bytes.length ? _e - ${o} + 1 : bytes.length - ${o}); ${target} = _h.readUtf8(bytes, ${o}, ${o} + _s); ${o} += _s; }`);
 }
 
 function readWStringDv(ctx: DvCtx, o: string, byteSizeExpr: string, target: string) {
-    push(ctx, `${target} = _h.td16.decode(bytes.subarray(${o}, ${o} + ${byteSizeExpr})).split('\\u0000')[0]; ${o} += ${byteSizeExpr};`);
+    push(ctx, `${target} = _h.readUtf16(bytes, ${o}, ${o} + ${byteSizeExpr}); ${o} += ${byteSizeExpr};`);
 }
 
 function readWStringTrailingDv(ctx: DvCtx, o: string, target: string) {
-    push(ctx, `{ let _e = ${o}; while (_e + 1 < bytes.length && (bytes[_e] !== 0 || bytes[_e + 1] !== 0)) _e += 2; const _s = (_e + 1 < bytes.length ? _e - ${o} + 2 : bytes.length - ${o}); ${target} = _h.td16.decode(bytes.subarray(${o}, ${o} + _s)).split('\\u0000')[0]; ${o} += _s; }`);
+    push(ctx, `{ let _e = ${o}; while (_e + 1 < bytes.length && (bytes[_e] !== 0 || bytes[_e + 1] !== 0)) _e += 2; const _s = (_e + 1 < bytes.length ? _e - ${o} + 2 : bytes.length - ${o}); ${target} = _h.readUtf16(bytes, ${o}, ${o} + _s); ${o} += _s; }`);
 }
 
 function readBufferDv(ctx: DvCtx, o: string, sizeExpr: string, target: string) {
