@@ -307,13 +307,13 @@ console.log(size);   // 22
 See also [`examples/write-offset.ts`](https://github.com/MrHIDEn/cstruct/blob/main/examples/write-offset.ts).
 
 ```text
-frame (28 bytes)          written by write(frame, data, 3)  (22 bytes)
- offset  0..2    3 .................. 24       25 .. 27
-        ┌─────────┬────────────────────────────┬─────────┐
-        │ 11 11 11│ 00 44 78 79 7A 00 ... 00   │ 33 33 33│
-        └─────────┴────────────────────────────┴─────────┘
-          header    code=0x44  message="xyz"     footer
-          (kept)    (u16 + s20, overwritten)      (kept)
+write(frame, { code: 0x44, message: 'xyz' }, 3)
+
+frame (28 bytes):
+  [ 11 11 11 ][ 00 44 78 79 7A 00 ... 00 ][ 33 33 33 ]
+   bytes 0-2   bytes 3-24 (22 bytes)        bytes 25-27
+   header      overwritten by write()       footer
+   (kept)      code=0x44, message="xyz"     (kept)
 ```
 
 ### Binary buffer field (`bufN`)
