@@ -80,6 +80,13 @@ export class ReadBuffer extends BaseBuffer {
         ])
     }
 
+    /** Rebind this reader to a new buffer/offset so it can be reused across calls. */
+    reset(buffer: Buffer, offset = 0) {
+        this._buffer = buffer;
+        this._offset = offset;
+        this._beginOffset = offset;
+    }
+
     read(type: string, size?: number): ReaderValue {
         if (size === undefined) {
             const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;

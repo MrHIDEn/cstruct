@@ -91,6 +91,12 @@ export class WriteBuffer extends BaseBuffer {
         ]);
     }
 
+    /** Reset accumulated chunks so this writer can be reused across calls. */
+    reset() {
+        this._buffers = [];
+        this._offset = 0;
+    }
+
     write(type: string, val: WriterValue, size?: number) {
         if (size === undefined) {
             const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;

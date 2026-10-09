@@ -7,11 +7,11 @@ import { BaseBuffer } from "../base-buffer";
  * No Buffer usage — strings via TextDecoder, numerics via DataView (endianness as a flag).
  */
 export class DvReader extends BaseBuffer {
-    private readonly _bytes: Uint8Array;
-    private readonly _view: DataView;
+    private _bytes: Uint8Array;
+    private _view: DataView;
     private readonly _le: boolean;
     private _offset: number;
-    private readonly _beginOffset: number;
+    private _beginOffset: number;
     private readonly _utf8Decoder = new TextDecoder('utf-8');
     private readonly _utf16Decoder = new TextDecoder('utf-16le');
 
@@ -47,6 +47,14 @@ export class DvReader extends BaseBuffer {
             ['j', (size?: number) => this.s(size)],
         ]);
         this.addPredefinedAliases();
+    }
+
+    /** Rebind this reader to new bytes/offset so it can be reused across calls. */
+    reset(bytes: Uint8Array, offset = 0) {
+        this._bytes = bytes;
+        this._view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        this._offset = offset;
+        this._beginOffset = offset;
     }
 
     read(type: string, size?: number): ReaderValue {

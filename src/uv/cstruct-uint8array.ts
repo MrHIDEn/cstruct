@@ -70,6 +70,9 @@ function isOptions(value: unknown): value is CStructUvOptions {
  */
 export class CStructUint8Array<T = any> extends CStructBase<T> {
     private readonly _littleEndian: boolean;
+    private _makeWriter?: MakeUv<any>;
+    private _writeWriter?: WriteUv<any>;
+    private _reader?: ReadUv<any>;
 
     /**
      * @param model   model (object/array/string) or, with `compiledJsonModel`, nothing
@@ -101,30 +104,33 @@ export class CStructUint8Array<T = any> extends CStructBase<T> {
     }
 
     make(struct: T): CStructUvWriteResult {
-        const writer = new MakeUv<T>(this.parsedModel, struct, this._littleEndian);
+        if (!this._makeWriter) this._makeWriter = new MakeUv(undefined, undefined, this._littleEndian);
+        this._makeWriter.run(this.parsedModel, struct);
         return {
-            bytes: writer.toBytes(),
-            offset: writer.offset,
-            size: writer.size,
+            bytes: this._makeWriter.toBytes(),
+            offset: this._makeWriter.offset,
+            size: this._makeWriter.size,
         };
     }
 
     write(bytes: Uint8Array, struct: T, offset = 0): CStructUvWriteResult {
-        const writer = new WriteUv<T>(this.parsedModel, struct, bytes, offset, this._littleEndian);
-        writer.toBytes();
+        if (!this._writeWriter) this._writeWriter = new WriteUv(undefined, undefined, undefined, undefined, this._littleEndian);
+        this._writeWriter.run(this.parsedModel, struct, bytes, offset);
+        this._writeWriter.toBytes();
         return {
             bytes,
-            offset: writer.offset,
-            size: writer.size,
+            offset: this._writeWriter.offset,
+            size: this._writeWriter.size,
         };
     }
 
     read(bytes: Uint8Array, offset = 0): CStructReadResult<T> {
-        const reader = new ReadUv<T>(this.parsedModel, bytes, offset, this._littleEndian);
+        if (!this._reader) this._reader = new ReadUv(undefined, undefined, undefined, this._littleEndian);
+        const struct = this._reader.read(this.parsedModel, bytes, offset);
         return {
-            struct: reader.toStruct() as T,
-            offset: reader.offset,
-            size: reader.size,
+            struct: struct as T,
+            offset: this._reader.offset,
+            size: this._reader.size,
         };
     }
 

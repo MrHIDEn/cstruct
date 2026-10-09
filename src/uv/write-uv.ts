@@ -8,14 +8,24 @@ import { DvWriter } from "./dv-writer";
  * Encoding logic lives in Make (via recursion); this class copies the result into the target.
  */
 export class WriteUv<T> extends Make<T> {
-    private readonly _target: Uint8Array;
-    private readonly _targetOffset: number;
+    private _target: Uint8Array;
+    private _targetOffset: number;
 
-    constructor(model: Model, struct: T, target: Uint8Array, offset = 0, littleEndian = true) {
+    constructor(model?: Model, struct?: T, target?: Uint8Array, offset = 0, littleEndian = true) {
         super();
         this._writer = new DvWriter(littleEndian) as unknown as WriteBufferLE;
+        this._target = target ?? new Uint8Array(0);
+        this._targetOffset = offset;
+        if (model !== undefined) {
+            this.recursion(model, struct!);
+        }
+    }
+
+    /** Reuse this writer: rebind target and re-encode the model. */
+    run(model: Model, struct: T, target: Uint8Array, offset = 0) {
         this._target = target;
         this._targetOffset = offset;
+        (this._writer as unknown as DvWriter).reset();
         this.recursion(model, struct);
     }
 
