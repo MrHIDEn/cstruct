@@ -25,21 +25,22 @@ and **Google Protocol Buffers** ([`protobufjs`](https://www.npmjs.com/package/pr
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 1 564 411 | 639.2 | 2 115 030 | 472.8 | **19** |
-| cstruct (DataView, interpreted) | 1 635 655 | 611.4 | 2 075 663 | 481.8 | **19** |
-| cstruct (codegen) | 6 242 377 | 160.2 | **23 626 897** | **42.3** | **19** |
-| JSON | **6 481 367** | **154.3** | 5 739 418 | 174.2 | 47 |
-| protobuf (protobufjs) | 6 333 002 | 157.9 | 21 817 923 | 45.8 | 31 |
+| cstruct (Buffer, interpreted) | 1 569 614 | 637.1 | 1 984 896 | 503.8 | **19** |
+| cstruct (DataView, interpreted) | 1 643 466 | 608.5 | 2 054 891 | 486.6 | **19** |
+| cstruct (codegen) | **36 301 716** | **27.5** | **22 975 242** | **43.5** | **19** |
+| JSON | 6 533 182 | 153.1 | 5 670 588 | 176.3 | 47 |
+| protobuf (protobufjs) | 6 262 505 | 159.7 | 21 953 025 | 45.6 | 31 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **Encode** — `JSON.stringify` (~6.48M) and protobuf `encode` (~6.33M) lead;
-  `cstruct` codegen is close (~6.24M). The interpreter paths (~1.56–1.64M) pay for
-  runtime model walking plus dynamic features (enum/JSON/dynamic length).
-* **Decode** — `cstruct` codegen (~23.6M) and protobuf `decode` (~21.8M) are on
-  par and well ahead of `JSON.parse` (~5.7M). The interpreters read at ~2.08–2.12M.
+* **Encode** — `cstruct` codegen dominates (~36.3M, ~5.8× faster than protobuf
+  `encode` and `JSON.stringify`), because it writes integers directly to the
+  `Uint8Array` (no per-call `DataView`) and uses a fast UTF-8 writer. The
+  interpreter paths (~1.57–1.64M) pay for runtime model walking.
+* **Decode** — `cstruct` codegen (~23.0M) and protobuf `decode` (~22.0M) are on
+  par and well ahead of `JSON.parse` (~5.7M). The interpreters read at ~1.98–2.05M.
 * **Wire size** — `cstruct` is the smallest and fixed (19 B). protobuf is 31 B
   (an `int32` negative value encodes as a 10-byte varint); JSON is 47 B of UTF-8
   text (~2.5× larger) and carries no type information.

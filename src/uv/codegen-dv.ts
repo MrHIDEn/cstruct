@@ -7,7 +7,7 @@ import {
     parseSizedAtom,
 } from '../codegen/type-utils';
 import { isEnumModel } from '../enum';
-import { readUtf8, readUtf16 } from './utf';
+import { readUtf8, readUtf16, writeUtf8 } from './utf';
 
 /**
  * Variant B codegen — same model walker as the Buffer codegen, but the generated
@@ -19,14 +19,17 @@ import { readUtf8, readUtf16 } from './utf';
 export interface DvHelpers {
     readUtf8(bytes: Uint8Array, start: number, end: number): string;
     readUtf16(bytes: Uint8Array, start: number, end: number): string;
-    te: InstanceType<typeof TextEncoder>;
+    writeUtf8(bytes: Uint8Array, start: number, str: string, maxBytes: number): number;
+    /** Shared scratch DataView for float/double/bigint byte conversion (no per-call alloc). */
+    dv: DataView;
     w16(target: Uint8Array, start: number, str: string, maxBytes: number): void;
 }
 
 export const DV_HELPERS: DvHelpers = {
     readUtf8,
     readUtf16,
-    te: new TextEncoder(),
+    writeUtf8,
+    dv: new DataView(new ArrayBuffer(8)),
     w16(target: Uint8Array, start: number, str: string, maxBytes: number) {
         const n = Math.min(str.length, maxBytes >> 1);
         for (let i = 0; i < n; i++) {
@@ -105,24 +108,50 @@ function atomReadExpr(type: string, ctx: DvCtx, offset: string): string {
     }
 }
 
+// --- direct byte writes (no per-call DataView) ---
+
+function byteExpr(value: string, shift: number): string {
+    if (shift === 0) return `(${value}) & 0xff`;
+    return `((${value}) >> ${shift}) & 0xff`;
+}
+
+/** Emit integer bytes written directly to `bytes[]` (little- or big-endian). */
+function directIntWrite(offset: string, value: string, size: number, le: boolean): string {
+    const stores: string[] = [];
+    for (let i = 0; i < size; i++) {
+        const shift = le ? i * 8 : (size - 1 - i) * 8;
+        stores.push(`bytes[${offset} + ${i}] = ${byteExpr(value, shift)};`);
+    }
+    return `${stores.join(' ')} ${offset} += ${size};`;
+}
+
+/** Emit a float/double/bigint write via the shared scratch DataView. */
+function scratchWrite(offset: string, value: string, size: number, le: boolean, setter: string): string {
+    const stores: string[] = [];
+    for (let i = 0; i < size; i++) {
+        stores.push(`bytes[${offset} + ${i}] = _h.dv.getUint8(${i});`);
+    }
+    return `_h.dv.${setter}(0, ${value}, ${le}); ${stores.join(' ')} ${offset} += ${size};`;
+}
+
 function atomWriteStmt(type: string, ctx: DvCtx, offset: string, value: string): string {
     type = resolveAtomType(type);
-    const le = LE(ctx);
+    const le = ctx.le;
     switch (type) {
-        case 'b8': return `dv.setInt8(${offset}, (${value}) ? 1 : 0); ${offset} += 1;`;
-        case 'u8': return `dv.setUint8(${offset}, ${value}); ${offset} += 1;`;
-        case 'i8': return `dv.setInt8(${offset}, ${value}); ${offset} += 1;`;
-        case 'b16': return `dv.setInt16(${offset}, (${value}) ? 1 : 0, ${le}); ${offset} += 2;`;
-        case 'u16': return `dv.setUint16(${offset}, ${value}, ${le}); ${offset} += 2;`;
-        case 'i16': return `dv.setInt16(${offset}, ${value}, ${le}); ${offset} += 2;`;
-        case 'b32': return `dv.setInt32(${offset}, (${value}) ? 1 : 0, ${le}); ${offset} += 4;`;
-        case 'u32': return `dv.setUint32(${offset}, ${value}, ${le}); ${offset} += 4;`;
-        case 'i32': return `dv.setInt32(${offset}, ${value}, ${le}); ${offset} += 4;`;
-        case 'b64': return `dv.setBigInt64(${offset}, BigInt(${value}), ${le}); ${offset} += 8;`;
-        case 'u64': return `dv.setBigUint64(${offset}, BigInt(${value}), ${le}); ${offset} += 8;`;
-        case 'i64': return `dv.setBigInt64(${offset}, BigInt(${value}), ${le}); ${offset} += 8;`;
-        case 'f': return `dv.setFloat32(${offset}, ${value}, ${le}); ${offset} += 4;`;
-        case 'd': return `dv.setFloat64(${offset}, ${value}, ${le}); ${offset} += 8;`;
+        case 'b8': return directIntWrite(offset, `(${value}) ? 1 : 0`, 1, le);
+        case 'u8': return directIntWrite(offset, value, 1, le);
+        case 'i8': return directIntWrite(offset, value, 1, le);
+        case 'b16': return directIntWrite(offset, `(${value}) ? 1 : 0`, 2, le);
+        case 'u16': return directIntWrite(offset, value, 2, le);
+        case 'i16': return directIntWrite(offset, value, 2, le);
+        case 'b32': return directIntWrite(offset, `(${value}) ? 1 : 0`, 4, le);
+        case 'u32': return directIntWrite(offset, value, 4, le);
+        case 'i32': return directIntWrite(offset, value, 4, le);
+        case 'b64': return scratchWrite(offset, `BigInt((${value}) ? 1 : 0)`, 8, le, 'setBigInt64');
+        case 'u64': return scratchWrite(offset, `BigInt(${value})`, 8, le, 'setBigUint64');
+        case 'i64': return scratchWrite(offset, `BigInt(${value})`, 8, le, 'setBigInt64');
+        case 'f': return scratchWrite(offset, value, 4, le, 'setFloat32');
+        case 'd': return scratchWrite(offset, value, 8, le, 'setFloat64');
         default: return '';
     }
 }
@@ -161,11 +190,11 @@ function writeStringUtf8Dv(ctx: DvCtx, o: string, valueExpr: string, size: numbe
         return;
     }
     if (trailing) {
-        push(ctx, `{ const _b = (${valueExpr}).length; _h.te.encodeInto(${valueExpr}, bytes.subarray(${o}, ${o} + _b)); bytes[${o} + _b] = 0; ${o} += _b + 1; }`);
+        push(ctx, `{ const _b = (${valueExpr}).length; _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); bytes[${o} + _b] = 0; ${o} += _b + 1; }`);
     } else if (dynamic) {
-        push(ctx, `{ const _b = (${valueExpr}).length; _h.te.encodeInto(${valueExpr}, bytes.subarray(${o}, ${o} + _b)); ${o} += _b; }`);
+        push(ctx, `{ const _b = (${valueExpr}).length; _h.writeUtf8(bytes, ${o}, ${valueExpr}, _b); ${o} += _b; }`);
     } else {
-        push(ctx, `bytes.fill(0, ${o}, ${o} + ${size}); _h.te.encodeInto(${valueExpr}, bytes.subarray(${o}, ${o} + ${size})); ${o} += ${size};`);
+        push(ctx, `bytes.fill(0, ${o}, ${o} + ${size}); _h.writeUtf8(bytes, ${o}, ${valueExpr}, ${size}); ${o} += ${size};`);
     }
 }
 
@@ -180,7 +209,7 @@ function writeWStringDv(ctx: DvCtx, o: string, valueExpr: string, size: number |
         return;
     }
     if (trailing) {
-        push(ctx, `{ const _b = (${valueExpr}).length * 2; _h.w16(bytes, ${o}, ${valueExpr}, _b); dv.setUint16(${o} + _b, 0, ${LE(ctx)}); ${o} += _b + 2; }`);
+        push(ctx, `{ const _b = (${valueExpr}).length * 2; _h.w16(bytes, ${o}, ${valueExpr}, _b); bytes[${o} + _b] = 0; bytes[${o} + _b + 1] = 0; ${o} += _b + 2; }`);
     } else {
         push(ctx, `bytes.fill(0, ${o}, ${o} + ${byteSize}); _h.w16(bytes, ${o}, ${valueExpr}, ${byteSize}); ${o} += ${byteSize};`);
     }
@@ -715,7 +744,6 @@ export function generateWriteBodyDv(model: Model, le: boolean): string {
         'off = off || 0;',
         ...sizeCtx.lines,
         'if (size > bytes.length - off) throw new Error("Write buffer is too short. Needs " + (size - (bytes.length - off)) + " byte/s more.");',
-        'const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);',
         ...writeCtx.lines,
         'return { bytes, offset: o, size: size };',
     ].join('\n');
@@ -734,7 +762,6 @@ export function generateMakeBodyDv(model: Model, le: boolean, hasVariableLength:
         return [
             ...sizeCtx.lines,
             'const bytes = new Uint8Array(size);',
-            'const dv = new DataView(bytes.buffer);',
             ...writeCtx.lines,
             'return { bytes, offset: o, size: o };',
         ].join('\n');
@@ -742,7 +769,6 @@ export function generateMakeBodyDv(model: Model, le: boolean, hasVariableLength:
 
     return [
         `const bytes = new Uint8Array(${staticSize});`,
-        'const dv = new DataView(bytes.buffer);',
         ...writeCtx.lines,
         'return { bytes, offset: o, size: o };',
     ].join('\n');

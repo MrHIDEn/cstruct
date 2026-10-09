@@ -55,3 +55,46 @@ export function readUtf16(bytes: Uint8Array, start: number, end: number): string
     }
     return out;
 }
+
+/**
+ * Encode UTF-8 into bytes[start..], writing at most `maxBytes` bytes and
+ * stopping on a character boundary (same semantics as TextEncoder.encodeInto,
+ * but without the per-call encoder state). Returns the number of bytes written.
+ */
+export function writeUtf8(bytes: Uint8Array, start: number, str: string, maxBytes: number): number {
+    let o = start;
+    const end = start + maxBytes;
+    for (let i = 0; i < str.length && o < end; i++) {
+        let cp = str.charCodeAt(i);
+        // astral char (surrogate pair)
+        if (cp >= 0xd800 && cp <= 0xdbff && i + 1 < str.length) {
+            const lo = str.charCodeAt(i + 1);
+            if (lo >= 0xdc00 && lo <= 0xdfff) {
+                cp = ((cp - 0xd800) << 10) + (lo - 0xdc00) + 0x10000;
+                i++;
+            }
+        }
+        let n: number;
+        if (cp < 0x80) n = 1;
+        else if (cp < 0x800) n = 2;
+        else if (cp < 0x10000) n = 3;
+        else n = 4;
+        if (o + n > end) break; // stop at a character boundary
+        if (n === 1) {
+            bytes[o++] = cp;
+        } else if (n === 2) {
+            bytes[o++] = 0xc0 | (cp >> 6);
+            bytes[o++] = 0x80 | (cp & 0x3f);
+        } else if (n === 3) {
+            bytes[o++] = 0xe0 | (cp >> 12);
+            bytes[o++] = 0x80 | ((cp >> 6) & 0x3f);
+            bytes[o++] = 0x80 | (cp & 0x3f);
+        } else {
+            bytes[o++] = 0xf0 | (cp >> 18);
+            bytes[o++] = 0x80 | ((cp >> 12) & 0x3f);
+            bytes[o++] = 0x80 | ((cp >> 6) & 0x3f);
+            bytes[o++] = 0x80 | (cp & 0x3f);
+        }
+    }
+    return o - start;
+}
