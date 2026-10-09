@@ -128,6 +128,17 @@ describe('CStructUint8Array codegen (DataView) — parity with interpreter and B
         expect(CStructUint8Array.compileRead<any>(model)(ref.length ? CStructUint8Array.compileMake(model)(data).bytes : new Uint8Array()).struct).toEqual(data);
     });
 
+    it('dynamic buffer buf[i16] parity with interpreter', () => {
+        const model = { blob: 'buf[i16]' };
+        const uv = CStructUint8Array.fromModelTypes(model);
+        const data = { blob: new Uint8Array([1, 2, 3, 255]) };
+        const ref = CStructLE.fromModelTypes(model).make({ blob: Buffer.from([1, 2, 3, 255]) }).buffer.toString('hex');
+
+        const made = uv.compileMake()(data);
+        expect(hex(made.bytes)).toBe(ref);
+        expect([...(uv.compileRead()(made.bytes).struct.blob as Uint8Array)]).toEqual([1, 2, 3, 255]);
+    });
+
     it('enum model works in compiled functions', () => {
         const uv = CStructUint8Array.fromModelTypes({
             state: { type: 'u8', enum: { 1: 'IDLE', 2: 'RUN' } },

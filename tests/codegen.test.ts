@@ -142,6 +142,12 @@ describe('codegen parity', () => {
             expectCodegenParity(CStruct, model, undefined, struct);
         });
 
+        it('dynamic buffer buf[i16]', () => {
+            const model = { b: 'buf[i16]' };
+            const struct = { b: hexToBuffer('01020304ff') };
+            expectCodegenParity(CStruct, model, undefined, struct);
+        });
+
         it('json field j20', () => {
             const model = { j: 'j[20]' };
             const struct = { j: { a: 1 } };

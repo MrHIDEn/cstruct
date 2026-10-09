@@ -255,6 +255,14 @@ function writeBufferFieldDv(ctx: DvCtx, o: string, valueExpr: string, size: numb
     push(ctx, `bytes.set((${valueExpr}).subarray(0, ${size}), ${o}); ${o} += ${size};`);
 }
 
+function writeBufferDynamicDv(ctx: DvCtx, o: string, valueExpr: string) {
+    if (ctx.phase === 'size') {
+        push(ctx, `size += (${valueExpr}).length;`);
+        return;
+    }
+    push(ctx, `bytes.set(${valueExpr}, ${o}); ${o} += (${valueExpr}).length;`);
+}
+
 // --- scalar/dynamic field emit ---
 
 function readAtomDv(ctx: DvCtx, type: string, o: string, target: string) {
@@ -585,7 +593,7 @@ function writeDynamicOrStaticDv(
             if (isStatic) {
                 writeBufferFieldDv(ctx, o, structKeyExpr, staticSize);
             } else {
-                throw new Error('Dynamic buffer without static size is not supported in write path.');
+                writeBufferDynamicDv(ctx, o, structKeyExpr);
             }
             return;
         }
