@@ -34,19 +34,19 @@ on **variable-length data**: a length-prefixed string + a length-prefixed array.
 
 | Format / path | Encode ops/s | Encode ns/op | Decode ops/s | Decode ns/op | Wire bytes |
 |---:|---:|---:|---:|---:|---:|
-| cstruct (Buffer, interpreted) | 3 000 936 | 333.2 | 2 983 041 | 335.2 | **53** |
-| cstruct (DataView, interpreted) | 3 900 536 | 256.4 | 2 836 052 | 352.6 | **53** |
-| cstruct (codegen) | **11 235 922** | **89.0** | **8 147 070** | **122.7** | **53** |
-| JSON | 5 721 072 | 174.8 | 3 590 606 | 278.5 | 129 |
-| protobuf (protobufjs) | 8 415 422 | 118.8 | 7 154 260 | 139.8 | 56 |
+| cstruct (Buffer, interpreted) | 2 976 834 | 335.9 | 2 979 642 | 335.6 | **53** |
+| cstruct (DataView, interpreted) | 3 885 396 | 257.4 | 2 803 877 | 356.6 | **53** |
+| cstruct (codegen) | **15 268 735** | **65.5** | **8 460 079** | **118.2** | **53** |
+| JSON | 5 789 447 | 172.7 | 3 616 545 | 276.5 | 129 |
+| protobuf (protobufjs) | 8 411 310 | 118.9 | 7 137 762 | 140.1 | 56 |
 
 Higher ops/s is better; lower ns/op and wire bytes is better.
 
 ## How to read this
 
-* **`cstruct` codegen leads on encode and decode** — encode ~11.2M (~1.3× faster
-  than protobuf `encode` and ~2.0× faster than `JSON.stringify`), decode ~8.15M
-  (~1.14× faster than protobuf `decode` and ~2.3× faster than `JSON.parse`) —
+* **`cstruct` codegen leads on encode and decode** — encode ~15.3M (~1.8× faster
+  than protobuf `encode` and ~2.6× faster than `JSON.stringify`), decode ~8.46M
+  (~1.18× faster than protobuf `decode` and ~2.3× faster than `JSON.parse`) —
   because it reads/writes integers directly to the `Uint8Array` (no per-call
   `DataView`) and uses fast UTF-8 codecs.
 * **`cstruct` wins wire size** — 53 B vs protobuf 56 B vs JSON 129 B. With a

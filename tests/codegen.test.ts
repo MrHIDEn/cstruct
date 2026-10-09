@@ -154,6 +154,15 @@ describe('codegen parity', () => {
             expectCodegenParity(CStruct, model, undefined, struct);
         });
 
+        it('static json too big throws (make + write)', () => {
+            const model = { j: 'j[8]' };
+            const cStruct = CStruct.fromModelTypes(model as never);
+            const big = { a: 'way too long for 8 bytes' };
+
+            expect(() => cStruct.make({ j: big } as never)).toThrow(/greater than 8/);
+            expect(() => cStruct.compileMake()({ j: big } as never)).toThrow(/greater than 8/);
+        });
+
         it('PLC aliases', () => {
             const model = { b: 'BYTE', w: 'WORD', f: 'BOOL' };
             const struct = { b: 0x12, w: 0x3456, f: true };

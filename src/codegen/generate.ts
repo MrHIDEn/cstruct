@@ -429,7 +429,7 @@ function writeDynamicOrStatic(
     }
 
     if (isStatic && staticSize !== 0 && specialType !== SpecialType.String) {
-        push(ctx, `if (${structKeyExpr}.length > ${staticSize}) throw new Error('Size of value ' + ${structKeyExpr}.length + ' is greater than ${staticSize}.');`);
+        push(ctx, `if (${valueExpr}.length > ${staticSize}) throw new Error('Size of value ' + ${valueExpr}.length + ' is greater than ${staticSize}.');`);
     }
 
     // For a dynamic string/json, compute the UTF-8 byte length once (write phase)
