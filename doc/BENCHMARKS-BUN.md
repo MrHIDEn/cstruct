@@ -26,7 +26,7 @@ Source: [`benchmarks/codegen-bench.ts`](../benchmarks/codegen-bench.ts)
 | OS | macOS 26.6.2 |
 | **Bun** | **1.4.2** (JavaScriptCore) |
 | Node.js (comparison) | v24.21.0 (LTS Krypton, via nvm) |
-| Library | `@mrhiden/cstruct` 1.8.0 |
+| Library | `@mrhiden/cstruct` 1.8.1 |
 | Endian | Little-endian (`CStructLE` / `CStructUint8Array` default LE) |
 | Bench duration | ~700 ms per case (default `BENCH_MS`) |
 
@@ -121,7 +121,7 @@ Quick summary — pre-compiled `*Fn()` throughput (bold = row winner):
 Bun is faster than Node and Deno on **every codegen hot path** in this
 session; the gap is modest (~x1.1–3.5) except the static Buffer read/write
 loop flagged with †. The interpreter is also faster on Bun (~x1.2–1.6) —
-reversed relative to pre-1.8.0 measurements, when the object-heavy per-call
+reversed relative to pre-1.8.1 measurements, when the object-heavy per-call
 reader/writer construction dominated and favoured Node.
 
 ## Reproduce

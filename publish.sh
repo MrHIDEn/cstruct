@@ -73,7 +73,15 @@ info "Registry: $REGISTRY"
 [[ "$REGISTRY" == *"registry.npmjs.org"* ]] || warn "Registry is NOT npmjs.org — check your .npmrc!"
 WHOAMI=$(npm whoami 2>/dev/null || echo "(not logged in)")
 info "npm user: $WHOAMI"
-[[ "$WHOAMI" == *"(not logged in)"* ]] && die "Not logged in to npm. Run 'npm login' first."
+if [[ "$WHOAMI" == *"(not logged in)"* ]]; then
+    if ask "Not logged in to npm. Run 'npm login' now?" Y; then
+        npm login
+        WHOAMI=$(npm whoami 2>/dev/null || die "Still not logged in after 'npm login'.")
+        ok "Logged in as $WHOAMI."
+    else
+        die "Not logged in to npm. Run 'npm login' first."
+    fi
+fi
 ask "Proceed with publish from this machine?" N || die "Aborted."
 
 # --- 3. Tests ---------------------------------------------------------------

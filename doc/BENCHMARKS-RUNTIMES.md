@@ -8,7 +8,7 @@ Head-to-head results for `@mrhiden/cstruct` codegen on the **same machine**, ben
 | [BENCHMARKS-BUN.md](BENCHMARKS-BUN.md) | Bun 1.4.2 (JavaScriptCore) | `npm run bench:bun` |
 | [BENCHMARKS-DENO.md](BENCHMARKS-DENO.md) | Deno 2.9.7 (V8 15.0) | `npm run bench:deno` |
 
-Hardware: MacBook **M4 Pro**, macOS 26.6.2, `@mrhiden/cstruct` 1.8.0, ~700 ms per case.
+Hardware: MacBook **M4 Pro**, macOS 26.6.2, `@mrhiden/cstruct` 1.8.1, ~700 ms per case.
 
 Source: [`benchmarks/codegen-bench.ts`](../benchmarks/codegen-bench.ts) — identical harness for all runtimes (Buffer + Uint8Array/DataView variants). Deno needs `--sloppy-imports` (extensionless dir imports) and reports `process.version` as a Node-compat shim (`v26.5.1`) — ignore that line in its output.
 
