@@ -1,11 +1,21 @@
 import { ReaderFunctions, ReaderValue } from "./types";
 import { BaseBuffer } from "./base-buffer";
 
-export class ReadBuffer extends BaseBuffer {
+export abstract class ReadBuffer extends BaseBuffer {
     protected _buffer: Buffer;
     protected _offset: number;
     protected _beginOffset: number;
     protected _atomFunctions: Map<string, ReaderFunctions>;
+
+    // Multi-byte atoms are implemented in ReadBufferLE / ReadBufferBE.
+    protected abstract u16(): number;
+    protected abstract i16(): number;
+    protected abstract u32(): number;
+    protected abstract i32(): number;
+    protected abstract u64(): bigint;
+    protected abstract i64(): bigint;
+    protected abstract f(): number;
+    protected abstract d(): number;
 
     private u8() {
         const val = this._buffer.readUInt8(this._offset);
@@ -88,18 +98,38 @@ export class ReadBuffer extends BaseBuffer {
     }
 
     read(type: string, size?: number): ReaderValue {
-        if (size === undefined) {
-            const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
-            if (groups) {
-                type = groups.type;
-                size = +groups.size;
+        switch (type) {
+            case 'u8': return this.u8();
+            case 'i8': return this.i8();
+            case 'b8': return Boolean(this.i8());
+            case 'u16': return this.u16();
+            case 'i16': return this.i16();
+            case 'u32': return this.u32();
+            case 'i32': return this.i32();
+            case 'u64': return this.u64();
+            case 'i64': return this.i64();
+            case 'f': return this.f();
+            case 'd': return this.d();
+            case 'b16': return Boolean(this.i16());
+            case 'b32': return Boolean(this.i32());
+            case 'b64': return Boolean(this.i64());
+            case 's': return this.s(size);
+            case 'ws': return this.ws(size);
+            case 'buf': return this.buf(size);
+            case 'j': return this.s(size);
+            default: {
+                if (size === undefined) {
+                    const groups = type.match(this._stringOrBufferAtomOrJsonGroups)?.groups;
+                    if (groups) {
+                        return this.read(groups.type, +groups.size);
+                    }
+                }
+                const reader = this._atomFunctions.get(type);
+                if (reader) {
+                    return reader(size);
+                }
+                throw new Error(`Unknown type ${type}`);
             }
-        }
-        if (this._atomFunctions.has(type)) {
-            const reader = this._atomFunctions.get(type);
-            return reader(size);
-        } else {
-            throw new Error(`Unknown type ${type}`);
         }
     }
 
