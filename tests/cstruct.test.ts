@@ -78,4 +78,13 @@ describe('CStruct - default class with options', () => {
         const readFn = cStruct.compileRead();
         expect(readFn(Buffer.from([0x0a, 0x0b]), 0).struct).toEqual({ a: 0x0a0b });
     });
+
+    it('should treat a types map with an "endian" key as types, not options', () => {
+        // user type named "endian" must not be mistaken for options
+        const cStruct = new CStruct({ b: 'endian' }, { endian: 'u8' });
+        const result = cStruct.make({ b: 0x11 });
+        expect(result.buffer).toEqual(Buffer.from([0x11]));
+        // and the shorthand still works when it really is options
+        expect(new CStruct({ b: 'u16' }, { endian: 'be' }).make({ b: 0x11 }).buffer.toString('hex')).toBe('0011');
+    });
 });

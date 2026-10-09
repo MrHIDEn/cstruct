@@ -97,8 +97,12 @@ export class CStruct<T = any> {
 }
 
 function isOptions(value: unknown): value is CStructOptions {
-    return typeof value === 'object' && value !== null
-        && !Array.isArray(value)
-        && 'endian' in value
-        && typeof (value as CStructOptions).endian === 'string';
+    // Deliberately narrow: only a valid `endian` value counts as an options
+    // object, so a user-types map that happens to have an `endian` key
+    // (e.g. `{ endian: 'u8' }`) is never mistaken for options.
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return false;
+    }
+    const endian = (value as CStructOptions).endian;
+    return typeof endian === 'string' && (endian.toLowerCase() === 'le' || endian.toLowerCase() === 'be');
 }
