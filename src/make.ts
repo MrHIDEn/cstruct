@@ -1,152 +1,87 @@
-import { Model, SpecialType, StructEntry, Type, WriterValue } from "./types";
+import { Model, SpecialType, WriterValue } from "./types";
 import { WriteBufferLE } from "./write-buffer-le";
 import { WriteBufferBE } from "./write-buffer-be";
-import { ReadWriteBase } from "./read-write-base";
-import { enumNameToRaw, isEnumModel } from "./enum";
+import { enumNameToRaw } from "./enum";
+import { CompiledNode, CompiledDynamic, compiledModel } from "./compiled-model";
 
-export class Make<T> extends ReadWriteBase {
+export class Make<T> {
     protected _writer: WriteBufferLE | WriteBufferBE;
 
     /**
-     * Walk the compiled model and struct value, writing bytes to the internal buffer.
-     * The model is never mutated — only the output buffer grows.
+     * Walk the (precompiled) model and struct value, writing bytes to the
+     * internal buffer. The model is never mutated — only the output buffer grows.
      */
     recursion(model: Model, struct: T) {
-        const entries: StructEntry[] = Object.entries(model);
+        this.writeNode(compiledModel(model), struct);
+    }
 
-        for (const [modelKey, modelType] of entries) {
-            // Catch dynamic key — e.g. "some.i16" or "some.5"
-            const keyLengthGroups = this.getDynamicTypeLengthGroupsMatch(modelKey);
-
-            // Dynamic key: field name carries type/length, value is the item type
-            // 1 (some.i16: u8)
-            // 2 (some.5  : u8)
-            if (keyLengthGroups) {
-                const {dynamicType, dynamicLength} = keyLengthGroups;
-                this.writDynamicOrStatic(struct, modelType as string, dynamicLength, dynamicType, modelType as string);
-                continue;
-            }
-
-            // Dynamic type: type string carries length, key is the struct field name
-            if (typeof modelType === 'string') {
-                // Catch dynamic type — e.g. "u8.i16" or "u8.5"
-                const typeDynamicGroups = this.getDynamicTypeLengthGroupsMatch(modelType);
-
-                // Dynamic type
-                // 1 (u8.i16) (<dynamicType>.<dynamicLength>)
-                // 2 (u8.5)   (<dynamicType>.<dynamicLength>)
-                if (typeDynamicGroups) {
-                    const {dynamicType, dynamicLength} = typeDynamicGroups;
-                    this.writDynamicOrStatic(struct, dynamicType, dynamicLength, modelKey, dynamicType);
-                    continue;
+    private writeNode(node: CompiledNode, struct: any) {
+        switch (node.t) {
+            case 0: { // scalar
+                if (node.buf0) {
+                    throw new Error(`Buffer size can not be 0. (make)`);
                 }
+                let value: WriterValue = struct;
+                if (node.json) {
+                    value = JSON.stringify(value);
+                }
+                this._writer.write(node.type, value, node.size);
+                return;
             }
-
-            // Static field — scalar or nested struct
-            this.write(model, struct, modelKey, modelType);
+            case 1: { // enum
+                this._writer.write(node.type, enumNameToRaw(node.enumModel, struct));
+                return;
+            }
+            case 2: { // dynamic
+                this.writeDynamic(node, struct);
+                return;
+            }
+            case 3: { // tuple model
+                for (let i = 0; i < node.items.length; i++) {
+                    this.writeNode(node.items[i], struct[i]);
+                }
+                return;
+            }
+            case 4: { // object model
+                for (const field of node.fields) {
+                    this.writeNode(field.node, struct[field.key]);
+                }
+                return;
+            }
         }
     }
 
-    private writDynamicOrStatic(struct: T, modelType: string, dynamicLength: string, structKey: string, writeType: string) {
-        // Dynamic key
-        // Dyn (some.i16: u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[i8]'} modelType = u8
-        // Sta (some.5  : u8) (<dynamicType>.<dynamicLength>: <modelType>) data = {abc: 'j[9]'}  modelType = u8
-        // Dynamic type
-        // Dyn (u8.i16) (<dynamicType>.<dynamicLength>) data = ['j[i8]'] modelType = u8
-        // Sta (u8.5)   (<dynamicType>.<dynamicLength>) data = ['j[9]']  modelType = u8
-
-        const {
-            specialType,
-            isStatic,
-            staticSize
-        } = this.extractTypeAndSize(modelType, dynamicLength);
-
-        let structValues = struct[structKey];
-        if (specialType === SpecialType.Json) {
+    private writeDynamic(node: CompiledDynamic, struct: any) {
+        let structValues = struct;
+        if (node.special === SpecialType.Json) {
             structValues = JSON.stringify(structValues);
         }
 
-        if (isStatic && staticSize !== 0 && structValues.length > staticSize && specialType !== SpecialType.String) {
-            throw new Error(`Size of value ${structValues.length} is greater than ${staticSize}.`);
+        if (node.isStatic && node.staticSize !== 0 && structValues.length > node.staticSize && node.special !== SpecialType.String) {
+            throw new Error(`Size of value ${structValues.length} is greater than ${node.staticSize}.`);
         }
 
-        // Size: use static length from the model, or derive from the struct value
-        const size = isStatic
-            ? staticSize
-            : structValues.length;
+        const size = node.isStatic ? node.staticSize : structValues.length;
 
-        if (size === 0 && specialType === SpecialType.Buffer) {
+        if (size === 0 && node.special === SpecialType.Buffer) {
             throw new Error(`Buffer size can not be 0.`);
         }
 
         // Dynamic length — write size prefix before the value
-        if (!isStatic) {
-            this._writer.write(dynamicLength, size);
+        if (!node.isStatic) {
+            this._writer.write(node.lengthType, size);
         }
 
         // Write string, wstring, buffer, or json blob
-        if (specialType) {
-            this._writer.write(writeType, structValues, isStatic ? size : undefined);
+        if (node.special) {
+            this._writer.write(node.type, structValues, node.isStatic ? size : undefined);
         }
-
-        // Write array of itemsType (structValues.length elements)
+        // Write array of items
         else {
-            this.writeArray(writeType, structValues);
-        }
-    }
-
-    private write(model: Model, struct: T, modelKey: string, modelType: Type) {
-        let structValues: WriterValue;
-        switch (typeof modelType) {
-            // Nested struct object
-            case 'object':
-                // Enum model — map a name (or raw value) back to the raw (wire) value
-                if (isEnumModel(modelType)) {
-                    structValues = struct[modelKey];
-                    this._writer.write(modelType.type, enumNameToRaw(modelType, structValues));
-                    break;
-                }
-                this.recursion(model[modelKey], struct[modelKey]);
-                break;
-            // Static scalar — u8, i16, j0, buf, wstring, ...
-            case 'string':
-                if (modelType === 'buf0') {
-                    throw new Error(`Buffer size can not be 0. (make)`);
-                }
-                structValues = struct[modelKey];
-                if (modelType === 'j0') {
-                    structValues = JSON.stringify(structValues);
-                }
-                this._writer.write(modelType, structValues);
-                break;
-            default:
-                throw TypeError(`Unknown type "${modelType}"`);
-        }
-    }
-
-    private writeArray(itemsType: Type, structValues: T[]) {
-        switch (typeof itemsType) {
-            // Array of nested structs — encode each element's sub-tree
-            case 'object':
-                // Array of enum items — map each name (or raw value) back to the raw (wire) value
-                if (isEnumModel(itemsType)) {
-                    for (const structValue of structValues) {
-                        this._writer.write(itemsType.type, enumNameToRaw(itemsType, structValue as WriterValue));
-                    }
-                    break;
-                }
-                for (const structValue of structValues) {
-                    this.recursion(itemsType, structValue);
-                }
-                break;
-            // Array of scalars — repeat the same type string for each element
-            case 'string':
-                for (const structValue of structValues) {
-                    this._writer.write(itemsType, structValue as WriterValue);
-                }
-                break;
-            default:
-                throw TypeError(`Unknown type "${itemsType}"`);
+            const items = node.items!;
+            for (const value of structValues) {
+                this.writeNode(items, value);
+            }
         }
     }
 
