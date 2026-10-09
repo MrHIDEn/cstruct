@@ -61,8 +61,7 @@ function isOptions(value: unknown): value is CStructUvOptions {
  * `make()` returns a plain Uint8Array.
  *
  * Codegen (`compileRead/compileWrite/compileMake`) emits DataView-based code —
- * also browser-ready. Note: enum models are not supported in compiled functions
- * (same limitation as the Buffer codegen).
+ * also browser-ready. Enums, dynamic buffers, and JSON are supported.
  *
  * Both styles work:
  * - `new CStructUint8Array(model, { endian: 'be' })`
