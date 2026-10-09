@@ -83,7 +83,7 @@ function readBuffer(ctx: CodegenContext, offsetVar: string, sizeExpr: string, ta
     push(ctx, `${target} = buf.slice(${offsetVar}, ${offsetVar} + ${sizeExpr}); ${offsetVar} += ${sizeExpr};`);
 }
 
-function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false, dynamic = false) {
+function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: string, size: number | string, trailing = false, dynamic = false, lenExpr?: string) {
     if (ctx.accumulateSize) {
         if (trailing) {
             push(ctx, `size += Buffer.byteLength(${valueExpr}, 'utf8') + 1;`);
@@ -98,7 +98,8 @@ function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: stri
             push(ctx, `{ const ${b} = Buffer.alloc(Buffer.byteLength(${valueExpr}, 'utf8') + 1); ${b}.write(${valueExpr}, 0, 'utf8'); chunks.push(${b}); }`);
         } else if (dynamic) {
             const b = tmpId(ctx);
-            push(ctx, `{ const ${b} = Buffer.alloc(Buffer.byteLength(${valueExpr}, 'utf8')); ${b}.write(${valueExpr}, 0, 'utf8'); chunks.push(${b}); }`);
+            const len = lenExpr ?? `Buffer.byteLength(${valueExpr}, 'utf8')`;
+            push(ctx, `{ const ${b} = Buffer.alloc(${len}); ${b}.write(${valueExpr}, 0, 'utf8'); chunks.push(${b}); }`);
         } else {
             const b = tmpId(ctx);
             push(ctx, `{ const ${b} = Buffer.alloc(${size}); ${b}.write(${valueExpr}, 0, ${size}, 'utf8'); chunks.push(${b}); }`);
@@ -107,7 +108,11 @@ function writeStringUtf8(ctx: CodegenContext, offsetVar: string, valueExpr: stri
         if (trailing) {
             push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}); buf.writeUInt8(0, ${offsetVar} + _b); ${offsetVar} += _b + 1; }`);
         } else if (dynamic) {
-            push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
+            if (lenExpr) {
+                push(ctx, `buf.write(${valueExpr}, ${offsetVar}, ${lenExpr}, 'utf8'); ${offsetVar} += ${lenExpr};`);
+            } else {
+                push(ctx, `{ const _b = Buffer.byteLength(${valueExpr}, 'utf8'); buf.write(${valueExpr}, ${offsetVar}, _b, 'utf8'); ${offsetVar} += _b; }`);
+            }
         } else {
             push(ctx, `buf.fill(0, ${offsetVar}, ${offsetVar} + ${size}); buf.write(${valueExpr}, ${offsetVar}, ${size}, 'utf8'); ${offsetVar} += ${size};`);
         }
@@ -427,7 +432,15 @@ function writeDynamicOrStatic(
         push(ctx, `if (${structKeyExpr}.length > ${staticSize}) throw new Error('Size of value ' + ${structKeyExpr}.length + ' is greater than ${staticSize}.');`);
     }
 
-    const sizeExpr = dynamicPayloadLengthExpr(structKeyExpr, valueExpr, specialType, isStatic, staticSize);
+    // For a dynamic string/json, compute the UTF-8 byte length once (write phase)
+    // and reuse it for both the length prefix and the string write.
+    let lenExpr: string | undefined;
+    if (!isStatic && (specialType === SpecialType.String || specialType === SpecialType.Json) && !ctx.accumulateSize) {
+        lenExpr = tmpId(ctx);
+        push(ctx, `const ${lenExpr} = Buffer.byteLength(${valueExpr}, 'utf8');`);
+    }
+
+    const sizeExpr = lenExpr ?? dynamicPayloadLengthExpr(structKeyExpr, valueExpr, specialType, isStatic, staticSize);
 
     if (+sizeExpr === 0 && specialType === SpecialType.Buffer) {
         throw new Error('Buffer size can not be 0.');
@@ -442,7 +455,7 @@ function writeDynamicOrStatic(
             if (isStatic && staticSize === 0) {
                 writeStringUtf8(ctx, offsetVar, structKeyExpr, 0, true);
             } else if (!isStatic) {
-                writeStringUtf8(ctx, offsetVar, structKeyExpr, 0, false, true);
+                writeStringUtf8(ctx, offsetVar, structKeyExpr, 0, false, true, lenExpr);
             } else {
                 writeStringUtf8(ctx, offsetVar, structKeyExpr, staticSize);
             }
@@ -478,7 +491,7 @@ function writeDynamicOrStatic(
             if (isStatic && staticSize === 0) {
                 writeStringUtf8(ctx, offsetVar, valueExpr, 0, true);
             } else if (!isStatic) {
-                writeStringUtf8(ctx, offsetVar, valueExpr, 0, false, true);
+                writeStringUtf8(ctx, offsetVar, valueExpr, 0, false, true, lenExpr);
             } else {
                 writeStringUtf8(ctx, offsetVar, valueExpr, staticSize);
             }
