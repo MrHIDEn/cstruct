@@ -368,6 +368,14 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.9.0
+* **Enum support in compiled functions** — `compileRead`/`compileWrite`/`compileMake` no longer throw on enum models; they map raw↔name (scalar, nested, arrays)
+* **Dynamic buffer in compiled write** — `buf[i16]` (length-prefixed buffer) is now supported by `compileWrite` (previously threw)
+* **Fix: UTF-8 length prefix** — dynamic `s[i16]`/`j[i16]` wrote the length prefix as UTF-16 `str.length`, truncating multibyte strings; now uses UTF-8 byte length (interpreter + codegen)
+* **Fix: static JSON** — `j[8]`/`j[20]` size validation now checks the `JSON.stringify`'d length (was `undefined` on the raw object); sized-atom notation `j8`/`j20` is now stringified/parsed
+* **Perf: interpreter** — compiled model (single pre-resolved tree), switch atom dispatch, single growing write buffer; interpreter now ~5× faster than before (make ~7M, read ~11M ops/s on the fixed-size benchmark)
+* **Perf: codegen** — UTF-8 length computed once per pass; single-pass `JSON.stringify`
+
 ### What's new in 1.8.1
 * Added `CStructUint8Array` — browser-ready serialization on `Uint8Array`/`DataView` (no Node `Buffer`): same model syntax, `read`/`write`/`make`, `compileRead`/`compileWrite`/`compileMake`, `fromModelTypes`/`fromCompiled` and `{ endian: 'be' }` option
 * Performance: interpreter (`read` / `write` / `make`) reuses reader/writer instances per `CStruct` (new `reset()` / `run()` on reader/writer classes) — ~15× faster interpreter (up to 2–3.5M ops/s)
