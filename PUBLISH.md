@@ -1,4 +1,10 @@
 ```bash
+git tag v1.9.0 && git push origin v1.9.0
+```
+```bash
+gh release create v1.9.0 --title "v1.9.0" --generate-notes
+```
+```bash
 npm login
 npm whoami
 ```
@@ -9,12 +15,7 @@ publishConfig ma już access: public, więc nie trzeba dodawać flagi. `npm publ
 ```bash
 npm publish
 ```
-```bash
-git tag v1.xxx && git push origin v1.xxx
-```
+
 ```bash
 npm logout
-```
-```bash
-gh release create v1.8.2 --title "v1.8.2" --generate-notes
 ```
