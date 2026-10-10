@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks';
 import { createRequire } from 'module';
-import { CStruct, CStructUint8Array } from '../src';
+import { CStruct, CStructLE, CStructUint8Array } from '../src';
 
 /**
  * Binary-vs-binary comparison: @mrhiden/cstruct (3 variants) vs
@@ -13,6 +13,9 @@ import { CStruct, CStructUint8Array } from '../src';
  *
  *   cstruct variants:
  *     - CStruct (Buffer)              — Node Buffer, interpreter (walk model)
+ *     - CStructLE (Buffer codegen)    — compileMake/compileRead on Buffer,
+ *                                       uses Buffer.read/write*LE intrinsics
+ *                                       (like-for-like peer of compileFast)
  *     - CStructUint8Array (DataView)  — Uint8Array/DataView, interpreter
  *     - CStructUint8Array (codegen)   — model compiled once into a function
  *
@@ -122,6 +125,12 @@ const bytes = uvCStruct.make(data).bytes;
 const uvMakeFn = uvCStruct.compileMake();
 const uvReadFn = uvCStruct.compileRead();
 
+// cstruct — Buffer codegen (CStructLE; uses Buffer.read/write*LE intrinsics —
+// the natural like-for-like peer of struct-compile fast mode on Node)
+const leCStruct = new CStructLE(model);
+const leMakeFn = leCStruct.compileMake();
+const leReadFn = leCStruct.compileRead();
+
 // struct-compile — fast mode (caller-provided output buffer)
 const scBuf = Buffer.allocUnsafe(SensorFast.size);
 SensorFast.encode(scBuf, 0, data);
@@ -135,10 +144,11 @@ const scFastDecoded = SensorFast.decode(scBuf, 0);
 const scCls = new SensorClass(scClsBuf);
 const scClassDecoded = { a: scCls.a, b: scCls.b, c: scCls.c, d: scCls.d, e: scCls.e };
 const csDecoded = uvReadFn(bytes).struct;
+const csLeDecoded = leReadFn(buf).struct;
 
 const same = (a: Record<string, any>, b: Record<string, any>) =>
     ['a', 'b', 'c', 'd', 'e'].every((k) => a[k] === b[k]);
-if (!same(data, scFastDecoded) || !same(data, scClassDecoded) || !same(data, csDecoded)) {
+if (!same(data, scFastDecoded) || !same(data, scClassDecoded) || !same(data, csDecoded) || !same(data, csLeDecoded)) {
     throw new Error('round-trip mismatch between cstruct and struct-compile');
 }
 
@@ -158,6 +168,7 @@ if (!identical) {
 printGroup('ENCODE (data -> bytes)', [
     bench('cstruct make (Buffer)', () => { bufCStruct.make(data); }),
     bench('cstruct make (DataView)', () => { uvCStruct.make(data); }),
+    bench('cstruct make (Buffer codegen)', () => { leMakeFn(data); }),
     bench('cstruct make (codegen)', () => { uvMakeFn(data); }),
     bench('sc fast encode (prealloc)', () => { SensorFast.encode(scBuf, 0, data); }),
     bench('sc fast encode (allocUnsafe)', () => { const b = Buffer.allocUnsafe(SensorFast.size); SensorFast.encode(b, 0, data); }),
@@ -169,6 +180,7 @@ let sink = 0; // printed below; prevents the class-lazy path from being optimize
 printGroup('DECODE (bytes -> data)', [
     bench('cstruct read (Buffer)', () => { bufCStruct.read(buf); }),
     bench('cstruct read (DataView)', () => { uvCStruct.read(bytes); }),
+    bench('cstruct read (Buffer codegen)', () => { leReadFn(buf); }),
     bench('cstruct read (codegen)', () => { uvReadFn(bytes); }),
     bench('sc fast decode', () => { SensorFast.decode(scBuf, 0); }),
     bench('sc class lazy (all fields)', () => { const o = new SensorClass(scClsBuf); sink += o.a + o.b + o.c + o.d + o.e; }),
