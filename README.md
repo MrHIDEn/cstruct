@@ -36,6 +36,7 @@ If you only need to pack a plain object into a buffer — **Quick start** is eno
 * TypeScript's decorators for classes and properties
 * **Browser-ready path**: `CStructUint8Array` — `Uint8Array`/`DataView` instead of Node `Buffer` (works in browsers, Deno, Bun, Node)
 * **Fast compiled path**: `compileRead`/`compileMake`/`compileWrite` compile a model once into specialized functions — ~5.9× faster encode and ~3.1× faster decode than `protobufjs` on the fixed-size benchmark (and beats `JSON`). See [`benchmarks/FORMATS-RESULTS.md`](benchmarks/FORMATS-RESULTS.md)
+* **Binary-vs-binary peer check**: against [`struct-compile`](https://www.npmjs.com/package/struct-compile) (same packed wire layout) cstruct codegen is in the same decode league and ~1.54× faster encode when allocation is included — [`benchmarks/FORMATS-RESULTS-STRUCT-COMPILE.md`](benchmarks/FORMATS-RESULTS-STRUCT-COMPILE.md)
 
 ## Install
 ```bash
