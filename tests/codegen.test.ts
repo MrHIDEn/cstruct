@@ -1,4 +1,7 @@
 import { CStructBE, CStructLE, hexToBuffer } from '../src';
+import { ModelParser } from '../src/model-parser';
+import { generateReadBody, generateWriteBody, generateMakeBody } from '../src/codegen/generate';
+import { analyzeModel } from '../src/codegen/model-analyzer';
 
 type CStructApi = typeof CStructBE | typeof CStructLE;
 
@@ -210,4 +213,74 @@ describe('codegen parity', () => {
             expect(Object.prototype).not.toHaveProperty('42');
         });
     });
+});
+
+describe('generated read body is strict-mode safe (no undeclared temp vars)', () => {
+    const cases: Array<{ name: string; model: unknown; types?: unknown; struct: unknown }> = [
+        { name: 'dynamic string s[i16]', model: { txt: 's[i16]' }, struct: { txt: 'ABCDE' } },
+        { name: 'dynamic array u16[i16]', model: { r: 'u16[i16]' }, struct: { r: [0x1234, 0x5678] } },
+        { name: 'root tuple', model: ['u16', 'u16'], struct: [0x1234, 0x5678] },
+        { name: 'enum', model: { state: { type: 'u8', enum: { 1: 'READY', 2: 'BUSY' } } }, struct: { state: 'BUSY' } },
+        { name: 'trailing zero string s[0]', model: { any1: 's[0]' }, struct: { any1: 'abc' } },
+        { name: 'trailing zero json j[0]', model: { any1: 'j[0]' }, struct: { any1: { a: 1 } } },
+        { name: 'dynamic json j[i16]', model: { any1: 'j[i16]' }, struct: { any1: { a: 1, b: [2, 3] } } },
+        { name: 'static array i8[3]', model: { vals: 'i8[3]' }, struct: { vals: [1, 2, 3] } },
+        {
+            name: 'dynamic nested objects',
+            model: { items: 'Point[i16]' },
+            types: { Point: { x: 'i16', y: 'i16' } },
+            struct: { items: [{ x: 1, y: 2 }, { x: 3, y: 4 }] },
+        },
+        { name: 'dynamic buffer buf[i16]', model: { b: 'buf[i16]' }, struct: { b: hexToBuffer('01020304') } },
+    ];
+
+    for (const CStruct of [CStructBE, CStructLE] as const) {
+        const endian: 'be' | 'le' = CStruct === CStructBE ? 'be' : 'le';
+        describe(CStruct === CStructBE ? 'BE' : 'LE', () => {
+            for (const c of cases) {
+                it(c.name, () => {
+                    const cStruct = CStruct.fromModelTypes(c.model as never, c.types as never);
+                    const made = cStruct.make(c.struct as never).buffer;
+
+                    const parsed = JSON.parse(ModelParser.parseModel(c.model as never, c.types as never));
+                    const body = generateReadBody(parsed as never, endian);
+
+                    // Re-evaluate under strict mode: any assignment to an
+                    // undeclared temp variable throws a ReferenceError here.
+                    const strictRead = new Function('buf', 'off', `'use strict';\n${body}`) as (
+                        buf: Buffer,
+                        off?: number,
+                    ) => unknown;
+
+                    expect(strictRead(made)).toEqual(cStruct.read(made));
+                });
+            }
+        });
+    }
+});
+
+describe('JSON stringify is hoisted (single stringify per top-level JSON field)', () => {
+    const cases: Array<{ name: string; model: unknown }> = [
+        { name: 'dynamic j[i16]', model: { meta: 'j[i16]' } },
+        { name: 'trailing j0', model: { meta: 'j0' } },
+        { name: 'trailing j[0]', model: { meta: 'j[0]' } },
+    ];
+
+    for (const CStruct of [CStructBE, CStructLE] as const) {
+        const endian: 'be' | 'le' = CStruct === CStructBE ? 'be' : 'le';
+        describe(CStruct === CStructBE ? 'BE' : 'LE', () => {
+            for (const c of cases) {
+                it(c.name, () => {
+                    const parsed = JSON.parse(ModelParser.parseModel(c.model as never));
+                    const analysis = analyzeModel(parsed as never);
+
+                    const makeBody = generateMakeBody(parsed as never, endian, analysis.hasVariableLength, analysis.staticSize);
+                    const writeBody = generateWriteBody(parsed as never, endian);
+
+                    expect((makeBody.match(/JSON\.stringify/g) ?? []).length).toBe(1);
+                    expect((writeBody.match(/JSON\.stringify/g) ?? []).length).toBe(1);
+                });
+            }
+        });
+    }
 });

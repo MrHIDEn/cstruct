@@ -368,6 +368,12 @@ Full index: [`examples/README.md`](https://github.com/MrHIDEn/cstruct/blob/main/
 
 ## Changelog
 
+### What's new in 1.9.1
+* **Fix: codegen `read` temp variables** — generated `compileRead` bodies no longer assign to undeclared temp variables (which relied on sloppy-mode implicit globals); all temps are now `let`-declared. Affects both `Buffer` codegen and `CStructUint8Array`/`DataView` codegen.
+* **Perf: `JSON.stringify` hoisted** — dynamic/trailing JSON (`j[i16]`, `j0`, `j[0]`) is now stringified exactly once (hoisted above the size+write passes); previously `j[i16]` did it twice and `j0` three times.
+* **Perf: static-read fast path** — fixed-layout object models now compile `read` to a single folded expression with constant offsets (no cursor, no temp variables).
+* **Docs:** new [`doc/COMPILED.md`](doc/COMPILED.md) — codegen deep dive showing the actual generated function bodies.
+
 ### What's new in 1.9.0
 * **Enum support in compiled functions** — `compileRead`/`compileWrite`/`compileMake` no longer throw on enum models; they map raw↔name (scalar, nested, arrays)
 * **Dynamic buffer in compiled write** — `buf[i16]` (length-prefixed buffer) is now supported by `compileWrite` (previously threw)

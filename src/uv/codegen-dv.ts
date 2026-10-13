@@ -83,12 +83,21 @@ export type CompiledMakeUvFn<T = unknown> = (struct: T) => {
     size: number;
 };
 
+interface DvHoist {
+    lines: string[];
+    vars: Map<string, string>;
+}
+
 interface DvCtx {
     le: boolean;
     lines: string[];
     counter: number;
     /** 'size' — emit `size += …`; 'write' — emit actual reads/writes. */
     phase: 'size' | 'write';
+    /** Nesting depth of emitted runtime loops (0 = top level, hoistable). */
+    loopDepth: number;
+    /** Shared hoist target across the two passes (write/make). */
+    hoist?: DvHoist;
 }
 
 function tmpId(ctx: DvCtx): string {
@@ -97,6 +106,32 @@ function tmpId(ctx: DvCtx): string {
 
 function push(ctx: DvCtx, line: string) {
     ctx.lines.push(line);
+}
+
+/** Allocate a temp id and emit `let <id>;` so it is declared before first use. */
+function letId(ctx: DvCtx): string {
+    const id = tmpId(ctx);
+    push(ctx, `let ${id};`);
+    return id;
+}
+
+/**
+ * JSON.stringify for a field. In a two-pass context, top-level fields are
+ * stringified exactly once (hoisted above both passes) and both passes reuse the
+ * same temp; fields inside runtime loops fall back to per-pass stringification.
+ */
+function jsonValueExprDv(ctx: DvCtx, structKeyExpr: string): string {
+    if (ctx.hoist && ctx.loopDepth === 0) {
+        const existing = ctx.hoist.vars.get(structKeyExpr);
+        if (existing) return existing;
+        const id = tmpId(ctx);
+        ctx.hoist.lines.push(`const ${id} = JSON.stringify(${structKeyExpr});`);
+        ctx.hoist.vars.set(structKeyExpr, id);
+        return id;
+    }
+    const id = tmpId(ctx);
+    push(ctx, `const ${id} = JSON.stringify(${structKeyExpr});`);
+    return id;
 }
 
 function quotedKey(key: string): string {
@@ -329,7 +364,7 @@ function readScalarTypeDv(ctx: DvCtx, modelType: string, o: string, target: stri
                 readStringUtf8TrailingDv(ctx, o, target);
                 push(ctx, `${target} = JSON.parse(${target});`);
             } else {
-                const raw = tmpId(ctx);
+                const raw = letId(ctx);
                 readStringUtf8Dv(ctx, o, String(sized.size), raw);
                 push(ctx, `${target} = JSON.parse(${raw});`);
             }
@@ -338,7 +373,7 @@ function readScalarTypeDv(ctx: DvCtx, modelType: string, o: string, target: stri
     }
 
     if (modelType === 'j0') {
-        const raw = tmpId(ctx);
+        const raw = letId(ctx);
         readStringUtf8TrailingDv(ctx, o, raw);
         push(ctx, `${target} = JSON.parse(${raw});`);
         return;
@@ -374,13 +409,13 @@ function writeScalarTypeDv(ctx: DvCtx, modelType: string, o: string, valueExpr: 
             return;
         }
         if (special === SpecialType.Json) {
-            writeStringUtf8Dv(ctx, o, `JSON.stringify(${valueExpr})`, sized.size, sized.size === 0);
+            writeStringUtf8Dv(ctx, o, jsonValueExprDv(ctx, valueExpr), sized.size, sized.size === 0);
             return;
         }
     }
 
     if (modelType === 'j0') {
-        writeStringUtf8Dv(ctx, o, `JSON.stringify(${valueExpr})`, 0, true);
+        writeStringUtf8Dv(ctx, o, jsonValueExprDv(ctx, valueExpr), 0, true);
         return;
     }
 
@@ -434,7 +469,7 @@ function readArrayItemsDv(ctx: DvCtx, itemsType: Type, sizeExpr: string, o: stri
     push(ctx, `for (let ${i} = 0; ${i} < ${sizeExpr}; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
         if (isEnumModel(itemsType)) {
-            const elem = tmpId(ctx);
+            const elem = letId(ctx);
             readEnumDv(ctx, itemsType, o, elem);
             push(ctx, `${target}[${i}] = ${elem};`);
         } else {
@@ -444,7 +479,7 @@ function readArrayItemsDv(ctx: DvCtx, itemsType: Type, sizeExpr: string, o: stri
             push(ctx, `${target}[${i}] = ${elem};`);
         }
     } else if (typeof itemsType === 'string') {
-        const elem = tmpId(ctx);
+        const elem = letId(ctx);
         readFieldDv(ctx, itemsType, o, elem);
         push(ctx, `${target}[${i}] = ${elem};`);
     } else if (Array.isArray(itemsType)) {
@@ -469,6 +504,7 @@ function writeArrayItemsDv(ctx: DvCtx, itemsType: Type, structArrayExpr: string,
 
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${structArrayExpr}.length; ${i}++) {`);
+    ctx.loopDepth++;
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
         if (isEnumModel(itemsType)) {
             writeEnumDv(ctx, itemsType, o, `${structArrayExpr}[${i}]`);
@@ -480,6 +516,7 @@ function writeArrayItemsDv(ctx: DvCtx, itemsType: Type, structArrayExpr: string,
     } else {
         throw new TypeError(`Unknown type "${itemsType}"`);
     }
+    ctx.loopDepth--;
     push(ctx, '}');
 }
 
@@ -506,7 +543,7 @@ function readDynamicOrStaticDv(
 
     if (specialType) {
         if (specialType === SpecialType.Json) {
-            const raw = tmpId(ctx);
+            const raw = letId(ctx);
             if (isStatic && staticSize === 0) {
                 readStringUtf8TrailingDv(ctx, o, raw);
             } else {
@@ -553,9 +590,7 @@ function writeDynamicOrStaticDv(
 
     let valueExpr = structKeyExpr;
     if (specialType === SpecialType.Json) {
-        const jsonId = tmpId(ctx);
-        push(ctx, `const ${jsonId} = JSON.stringify(${structKeyExpr});`);
-        valueExpr = jsonId;
+        valueExpr = jsonValueExprDv(ctx, structKeyExpr);
     }
 
     if (isStatic && staticSize !== 0 && specialType !== SpecialType.String && ctx.phase === 'write') {
@@ -732,7 +767,7 @@ function generateReadTupleDv(ctx: DvCtx, model: TupleModel, o: string, target: s
     for (let i = 0; i < model.length; i++) {
         const itemType = model[i];
         const idx = indexPrefix ? `${indexPrefix}[${i}]` : String(i);
-        const elem = tmpId(ctx);
+        const elem = letId(ctx);
         readFieldDv(ctx, itemType as Type, o, elem);
         push(ctx, `${target}[${idx}] = ${elem};`);
     }
@@ -748,7 +783,7 @@ function generateReadObjectDv(ctx: DvCtx, model: Model, o: string, target: strin
         const keyGroups = getDotGroups(modelKey);
         if (keyGroups) {
             const { dynamicType, dynamicLength } = keyGroups;
-            const val = tmpId(ctx);
+            const val = letId(ctx);
             readDynamicOrStaticDv(ctx, modelType as string, dynamicLength, modelType as string, o, val);
             push(ctx, `${structProp(target, dynamicType)} = ${val};`);
             continue;
@@ -757,14 +792,14 @@ function generateReadObjectDv(ctx: DvCtx, model: Model, o: string, target: strin
         if (typeof modelType === 'string') {
             const typeGroups = getDotGroups(modelType);
             if (typeGroups) {
-                const val = tmpId(ctx);
+                const val = letId(ctx);
                 readDynamicOrStaticDv(ctx, typeGroups.dynamicType, typeGroups.dynamicLength, typeGroups.dynamicType, o, val);
                 push(ctx, `${structProp(target, modelKey)} = ${val};`);
                 continue;
             }
         }
 
-        const val = tmpId(ctx);
+        const val = letId(ctx);
         readFieldDv(ctx, modelType, o, val);
         push(ctx, `${structProp(target, modelKey)} = ${val};`);
     }
@@ -801,7 +836,7 @@ function generateWriteObjectDv(ctx: DvCtx, model: Model, o: string, structExpr: 
 // --- body generators ---
 
 export function generateReadBodyDv(model: Model, le: boolean): string {
-    const ctx: DvCtx = { le, lines: [], counter: 0, phase: 'write' };
+    const ctx: DvCtx = { le, lines: [], counter: 0, phase: 'write', loopDepth: 0 };
     push(ctx, 'off = off || 0;');
     push(ctx, 'let o = off;');
     const root = tmpId(ctx);
@@ -817,16 +852,18 @@ export function generateReadBodyDv(model: Model, le: boolean): string {
 }
 
 export function generateWriteBodyDv(model: Model, le: boolean): string {
-    const sizeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'size' };
+    const hoist: DvHoist = { lines: [], vars: new Map() };
+    const sizeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'size', loopDepth: 0, hoist };
     push(sizeCtx, 'let size = 0;');
     generateWriteObjectDv(sizeCtx, model, 'o', 'struct');
 
-    const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write' };
+    const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write', loopDepth: 0, hoist };
     push(writeCtx, 'let o = off;');
     generateWriteObjectDv(writeCtx, model, 'o', 'struct');
 
     return [
         'off = off || 0;',
+        ...hoist.lines,
         ...sizeCtx.lines,
         'if (size > bytes.length - off) throw new Error("Write buffer is too short. Needs " + (size - (bytes.length - off)) + " byte/s more.");',
         ...writeCtx.lines,
@@ -835,22 +872,28 @@ export function generateWriteBodyDv(model: Model, le: boolean): string {
 }
 
 export function generateMakeBodyDv(model: Model, le: boolean, hasVariableLength: boolean, staticSize: number): string {
-    const sizeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'size' };
-    push(sizeCtx, 'let size = 0;');
-    generateWriteObjectDv(sizeCtx, model, 'o', 'struct');
-
-    const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write' };
-    push(writeCtx, 'let o = 0;');
-    generateWriteObjectDv(writeCtx, model, 'o', 'struct');
-
     if (hasVariableLength) {
+        const hoist: DvHoist = { lines: [], vars: new Map() };
+        const sizeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'size', loopDepth: 0, hoist };
+        push(sizeCtx, 'let size = 0;');
+        generateWriteObjectDv(sizeCtx, model, 'o', 'struct');
+
+        const writeCtx: DvCtx = { le, lines: [], counter: sizeCtx.counter, phase: 'write', loopDepth: 0, hoist };
+        push(writeCtx, 'let o = 0;');
+        generateWriteObjectDv(writeCtx, model, 'o', 'struct');
+
         return [
+            ...hoist.lines,
             ...sizeCtx.lines,
             'const bytes = new Uint8Array(size);',
             ...writeCtx.lines,
             'return { bytes, offset: o, size: o };',
         ].join('\n');
     }
+
+    const writeCtx: DvCtx = { le, lines: [], counter: 0, phase: 'write', loopDepth: 0 };
+    push(writeCtx, 'let o = 0;');
+    generateWriteObjectDv(writeCtx, model, 'o', 'struct');
 
     return [
         `const bytes = new Uint8Array(${staticSize});`,
