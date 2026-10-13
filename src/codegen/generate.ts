@@ -6,7 +6,7 @@ import {
     getSpecialType,
     parseSizedAtom,
 } from './type-utils';
-import { CodegenContext, CodegenMode, Endian } from './types';
+import { CodegenContext, CodegenMode, Endian, Hoist } from './types';
 import { isEnumModel } from '../enum';
 
 function tmpId(ctx: CodegenContext): string {
@@ -15,6 +15,32 @@ function tmpId(ctx: CodegenContext): string {
 
 function push(ctx: CodegenContext, line: string) {
     ctx.lines.push(line);
+}
+
+/** Allocate a temp id and emit `let <id>;` so it is declared before first use. */
+function letId(ctx: CodegenContext): string {
+    const id = tmpId(ctx);
+    push(ctx, `let ${id};`);
+    return id;
+}
+
+/**
+ * JSON.stringify for a field. In a two-pass context, top-level fields are
+ * stringified exactly once (hoisted above both passes) and both passes reuse the
+ * same temp; fields inside runtime loops fall back to per-pass stringification.
+ */
+function jsonValueExpr(ctx: CodegenContext, structKeyExpr: string): string {
+    if (ctx.hoist && ctx.loopDepth === 0) {
+        const existing = ctx.hoist.vars.get(structKeyExpr);
+        if (existing) return existing;
+        const id = tmpId(ctx);
+        ctx.hoist.lines.push(`const ${id} = JSON.stringify(${structKeyExpr});`);
+        ctx.hoist.vars.set(structKeyExpr, id);
+        return id;
+    }
+    const id = tmpId(ctx);
+    push(ctx, `const ${id} = JSON.stringify(${structKeyExpr});`);
+    return id;
 }
 
 function quotedKey(key: string): string {
@@ -226,7 +252,7 @@ function readScalarType(ctx: CodegenContext, modelType: string, offsetVar: strin
                 readStringUtf8Trailing(ctx, offsetVar, target);
                 push(ctx, `${target} = JSON.parse(${target});`);
             } else {
-                const raw = tmpId(ctx);
+                const raw = letId(ctx);
                 readStringUtf8(ctx, offsetVar, String(sized.size), raw);
                 push(ctx, `${target} = JSON.parse(${raw});`);
             }
@@ -235,7 +261,7 @@ function readScalarType(ctx: CodegenContext, modelType: string, offsetVar: strin
     }
 
     if (modelType === 'j0') {
-        const raw = tmpId(ctx);
+        const raw = letId(ctx);
         readStringUtf8Trailing(ctx, offsetVar, raw);
         push(ctx, `${target} = JSON.parse(${raw});`);
         return;
@@ -271,14 +297,14 @@ function writeScalarType(ctx: CodegenContext, modelType: string, offsetVar: stri
             return;
         }
         if (special === SpecialType.Json) {
-            const jsonExpr = sized.size === 0 ? `JSON.stringify(${valueExpr})` : `JSON.stringify(${valueExpr})`;
+            const jsonExpr = jsonValueExpr(ctx, valueExpr);
             writeStringUtf8(ctx, offsetVar, jsonExpr, sized.size, sized.size === 0);
             return;
         }
     }
 
     if (modelType === 'j0') {
-        writeStringUtf8(ctx, offsetVar, `JSON.stringify(${valueExpr})`, 0, true);
+        writeStringUtf8(ctx, offsetVar, jsonValueExpr(ctx, valueExpr), 0, true);
         return;
     }
 
@@ -297,7 +323,7 @@ function readArrayItems(
     push(ctx, `for (let ${i} = 0; ${i} < ${sizeExpr}; ${i}++) {`);
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
         if (isEnumModel(itemsType)) {
-            const elem = tmpId(ctx);
+            const elem = letId(ctx);
             readEnum(ctx, itemsType, offsetVar, elem);
             push(ctx, `${target}[${i}] = ${elem};`);
         } else {
@@ -307,7 +333,7 @@ function readArrayItems(
             push(ctx, `${target}[${i}] = ${elem};`);
         }
     } else if (typeof itemsType === 'string') {
-        const elem = tmpId(ctx);
+        const elem = letId(ctx);
         readField(ctx, itemsType, offsetVar, elem);
         push(ctx, `${target}[${i}] = ${elem};`);
     } else if (Array.isArray(itemsType)) {
@@ -337,6 +363,7 @@ function writeArrayItems(
 
     const i = tmpId(ctx);
     push(ctx, `for (let ${i} = 0; ${i} < ${structArrayExpr}.length; ${i}++) {`);
+    ctx.loopDepth++;
     if (typeof itemsType === 'object' && !Array.isArray(itemsType)) {
         if (isEnumModel(itemsType)) {
             writeEnum(ctx, itemsType, offsetVar, `${structArrayExpr}[${i}]`);
@@ -348,6 +375,7 @@ function writeArrayItems(
     } else {
         throw new TypeError(`Unknown type "${itemsType}"`);
     }
+    ctx.loopDepth--;
     push(ctx, '}');
 }
 
@@ -374,7 +402,7 @@ function readDynamicOrStatic(
 
     if (specialType) {
         if (specialType === SpecialType.Json) {
-            const raw = tmpId(ctx);
+            const raw = letId(ctx);
             if (isStatic && staticSize === 0) {
                 readStringUtf8Trailing(ctx, offsetVar, raw);
             } else if (!isStatic) {
@@ -423,9 +451,7 @@ function writeDynamicOrStatic(
 
     let valueExpr = structKeyExpr;
     if (specialType === SpecialType.Json) {
-        const jsonId = tmpId(ctx);
-        push(ctx, `const ${jsonId} = JSON.stringify(${structKeyExpr});`);
-        valueExpr = jsonId;
+        valueExpr = jsonValueExpr(ctx, structKeyExpr);
     }
 
     if (isStatic && staticSize !== 0 && specialType !== SpecialType.String) {
@@ -618,7 +644,7 @@ function generateReadTuple(
     for (let i = 0; i < model.length; i++) {
         const itemType = model[i];
         const idx = indexPrefix ? `${indexPrefix}[${i}]` : String(i);
-        const elem = tmpId(ctx);
+        const elem = letId(ctx);
         readField(ctx, itemType as Type, offsetVar, elem);
         push(ctx, `${target}[${idx}] = ${elem};`);
     }
@@ -634,7 +660,7 @@ function generateReadObject(ctx: CodegenContext, model: Model, offsetVar: string
         const keyGroups = getDotGroups(modelKey);
         if (keyGroups) {
             const { dynamicType, dynamicLength } = keyGroups;
-            const val = tmpId(ctx);
+            const val = letId(ctx);
             readDynamicOrStatic(
                 ctx,
                 modelType as string,
@@ -650,7 +676,7 @@ function generateReadObject(ctx: CodegenContext, model: Model, offsetVar: string
         if (typeof modelType === 'string') {
             const typeGroups = getDotGroups(modelType);
             if (typeGroups) {
-                const val = tmpId(ctx);
+                const val = letId(ctx);
                 readDynamicOrStatic(
                     ctx,
                     typeGroups.dynamicType,
@@ -664,7 +690,7 @@ function generateReadObject(ctx: CodegenContext, model: Model, offsetVar: string
             }
         }
 
-        const val = tmpId(ctx);
+        const val = letId(ctx);
         readField(ctx, modelType, offsetVar, val);
         push(ctx, `${structProp(target, modelKey)} = ${val};`);
     }
@@ -712,8 +738,8 @@ function generateWriteObject(ctx: CodegenContext, model: Model, offsetVar: strin
     }
 }
 
-function createContext(endian: Endian, mode: CodegenMode, useChunks: boolean, accumulateSize = false): CodegenContext {
-    return { endian, mode, lines: [], counter: 0, useChunks, accumulateSize };
+function createContext(endian: Endian, mode: CodegenMode, useChunks: boolean, accumulateSize = false, hoist?: Hoist): CodegenContext {
+    return { endian, mode, lines: [], counter: 0, useChunks, accumulateSize, loopDepth: 0, hoist };
 }
 
 function isChunkMake(ctx: CodegenContext): boolean {
@@ -721,6 +747,9 @@ function isChunkMake(ctx: CodegenContext): boolean {
 }
 
 export function generateReadBody(model: Model, endian: Endian): string {
+    const fast = tryGenerateReadBodyFast(model, endian);
+    if (fast !== null) return fast;
+
     const ctx = createContext(endian, 'read', false);
     push(ctx, 'off = off || 0;');
     push(ctx, 'let o = off;');
@@ -737,18 +766,113 @@ export function generateReadBody(model: Model, endian: Endian): string {
     return ctx.lines.join('\n');
 }
 
+/**
+ * Fast path for static (fixed-layout) models: emits a single expression per
+ * field at a constant offset (`off + N`) folded straight into the returned
+ * object literal — no offset cursor, no temp vars, no intermediate struct
+ * object. Generated shape (for `{ a: 'u8', b: 'i16' }`):
+ *
+ *   off = off || 0;
+ *   return { struct: { "a": buf.readUInt8(off), "b": buf.readInt16LE(off + 1) }, offset: off + 3, size: 3 };
+ *
+ * Unsupported constructs (dynamic lengths, arrays, enums, dot-group keys,
+ * trailing zero strings, top-level tuples) throw ReadFastBail and the caller
+ * falls back to the cursor-based generator — behavior is identical either way.
+ */
+class ReadFastBail extends Error {}
+
+function fastOffsetExpr(offset: number): string {
+    return offset === 0 ? 'off' : `off + ${offset}`;
+}
+
+function readFastLeaf(endian: Endian, modelType: Type, cursor: { value: number }): string {
+    const at = fastOffsetExpr(cursor.value);
+
+    if (typeof modelType === 'string') {
+        if (getDotGroups(modelType)) throw new ReadFastBail('dot-group type');
+        const atom = getAtomSpec(modelType, endian);
+        if (atom) {
+            cursor.value += atom.size;
+            return atom.readExpr(at);
+        }
+        const sized = parseSizedAtom(modelType);
+        if (!sized) throw new ReadFastBail(`unknown type "${modelType}"`);
+        const special = getSpecialType(sized.base);
+        if (special === SpecialType.String) {
+            if (sized.size === 0) throw new ReadFastBail('trailing string');
+            cursor.value += sized.size;
+            return `buf.toString('utf8', ${at}, ${at} + ${sized.size}).split('\\0')[0]`;
+        }
+        if (special === SpecialType.WString) {
+            if (sized.size === 0) throw new ReadFastBail('trailing wstring');
+            const bytes = sized.size * 2;
+            cursor.value += bytes;
+            return `buf.toString('utf16le', ${at}, ${at} + ${bytes}).split('\\u0000')[0]`;
+        }
+        if (special === SpecialType.Buffer) {
+            if (sized.size === 0) throw new ReadFastBail('zero buffer');
+            cursor.value += sized.size;
+            return `buf.slice(${at}, ${at} + ${sized.size})`;
+        }
+        if (special === SpecialType.Json) {
+            if (sized.size === 0) throw new ReadFastBail('trailing json');
+            cursor.value += sized.size;
+            return `JSON.parse(buf.toString('utf8', ${at}, ${at} + ${sized.size}).split('\\0')[0])`;
+        }
+        throw new ReadFastBail(`unsupported special "${modelType}"`);
+    }
+
+    if (Array.isArray(modelType)) {
+        const items = (modelType as ModelValue[]).map((t) => readFastLeaf(endian, t as Type, cursor));
+        return `[${items.join(', ')}]`;
+    }
+
+    if (isEnumModel(modelType)) throw new ReadFastBail('enum');
+
+    // Nested object model — recurse into an inline object literal.
+    const entries: string[] = [];
+    for (const [modelKey, fieldType] of Object.entries(modelType as Model)) {
+        if (getDotGroups(modelKey)) throw new ReadFastBail('dot-group key');
+        entries.push(`${JSON.stringify(modelKey)}: ${readFastLeaf(endian, fieldType as Type, cursor)}`);
+    }
+    return `{ ${entries.join(', ')} }`;
+}
+
+function tryGenerateReadBodyFast(model: Model, endian: Endian): string | null {
+    if (typeof model !== 'object' || model === null || Array.isArray(model) || isEnumModel(model as EnumModel)) {
+        return null; // top-level tuples/enums keep the cursor path
+    }
+    try {
+        const cursor = { value: 0 };
+        const entries = Object.entries(model).map(([modelKey, modelType]) => {
+            if (getDotGroups(modelKey)) throw new ReadFastBail('dot-group key');
+            return `${JSON.stringify(modelKey)}: ${readFastLeaf(endian, modelType as Type, cursor)}`;
+        });
+        const total = cursor.value;
+        return [
+            'off = off || 0;',
+            `return { struct: { ${entries.join(', ')} }, offset: ${fastOffsetExpr(total)}, size: ${total} };`,
+        ].join('\n');
+    } catch (e) {
+        if (e instanceof ReadFastBail) return null;
+        throw e;
+    }
+}
+
 export function generateWriteBody(model: Model, endian: Endian): string {
-    const sizeCtx = createContext(endian, 'write', false, true);
+    const hoist: Hoist = { lines: [], vars: new Map() };
+    const sizeCtx = createContext(endian, 'write', false, true, hoist);
     push(sizeCtx, 'let size = 0;');
     generateWriteObject(sizeCtx, model, 'o', 'struct');
 
-    const writeCtx = createContext(endian, 'write', false, false);
+    const writeCtx = createContext(endian, 'write', false, false, hoist);
     writeCtx.counter = sizeCtx.counter;
     push(writeCtx, 'let o = off;');
     generateWriteObject(writeCtx, model, 'o', 'struct');
 
     return [
         'off = off || 0;',
+        ...hoist.lines,
         ...sizeCtx.lines,
         'if (size > buf.length - off) throw new Error("Write buffer is too short. Needs " + (size - (buf.length - off)) + " byte/s more.");',
         ...writeCtx.lines,
@@ -758,16 +882,18 @@ export function generateWriteBody(model: Model, endian: Endian): string {
 
 export function generateMakeBody(model: Model, endian: Endian, useChunks: boolean, staticSize: number): string {
     if (useChunks) {
-        const sizeCtx = createContext(endian, 'make', false, true);
+        const hoist: Hoist = { lines: [], vars: new Map() };
+        const sizeCtx = createContext(endian, 'make', false, true, hoist);
         push(sizeCtx, 'let size = 0;');
         generateWriteObject(sizeCtx, model, 'o', 'struct');
 
-        const writeCtx = createContext(endian, 'make', false, false);
+        const writeCtx = createContext(endian, 'make', false, false, hoist);
         writeCtx.counter = sizeCtx.counter;
         push(writeCtx, 'let o = 0;');
         generateWriteObject(writeCtx, model, 'o', 'struct');
 
         return [
+            ...hoist.lines,
             ...sizeCtx.lines,
             'const buf = Buffer.allocUnsafe(size);',
             ...writeCtx.lines,

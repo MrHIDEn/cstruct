@@ -12,6 +12,13 @@ export interface ModelAnalysis {
     staticSize: number;
 }
 
+export interface Hoist {
+    /** Preamble lines emitted once, before both the size and write passes. */
+    lines: string[];
+    /** Maps a field path (e.g. `struct["meta"]`) to its hoisted temp variable. */
+    vars: Map<string, string>;
+}
+
 export interface CodegenContext {
     endian: Endian;
     mode: CodegenMode;
@@ -20,6 +27,10 @@ export interface CodegenContext {
     useChunks: boolean;
     /** When true (make mode), emit `size += …` instead of buffer writes. */
     accumulateSize?: boolean;
+    /** Nesting depth of emitted runtime loops (0 = top level, hoistable). */
+    loopDepth: number;
+    /** Shared hoist target across the two passes (write/make). */
+    hoist?: Hoist;
 }
 
 export type ParsedModel = Model;
